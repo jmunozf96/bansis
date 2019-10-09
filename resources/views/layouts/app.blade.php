@@ -13,7 +13,7 @@
     @stack('scripts')
     <script src="{{ asset('js/app.js') }}" defer></script>
 
-<!-- Fonts -->
+    <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
     <!-- Styles -->
@@ -51,21 +51,65 @@
                         </li>
                     @endif
                     @else
+                        @php
+                            $padre_id = array(1,2)
+                        @endphp
+
+                        @foreach($padre_id as $data)
+                            @php $padre = $data @endphp
+                            @foreach($recursos as $recurso)
+                                @if(trim($recurso->PadreID) == trim($padre))
+                                    @php $padre1 = $recurso->ID @endphp
+                                    <li class="nav-item dropdown">
+                                        <a id="navbarDropdown1" class="nav-link dropdown-toggle" href="#" role="button"
+                                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                            {{$recurso->Nombre}}
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right"
+                                             aria-labelledby="navbarDropdown1">
+                                            @foreach($recursos as $recurso1)
+                                                @if(trim($recurso1->PadreID) == trim($padre1))
+                                                    @php $padre2 = $recurso1->ID @endphp
+                                                    <a class="dropdown-item disabled" href="#">
+                                                        {{$recurso1->Nombre}}
+                                                    </a>
+                                                    <div class="dropdown-divider"></div>
+                                                    @foreach($recursos as $recurso2)
+                                                        @if(trim($recurso2->PadreID) == trim($padre2))
+                                                            <a class="dropdown-item"
+                                                               href="{{route('url', [
+                                                               'modulo' => strtolower($recurso2->modulo),
+                                                               'objeto' => strtolower($recurso2->objeto),
+                                                               'idRecurso' => $recurso2->ID])}}">
+                                                                <i class="{{$recurso2->icono}}"></i> {{explode('-',$recurso2->Nombre)[1]}}
+                                                            </a>
+                                                        @endif
+                                                    @endforeach
+                                                    <div class="dropdown-divider"></div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </li>
+                                @endif
+                            @endforeach
+                        @endforeach
+
                         <li class="nav-item dropdown">
                             <a id="navbarDropdown1" class="nav-link dropdown-toggle" href="#" role="button"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                Empacadora
+                                EMPACADORA
                             </a>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown1">
                                 <a class="dropdown-item" href="{{route('empacadora.cajas')}}">
-                                    Cajas
+                                    CAJAS
                                 </a>
                             </div>
                         </li>
+
                         <li class="nav-item dropdown">
                             <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                {{ Auth::user()->name }} <span class="caret"></span>
+                                {{ strtoupper(Auth::user()->Nombre) }} <span class="caret"></span>
                             </a>
 
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">

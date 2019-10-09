@@ -15,10 +15,13 @@ class User extends Authenticatable
      *
      * @var array
      */
+    protected $connection = 'sqlsrv';
     protected $dateFormat = 'M j Y h:i:s';
+    protected $table = 'SEG_USUARIOS';
+    protected $primaryKey = 'ID';
 
     protected $fillable = [
-        'name', 'email', 'password',
+        'Nombre', 'password',
     ];
 
     /**

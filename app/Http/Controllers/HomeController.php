@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Perfil\PerfilController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
+    protected $perfil;
+
     public function __construct()
     {
+        $this->perfil = new PerfilController();
         $this->middleware('auth');
     }
 
@@ -23,6 +24,9 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $recursos = $this->perfil->getRecursos(Auth::user()->ID);
+        return view('home', [
+            'recursos' => $recursos
+        ]);
     }
 }

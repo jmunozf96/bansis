@@ -22,10 +22,17 @@ Route::get('/empacadora/{hacienda}/{datefrom}/{dateuntil}/{access_token?}',
         'as' => "empacadora.cajas"
     ]);*/
 
-Auth::routes();
+//Auth::routes();
+
+Route::get('/login', 'Auth\LoginController@showLoginForm')->name('login');
+Route::post('login', 'Auth\LoginController@login');
+Route::post('/logout', 'Auth\LoginController@logout')->name('logout');
 
 Route::get('/', 'HomeController@index')->name('home');
-Route::get('/empacadora/cajas','PruebasController@cajas')->name('empacadora.cajas');
+
+Route::get('/sistema/{modulo}/{objeto}/{idRecurso}', 'Perfil\AccessbyUrlController@url')->name('url');
+
+Route::get('/empacadora/cajas', 'PruebasController@cajas')->name('empacadora.cajas');
 Route::get('/empacadora/cajas/api-allweitghts/{hacienda}/{datefrom}/{dateuntil}/{access_token?}',
     'PruebasController@getDataApi')
     ->middleware('checkhacienda')

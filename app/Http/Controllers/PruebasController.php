@@ -2,18 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Perfil\PerfilController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PruebasController extends Controller
 {
+    protected $perfil;
+
     public function __construct()
     {
+        $this->perfil = new PerfilController();
         $this->middleware('auth');
     }
 
     public function cajas()
     {
-        return view('empacadora.cajas');
+        $recursos = $this->perfil->getRecursos(Auth::user()->ID);
+        return view('empacadora.cajas', [
+            'recursos' => $recursos
+        ]);
     }
 
     public function getDataApi($hacienda, $datefrom, $dateuntil, $access_token = 'd8f1a9e7-7697-4f92-b07b-20ad743f9112')
