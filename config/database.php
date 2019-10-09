@@ -91,6 +91,18 @@ return [
             'prefix_indexes' => true,
         ],
 
+        'xass' => [
+            'driver' => 'sqlsrv',
+            'host' => '192.168.191.1',
+            'port' => '1433',
+            'database' => 'PRIMOBANANO',
+            'username' => 'Sa',
+            'password' => '123456',
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
+
     ],
 
     /*

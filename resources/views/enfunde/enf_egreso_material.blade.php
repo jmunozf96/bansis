@@ -36,7 +36,7 @@
                                 <div class="card-body ">
                                     <div class="container-fluid p-0">
                                         <div class="form-row">
-                                            <div class="form-group col-2">
+                                            <div class="form-group col-md-2">
                                                 <label>Codigo Empleado</label>
                                                 <div class="input-group flex-nowrap">
                                                     <div class="input-group-prepend">
@@ -44,18 +44,32 @@
                                                     <i class="fas fa-barcode"></i>
                                                     </span>
                                                     </div>
-                                                    <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="addon-wrapping">
+                                                    <input type="text" class="form-control" placeholder="Username"
+                                                           aria-label="Username" aria-describedby="addon-wrapping">
                                                 </div>
                                             </div>
-                                            <div class="form-group col-7">
+                                            <div class="form-group col-md-7">
                                                 <label>Nombre | Apellido - Empleado</label>
-                                                <input type="text" class="form-control" placeholder="Empleado">
+                                                <input type="text" class="form-control" placeholder="Empleado"
+                                                id="nombre-empleado">
                                                 <small>Buscar empleado por nombre o apellido</small>
+                                            </div>
+                                            <div class="form-group col-md-3">
+                                                <label>Bodega</label>
+                                                <select class="selectpicker show-tick form-control"
+                                                        data-live-search="true"
+                                                        id="id-hacienda">
+                                                    @foreach($bodegas as $bodega)
+                                                        <option>{{$bodega->Nombre}}</option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <enfunde-registro></enfunde-registro>
                         </div>
                     </div>
                 </div>

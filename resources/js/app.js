@@ -9,6 +9,7 @@ require('bootstrap-select');
 require('bootstrap-daterangepicker');
 require('moment');
 require('chart.js');
+require('easy-autocomplete');
 
 window.Vue = require('vue');
 
@@ -19,6 +20,7 @@ window.Vue = require('vue');
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('empacadora-cajas', require('./components/empacadora/cajas.vue').default);
+Vue.component('enfunde-registro', require('./components/enfunde/enf_registro.vue').default);
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application
