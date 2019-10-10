@@ -31,18 +31,11 @@ class AccessbyUrlController extends Controller
             return view($modulo . '.' . $idRecurso, [
                 'recursos' => $recursos,
                 'semana' => $this->utilidades->getSemana(),
-                'bodegas' => $this->Bodegas()
+                'bodegas' => $this->utilidades->Bodegas()
             ]);
         }
 
         return redirect('/');
 
     }
-
-    public function Bodegas()
-    {
-        $bodegas = XASS_InvBodegas::all();
-        return $bodegas;
-    }
-
 }

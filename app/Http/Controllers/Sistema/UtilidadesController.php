@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Sistema;
 
 use App\Calendario;
+use App\XASS_InvBodegas;
 use App\XASS_InvProductos;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -32,5 +33,11 @@ class UtilidadesController extends Controller
                 $query->where('Estado', '=', 1);
             }])->get();
         return $productos;
+    }
+
+    public function Bodegas()
+    {
+        $bodegas = XASS_InvBodegas::all();
+        return $bodegas;
     }
 }

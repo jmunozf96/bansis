@@ -50,9 +50,9 @@
                                 <label>Bodega</label>
                                 <select class="selectpicker show-tick form-control"
                                         data-live-search="true"
-                                        id="id-hacienda">
+                                        id="bodega">
                                     @foreach($bodegas as $bodega)
-                                        <option>{{$bodega->Nombre}}</option>
+                                        <option value="{{$bodega->Id_Fila}}">{{$bodega->Nombre}}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -106,7 +106,7 @@
                                 <input type="hidden" id="codigo-producto">
                                 <input type="text" class="form-control  form-control-lg text-dark"
                                        placeholder="Buscar producto"
-                                       id="nombre-producto"
+                                       id="nombre-producto" style="font-size: 20px"
                                        oninput="this.value = this.value.toUpperCase()">
                             </div>
                         </div>
@@ -131,7 +131,7 @@
             </div>
             <div class="container-fluid col-md-12 mt-2">
                 <div class="card">
-                    <div class="card-body">
+                    <div class="card-body p-0">
                         <enfunde-registro></enfunde-registro>
                     </div>
                 </div>

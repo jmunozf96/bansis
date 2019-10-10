@@ -1,5 +1,18 @@
 <template>
-
+    <div class="container-fluid p-0">
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr class="text-center">
+                <th scope="col" style="width: 15%">Fecha</th>
+                <th scope="col">Detalle</th>
+                <th scope="col" style="width: 15%">Cantidad</th>
+                <th scope="col" style="width: 15%">Accion</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 </template>
 
 <script>
@@ -34,14 +47,19 @@
                 var object = this;
                 var options = {
                     url: function (criterio) {
-                        return `/sistema/empleados/${criterio}`;
+                        return `/api/empleados/${criterio}`;
                     },
                     getValue: "nombre",
                     ajaxSettings: {
                         method: 'GET',
                         dataType: "json"
                     },
+                    theme: "green-light",
                     list: {
+                        maxNumberOfElements: 5,
+                        match: {
+                            enabled: true
+                        },
                         onClickEvent: function () {
                             var data = $('#nombre-empleado').getSelectedItemData();
                             $('#codigo-empleado').val(data.codigo);
@@ -65,27 +83,35 @@
                 });
             },
             getAutocompleteProducto: function () {
-                var object = this;
                 var options = {
                     url: function (criterio) {
+                        var bodega = $('#bodega').val();
 
-                        return `/productos/5/${criterio}`;
+                        if (bodega == '') {
+                            alert("Seleccione una bodega");
+                            return;
+                        }
+
+                        return `/api/productos/${bodega}/${criterio}`;
                     },
                     getValue: "nombre",
                     ajaxSettings: {
                         method: 'GET',
                         dataType: "json"
                     },
+                    theme: "green-light",
                     list: {
+                        maxNumberOfElements: 5,
+                        match: {
+                            enabled: true
+                        },
                         onClickEvent: function () {
                             var data = $('#nombre-producto').getSelectedItemData();
                             $('#codigo-producto').val(data.codigo);
-                            object.empleado = data.codigo;
                         },
                         onKeyEnterEvent: function () {
                             var data = $('#nombre-producto').getSelectedItemData();
                             $('#codigo-producto').val(data.codigo);
-                            object.empleado = data.codigo;
                         },
                     }
                 };

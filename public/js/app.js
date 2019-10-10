@@ -2284,6 +2284,19 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 /* harmony default export */ __webpack_exports__["default"] = ({
@@ -2312,14 +2325,19 @@ __webpack_require__.r(__webpack_exports__);
       var object = this;
       var options = {
         url: function url(criterio) {
-          return "/sistema/empleados/".concat(criterio);
+          return "/api/empleados/".concat(criterio);
         },
         getValue: "nombre",
         ajaxSettings: {
           method: 'GET',
           dataType: "json"
         },
+        theme: "green-light",
         list: {
+          maxNumberOfElements: 5,
+          match: {
+            enabled: true
+          },
           onClickEvent: function onClickEvent() {
             var data = $('#nombre-empleado').getSelectedItemData();
             $('#codigo-empleado').val(data.codigo);
@@ -2342,26 +2360,35 @@ __webpack_require__.r(__webpack_exports__);
       });
     },
     getAutocompleteProducto: function getAutocompleteProducto() {
-      var object = this;
       var options = {
         url: function url(criterio) {
-          return "/productos/5/".concat(criterio);
+          var bodega = $('#bodega').val();
+
+          if (bodega == '') {
+            alert("Seleccione una bodega");
+            return;
+          }
+
+          return "/api/productos/".concat(bodega, "/").concat(criterio);
         },
         getValue: "nombre",
         ajaxSettings: {
           method: 'GET',
           dataType: "json"
         },
+        theme: "green-light",
         list: {
+          maxNumberOfElements: 5,
+          match: {
+            enabled: true
+          },
           onClickEvent: function onClickEvent() {
             var data = $('#nombre-producto').getSelectedItemData();
             $('#codigo-producto').val(data.codigo);
-            object.empleado = data.codigo;
           },
           onKeyEnterEvent: function onKeyEnterEvent() {
             var data = $('#nombre-producto').getSelectedItemData();
             $('#codigo-producto').val(data.codigo);
-            object.empleado = data.codigo;
           }
         }
       };
@@ -80348,9 +80375,44 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div")
+  return _vm._m(0)
 }
-var staticRenderFns = []
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "container-fluid p-0" }, [
+      _c("table", { staticClass: "table table-bordered table-hover" }, [
+        _c("thead", [
+          _c("tr", { staticClass: "text-center" }, [
+            _c(
+              "th",
+              { staticStyle: { width: "15%" }, attrs: { scope: "col" } },
+              [_vm._v("Fecha")]
+            ),
+            _vm._v(" "),
+            _c("th", { attrs: { scope: "col" } }, [_vm._v("Detalle")]),
+            _vm._v(" "),
+            _c(
+              "th",
+              { staticStyle: { width: "15%" }, attrs: { scope: "col" } },
+              [_vm._v("Cantidad")]
+            ),
+            _vm._v(" "),
+            _c(
+              "th",
+              { staticStyle: { width: "15%" }, attrs: { scope: "col" } },
+              [_vm._v("Accion")]
+            )
+          ])
+        ]),
+        _vm._v(" "),
+        _c("tbody")
+      ])
+    ])
+  }
+]
 render._withStripped = true
 
 

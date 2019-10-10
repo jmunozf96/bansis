@@ -31,9 +31,10 @@ Route::post('/logout', 'Auth\LoginController@logout')->name('logout');
 Route::get('/', 'HomeController@index')->name('home');
 
 Route::get('/sistema/{modulo}/{objeto}/{idRecurso}', 'Perfil\AccessbyUrlController@url')->name('url');
-Route::get('/sistema/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');
-Route::get('/sistema/calendario/{fecha?}', 'Sistema\UtilidadesController@getSemana')->name('calendario');
-Route::get('/productos/{bodega}/{criterio}', 'Sistema\UtilidadesController@getProductos')->name('productos');
+
+Route::get('/api/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');
+Route::get('/api/calendario/{fecha?}', 'Sistema\UtilidadesController@getSemana')->name('calendario');
+Route::get('/api/productos/{bodega}/{criterio}', 'Sistema\UtilidadesController@getProductos')->name('productos');
 
 Route::get('/empacadora/cajas', 'PruebasController@cajas')->name('empacadora.cajas');
 Route::get('/empacadora/cajas/api-allweitghts/{hacienda}/{datefrom}/{dateuntil}/{access_token?}',
