@@ -8,10 +8,10 @@ class XASS_InvProductos extends Model
 {
     protected $connection = 'xass';
     protected $table = 'SGI_Inv_Productos';
-    protected $primaryKey = 'Id_Fila';
+    protected $primaryKey = 'id_fila';
 
-    public function bodegas()
+    public function bodega()
     {
-        return $this->hasOne('App\XASS_InvBodegas');
+        return $this->hasOne('App\XASS_InvBodegas', 'Id_Fila', 'bodegacompra');
     }
 }

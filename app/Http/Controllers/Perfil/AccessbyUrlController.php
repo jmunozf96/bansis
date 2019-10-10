@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Perfil;
 
+use App\Empleado;
+use App\Http\Controllers\Sistema\UtilidadesController;
 use App\XASS_InvBodegas;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -11,12 +13,14 @@ use Illuminate\Support\Facades\Session;
 class AccessbyUrlController extends Controller
 {
     protected $perfil;
+    protected $utilidades;
 
     function __construct()
     {
-        $this->perfil = new PerfilController();
         $this->middleware('auth');
         $this->middleware('AccesoURL');
+        $this->perfil = new PerfilController();
+        $this->utilidades = new UtilidadesController();
     }
 
     public function url($modulo, $idRecurso, $objeto)
@@ -26,6 +30,7 @@ class AccessbyUrlController extends Controller
         if (view()->exists($modulo . '.' . $idRecurso)) {
             return view($modulo . '.' . $idRecurso, [
                 'recursos' => $recursos,
+                'semana' => $this->utilidades->getSemana(),
                 'bodegas' => $this->Bodegas()
             ]);
         }
@@ -39,4 +44,5 @@ class AccessbyUrlController extends Controller
         $bodegas = XASS_InvBodegas::all();
         return $bodegas;
     }
+
 }

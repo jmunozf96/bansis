@@ -2276,18 +2276,104 @@ __webpack_require__.r(__webpack_exports__);
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var bootstrap_daterangepicker_daterangepicker_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bootstrap-daterangepicker/daterangepicker.css */ "./node_modules/bootstrap-daterangepicker/daterangepicker.css");
+/* harmony import */ var bootstrap_daterangepicker_daterangepicker_css__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bootstrap_daterangepicker_daterangepicker_css__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var moment_moment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! moment/moment */ "./node_modules/moment/moment.js");
+/* harmony import */ var moment_moment__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(moment_moment__WEBPACK_IMPORTED_MODULE_1__);
 //
 //
 //
 //
+
+
 /* harmony default export */ __webpack_exports__["default"] = ({
-  mounted: function mounted() {
-    console.log("Montado");
-    var options = {
-      data: ["blue", "green", "pink", "red", "yellow"]
+  data: function data() {
+    return {
+      hacienda: $('#id-hacienda').val(),
+      fecha: $('#fecha').val(),
+      empleado: '',
+      despacho: []
     };
-    $("#nombre-empleado").easyAutocomplete(options);
+  },
+  mounted: function mounted() {
+    moment_moment__WEBPACK_IMPORTED_MODULE_1___default.a.locale('es');
+    this.getAutocompleteEmpleado();
+    this.getAutocompleteProducto();
     $("div.easy-autocomplete").removeAttr('style');
+    $('input[name="fecha"]').daterangepicker({
+      opens: 'center',
+      startDate: moment_moment__WEBPACK_IMPORTED_MODULE_1___default()().startOf('day'),
+      singleDatePicker: true,
+      showDropdowns: true
+    });
+  },
+  methods: {
+    getAutocompleteEmpleado: function getAutocompleteEmpleado() {
+      var object = this;
+      var options = {
+        url: function url(criterio) {
+          return "/sistema/empleados/".concat(criterio);
+        },
+        getValue: "nombre",
+        ajaxSettings: {
+          method: 'GET',
+          dataType: "json"
+        },
+        list: {
+          onClickEvent: function onClickEvent() {
+            var data = $('#nombre-empleado').getSelectedItemData();
+            $('#codigo-empleado').val(data.codigo);
+            object.empleado = data.codigo;
+          },
+          onKeyEnterEvent: function onKeyEnterEvent() {
+            var data = $('#nombre-empleado').getSelectedItemData();
+            $('#codigo-empleado').val(data.codigo);
+            object.empleado = data.codigo;
+          }
+        }
+      };
+      $("#nombre-empleado").easyAutocomplete(options);
+      $("#nombre-empleado").on({
+        change: function change() {
+          if ($(this).val() == '') {
+            $('#codigo-empleado').val('');
+          }
+        }
+      });
+    },
+    getAutocompleteProducto: function getAutocompleteProducto() {
+      var object = this;
+      var options = {
+        url: function url(criterio) {
+          return "/productos/5/".concat(criterio);
+        },
+        getValue: "nombre",
+        ajaxSettings: {
+          method: 'GET',
+          dataType: "json"
+        },
+        list: {
+          onClickEvent: function onClickEvent() {
+            var data = $('#nombre-producto').getSelectedItemData();
+            $('#codigo-producto').val(data.codigo);
+            object.empleado = data.codigo;
+          },
+          onKeyEnterEvent: function onKeyEnterEvent() {
+            var data = $('#nombre-producto').getSelectedItemData();
+            $('#codigo-producto').val(data.codigo);
+            object.empleado = data.codigo;
+          }
+        }
+      };
+      $("#nombre-producto").easyAutocomplete(options);
+      $("#nombre-producto").on({
+        change: function change() {
+          if ($(this).val() == '') {
+            $('#codigo-producto').val('');
+          }
+        }
+      });
+    }
   }
 });
 

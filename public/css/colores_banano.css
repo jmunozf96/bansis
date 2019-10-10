@@ -1,0 +1,65 @@
+.rojo {
+    background-color: #c62323;
+}
+
+.cafe {
+    background-color: #715000;
+}
+
+.negro {
+    background-color: #000000;
+}
+
+.verde {
+    background-color: #2c8c30;
+}
+
+.azul {
+    background-color: #24447f;
+}
+
+.blanco {
+    background-color: #ffffff;
+}
+
+.amarillo {
+    background-color: #e1df29;
+}
+
+.lila {
+    background-color: #5d29e1;
+}
+
+
+/*Colores en input de enfunde*/
+.form-control.rojo1[disabled], .form-control.rojo1[readonly]{
+    background-color: #c62323;
+}
+
+.form-control.cafe1[disabled], .form-control.cafe1[readonly]{
+    background-color: #715000;
+}
+
+.form-control.negro1[disabled], .form-control.negro1[readonly]{
+    background-color: #000000;
+}
+
+.form-control.verde1[disabled], .form-control.verde1[readonly]{
+    background-color: #2c8c30;
+}
+
+.form-control.azul1[disabled], .form-control.azul1[readonly]{
+    background-color: #24447f;
+}
+
+.form-control.blanco1[disabled], .form-control.blanco1[readonly]{
+    background-color: #ffffff;
+}
+
+.form-control.amarillo1[disabled], .form-control.amarillo1[readonly]{
+    background-color: #ffff00;
+}
+
+.form-control.lila1[disabled], .form-control.lila1[readonly]{
+    background-color: #5d29e1;
+}
