@@ -149,7 +149,7 @@
                 <div class="card">
                     <div class="card-body p-0">
                         <div class="container-fluid p-0">
-                            <enfunde-registro></enfunde-registro>
+                            <enfunde-egreso></enfunde-egreso>
                             <div class="form-row ml-2 mr-2 mb-3">
                                 <input id="detalle-total" type="text" style="font-size: 22px"
                                        class="form-control form-control-lg bg-white text-right" disabled>
