@@ -22,7 +22,7 @@ class CreateEgresosTable extends Migration
             $table->integer('idempleado');
             $table->float('total');
             $table->float('saldo');
-            $table->binary('status');
+            $table->boolean('status');
             $table->string('user')->nullable();
             $table->string('pcID')->nullable();
             $table->timestamps();

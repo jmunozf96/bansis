@@ -21,9 +21,9 @@ class CreateDetegresosTable extends Migration
             $table->integer('idbodega')->nullable();
             $table->integer('idmaterial');
             $table->float('cantidad');
-            $table->binary('presente')->nullable();
-            $table->binary('futuro')->nullable();
-            $table->binary('status')->nullable();
+            $table->boolean('presente')->nullable();
+            $table->boolean('futuro')->nullable();
+            $table->boolean('status')->nullable();
             $table->timestamps();
 
             $table->foreign('id_egreso')

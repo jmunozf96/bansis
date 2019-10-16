@@ -32,7 +32,7 @@
             <td style="font-size: 16px">{{egreso.desmaterial}}</td>
             <td class="text-center" style="font-size: 16px">
                     <span v-if="egreso.presente">
-                        <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial">
+                        <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha">
                             <input class="form-control text-center cantidad-despacho" ref="cant" style="font-size: 16px"
                                    v-model="despacho.cantidad"
                                    v-on:focusout=""
@@ -46,7 +46,7 @@
             </td>
             <td class="text-center" style="font-size: 16px">
                     <span v-if="egreso.futuro">
-                        <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial">
+                        <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha">
                             <input class="form-control text-center cantidad-despacho" ref="cant" style="font-size: 16px"
                                    v-model="despacho.cantidad"
                                    v-on:focusout=""
@@ -67,7 +67,6 @@
     import 'bootstrap-daterangepicker/daterangepicker.css';
     import moment from 'moment/moment';
     import SweetAlert from 'sweetalert2/src/sweetalert2';
-    import axios from'axios';
 
     const Swal = SweetAlert;
     export default{
@@ -90,7 +89,7 @@
             }
         },
         mounted(){
-            var funcion = this;
+            var self = this;
             moment.locale('es');
 
             $('#nombre-producto').attr('disabled', true);
@@ -112,7 +111,7 @@
 
             $('input[name="fecha"]').on({
                 change: function () {
-                    funcion.fecha = $(this).val();
+                    self.fecha = $(this).val();
                 }
             });
 
@@ -154,8 +153,8 @@
                         estado: 0
                     };
 
-                    funcion.addDespacho(egreso);
-                    $('#detalle-total').val(funcion.totalizaDespacho());
+                    self.addDespacho(egreso);
+                    $('#detalle-total').val(self.totalizaDespacho());
 
                     idmaterial.val('');
                     des_material.val('');
@@ -163,6 +162,32 @@
                     des_material.focus();
                 }
             });
+
+            $('#btn-save').on({
+                click: function (e) {
+                    e.preventDefault();
+
+                    let object_data = {
+                        fecha: self.fecha,
+                        semana: $('#semana').val(),
+                        hacienda: self.hacienda,
+                        idempleado: self.empleado,
+                        total: self.totalizar(),
+                        saldo: 0,
+                        status: 0,
+                        despachos: self.despachos
+                    };
+
+                    console.log(object_data);
+                    axios.post('/sistema/enfunde/save', object_data)
+                        .then(response => {
+                            console.log(response)
+                        })
+                        .catch(error => {
+                            console.log(error.response)
+                        });
+                }
+            })
         },
         methods: {
             addDespacho: function (data) {
@@ -206,6 +231,13 @@
                     }
                 });
                 return false;
+            },
+            totalizar: function () {
+                var total = 0;
+                for (var i in this.despachos) {
+                    total += parseInt(this.despachos[i].cantidad);
+                }
+                return total;
             },
             totalizaDespacho: function () {
                 let string = 'TOTAL DESPACHO SEMANA ' + $('#semana').val() + ': ';

@@ -9,6 +9,7 @@ class ENF_EGRESO extends Model
     protected $connection = 'sqlsrv';
     protected $table = 'ENF_EGRESOS';
     protected $primaryKey = 'id';
+    protected $dateFormat = 'M j Y h:i:s';
 
     public function get_det_egresos()
     {
@@ -19,4 +20,5 @@ class ENF_EGRESO extends Model
     {
         return $this->hasOne('App\Empleado', 'COD_TRABAJ', 'idempleado');
     }
+
 }

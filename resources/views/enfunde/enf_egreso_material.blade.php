@@ -159,7 +159,7 @@
                     <div class="card-footer">
                         <div class="form-row float-right">
                             <div class="btn-group" role="group" aria-label="Basic example">
-                                <button type="button" class="btn btn-success btn-lg">
+                                <button type="button" class="btn btn-success btn-lg" id="btn-save">
                                     <i class="fas fa-save"></i> Guardar
                                 </button>
                                 <button type="button" class="btn btn-primary btn-lg" onclick="window.location.reload()">

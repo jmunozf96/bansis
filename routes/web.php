@@ -32,6 +32,9 @@ Route::get('/', 'HomeController@index')->name('home');
 
 Route::get('/sistema/{modulo}/{objeto}/{idRecurso}', 'Perfil\AccessbyUrlController@url')->name('url');
 
+//URL Enfunde
+Route::post('/sistema/enfunde/save', 'EgresoController@save');
+
 Route::get('/api/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');
 Route::get('/api/calendario/{fecha?}', 'Sistema\UtilidadesController@getSemana')->name('calendario');
 Route::get('/api/productos/{bodega}/{criterio}', 'Sistema\UtilidadesController@getProductos')->name('productos');
