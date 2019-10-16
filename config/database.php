@@ -79,7 +79,7 @@ return [
         ],
 
         'sqlsrv' => [
-            'driver' => 'sqlsrv',
+            'driver' => env('DB_CONNECTION'),
             'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', 'localhost'),
             'port' => env('DB_PORT', '1433'),

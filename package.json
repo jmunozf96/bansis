@@ -36,6 +36,7 @@
         "jsrender": "^1.0.5",
         "moment": "^2.24.0",
         "react-bootstrap-daterangepicker": "^4.1.0",
+        "sweetalert2": "^8.18.3",
         "vue2-daterange-picker": "^0.3.1"
     }
 }

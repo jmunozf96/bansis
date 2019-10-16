@@ -63,3 +63,13 @@
 .form-control.lila1[disabled], .form-control.lila1[readonly]{
     background-color: #5d29e1;
 }
+
+@-webkit-keyframes marquee {
+    0% {text-indent:100%;}
+    100% {text-indent:-50%}
+}
+
+input.marquee {
+    -webkit-animation: marquee 5s infinite;
+    -webkit-animation-timing-function: linear;
+}

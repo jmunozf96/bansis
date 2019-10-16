@@ -85,7 +85,7 @@
                                         <ul class="list-group list-group-flush">
                                             <li class="list-group-item"><h4>{{caja.last.split(' ')[0]}} - <strong>{{caja.last.split(' ')[1]}}</strong></h4>
                                             </li>
-                                            <li class="list-group-item"><h4><strong>Peso: </strong> {{caja.peso}}</h4>
+                                            <li class="list-group-item"><h4><strong>Peso: </strong> {{caja.peso}} | <strong> Tara: </strong> {{(parseFloat(caja.tara)).toFixed(2)}}</h4>
                                             </li>
                                             <li class="list-group-item"><h4><span
                                                     class="badge badge-pill badge-success">{{caja.porcentajepesadas}}%</span>

@@ -7,7 +7,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Bansis') }}</title>
+    <title>@yield('title', 'Bansis')</title>
 
     <!-- Scripts -->
     @stack('scripts')

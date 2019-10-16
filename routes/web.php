@@ -41,3 +41,5 @@ Route::get('/empacadora/cajas/api-allweitghts/{hacienda}/{datefrom}/{dateuntil}/
     'PruebasController@getDataApi')
     ->middleware('checkhacienda')
     ->name('empacadora.balanza');
+
+

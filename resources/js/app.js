@@ -10,6 +10,7 @@ require('bootstrap-daterangepicker');
 require('moment');
 require('chart.js');
 require('easy-autocomplete');
+require('sweetalert2');
 
 window.Vue = require('vue');
 

@@ -2280,6 +2280,55 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var bootstrap_daterangepicker_daterangepicker_css__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bootstrap_daterangepicker_daterangepicker_css__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var moment_moment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! moment/moment */ "./node_modules/moment/moment.js");
 /* harmony import */ var moment_moment__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(moment_moment__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! sweetalert2/src/sweetalert2 */ "./node_modules/sweetalert2/src/sweetalert2.js");
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -2299,19 +2348,36 @@ __webpack_require__.r(__webpack_exports__);
 //
 
 
+
+var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       hacienda: $('#id-hacienda').val(),
       fecha: $('#fecha').val(),
       empleado: '',
-      despacho: []
+      statusForm: false,
+      despacho: {
+        fecha: '',
+        idmaterial: 0,
+        desmaterial: '',
+        cantidad: 0,
+        presente: 1,
+        futuro: 0,
+        estado: 1
+      },
+      despachos: []
     };
   },
   mounted: function mounted() {
+    var funcion = this;
     moment_moment__WEBPACK_IMPORTED_MODULE_1___default.a.locale('es');
+    $('#nombre-producto').attr('disabled', true);
+    $('#cantidad').attr('disabled', true);
+    $('#add-despacho').attr('disabled', true);
     this.getAutocompleteEmpleado();
     this.getAutocompleteProducto();
+    $('#detalle-total').val(this.totalizaDespacho());
     $("div.easy-autocomplete").removeAttr('style');
     $('input[name="fecha"]').daterangepicker({
       opens: 'center',
@@ -2319,8 +2385,142 @@ __webpack_require__.r(__webpack_exports__);
       singleDatePicker: true,
       showDropdowns: true
     });
+    $('input[name="fecha"]').on({
+      change: function change() {
+        funcion.fecha = $(this).val();
+      }
+    });
+    $('#cantidad').on('keydown', function (e) {
+      if (e.which == 13) {
+        e.preventDefault();
+        $('#add-despacho').click();
+      }
+    });
+    $('#add-despacho').on({
+      click: function click(e) {
+        var fecha,
+            des_material,
+            idmaterial,
+            cantidad,
+            presente = 0,
+            futuro = 0;
+        var radios = $('input[name=status-semana]');
+        fecha = $('#fecha');
+        idmaterial = $('#codigo-producto');
+        des_material = $('#nombre-producto');
+        cantidad = $('#cantidad');
+        presente = radios.filter('[value=presente]').is(':checked');
+        futuro = radios.filter('[value=futuro]').is(':checked');
+
+        if (idmaterial.val() == '') {
+          return;
+        }
+
+        if (cantidad.val() == 0 || cantidad.val() == '') {
+          return;
+        }
+
+        var egreso = {
+          fecha: fecha.val(),
+          idmaterial: idmaterial.val(),
+          desmaterial: des_material.val(),
+          cantidad: cantidad.val(),
+          presente: presente,
+          futuro: futuro,
+          estado: 0
+        };
+        funcion.addDespacho(egreso);
+        $('#detalle-total').val(funcion.totalizaDespacho());
+        idmaterial.val('');
+        des_material.val('');
+        cantidad.val('');
+        des_material.focus();
+      }
+    });
   },
   methods: {
+    addDespacho: function addDespacho(data) {
+      if (!this.existeDespacho(data)) {
+        this.despachos.push(data);
+        return true;
+      } else {
+        return this.editDespacho(data);
+      }
+    },
+    existeDespacho: function existeDespacho(data) {
+      for (var i in this.despachos) {
+        if (data.idmaterial == this.despachos[i].idmaterial) {
+          if (data.fecha == this.despachos[i].fecha) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    },
+    editDespacho: function editDespacho(data) {
+      for (var i in this.despachos) {
+        if (data.idmaterial == this.despachos[i].idmaterial) {
+          if (data.fecha == this.despachos[i].fecha) {
+            this.despachos[i].cantidad = +this.despachos[i].cantidad + +data.cantidad;
+            return true;
+          }
+        }
+      }
+
+      return false;
+    },
+    deleteDespacho: function deleteDespacho(index) {
+      var _this = this;
+
+      var alerta = 'Eliminado!';
+      var mensaje = 'Registro eliminado con éxito!';
+      Swal.fire(this.datasweetalert()).then(function (result) {
+        if (result.value) {
+          Swal.fire(alerta, mensaje, 'success');
+
+          _this.despachos.splice(index, 1);
+
+          $('#detalle-total').val(_this.totalizaDespacho());
+          return true;
+        }
+      });
+      return false;
+    },
+    totalizaDespacho: function totalizaDespacho() {
+      var string = 'TOTAL DESPACHO SEMANA ' + $('#semana').val() + ': ';
+      var total = 0;
+      var presente = 0;
+      var futuro = 0;
+
+      for (var i in this.despachos) {
+        if (this.despachos[i].presente) {
+          presente += parseInt(this.despachos[i].cantidad);
+        } else {
+          futuro += parseInt(this.despachos[i].cantidad);
+        }
+      }
+
+      total = +presente + +futuro;
+      return string + total + ' / PRESENTE: ' + presente + ' / FUTURO: ' + futuro;
+    },
+    editForm: function editForm(index) {
+      this.despacho.fecha = this.despachos[index].fecha;
+      this.despacho.idmaterial = this.despachos[index].idmaterial;
+      this.despacho.cantidad = this.despachos[index].cantidad;
+      this.statusForm = true;
+    },
+    saveForm: function saveForm(index) {
+      if (this.despacho.cantidad > 0 && this.despacho.cantidad != '') {
+        this.despachos[index].cantidad = this.despacho.cantidad;
+      } else {
+        this.despacho.cantidad = this.despachos[index].cantidad;
+      }
+
+      this.despacho.idmaterial = '';
+      this.despacho.cantidad = 0;
+      this.statusForm = false;
+    },
     getAutocompleteEmpleado: function getAutocompleteEmpleado() {
       var object = this;
       var options = {
@@ -2342,11 +2542,15 @@ __webpack_require__.r(__webpack_exports__);
             var data = $('#nombre-empleado').getSelectedItemData();
             $('#codigo-empleado').val(data.codigo);
             object.empleado = data.codigo;
+            $('#nombre-producto').attr('disabled', false);
+            $('#nombre-producto').focus();
           },
           onKeyEnterEvent: function onKeyEnterEvent() {
             var data = $('#nombre-empleado').getSelectedItemData();
             $('#codigo-empleado').val(data.codigo);
             object.empleado = data.codigo;
+            $('#nombre-producto').attr('disabled', false);
+            $('#nombre-producto').focus();
           }
         }
       };
@@ -2385,10 +2589,18 @@ __webpack_require__.r(__webpack_exports__);
           onClickEvent: function onClickEvent() {
             var data = $('#nombre-producto').getSelectedItemData();
             $('#codigo-producto').val(data.codigo);
+            $('#cantidad').attr('disabled', false);
+            $('#add-despacho').attr('disabled', false);
+            $('#nombre-empleado').attr('disabled', true);
+            $('#cantidad').focus();
           },
           onKeyEnterEvent: function onKeyEnterEvent() {
             var data = $('#nombre-producto').getSelectedItemData();
             $('#codigo-producto').val(data.codigo);
+            $('#cantidad').attr('disabled', false);
+            $('#add-despacho').attr('disabled', false);
+            $('#nombre-empleado').attr('disabled', true);
+            $('#cantidad').focus();
           }
         }
       };
@@ -2400,6 +2612,24 @@ __webpack_require__.r(__webpack_exports__);
           }
         }
       });
+    },
+    resetData: function resetData() {
+      this.despacho.fecha = $('#fecha').val();
+      this.despacho.idmaterial = '';
+      this.despacho.des_material = '';
+      this.despacho.cantidad = 0;
+    },
+    datasweetalert: function datasweetalert() {
+      var data = {
+        title: 'Estas seguro de realizar esta acción?',
+        text: "Tu no podras revertir esto!",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si, hazlo!'
+      };
+      return data;
     }
   }
 });
@@ -79837,6 +80067,7181 @@ module.exports = function (css) {
 
 /***/ }),
 
+/***/ "./node_modules/sweetalert2/dist/sweetalert2.all.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/sweetalert2/dist/sweetalert2.all.js ***!
+  \**********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*!
+* sweetalert2 v8.18.3
+* Released under the MIT License.
+*/
+(function (global, factory) {
+	 true ? module.exports = factory() :
+	undefined;
+}(this, (function () { 'use strict';
+
+function _typeof(obj) {
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof = function (obj) {
+      return typeof obj;
+    };
+  } else {
+    _typeof = function (obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+  }
+
+  return _typeof(obj);
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _defineProperties(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
+  }
+}
+
+function _createClass(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties(Constructor, staticProps);
+  return Constructor;
+}
+
+function _extends() {
+  _extends = Object.assign || function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+
+    return target;
+  };
+
+  return _extends.apply(this, arguments);
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function");
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) _setPrototypeOf(subClass, superClass);
+}
+
+function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf(o);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+
+  return _setPrototypeOf(o, p);
+}
+
+function isNativeReflectConstruct() {
+  if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+  if (Reflect.construct.sham) return false;
+  if (typeof Proxy === "function") return true;
+
+  try {
+    Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function _construct(Parent, args, Class) {
+  if (isNativeReflectConstruct()) {
+    _construct = Reflect.construct;
+  } else {
+    _construct = function _construct(Parent, args, Class) {
+      var a = [null];
+      a.push.apply(a, args);
+      var Constructor = Function.bind.apply(Parent, a);
+      var instance = new Constructor();
+      if (Class) _setPrototypeOf(instance, Class.prototype);
+      return instance;
+    };
+  }
+
+  return _construct.apply(null, arguments);
+}
+
+function _assertThisInitialized(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (call && (typeof call === "object" || typeof call === "function")) {
+    return call;
+  }
+
+  return _assertThisInitialized(self);
+}
+
+function _superPropBase(object, property) {
+  while (!Object.prototype.hasOwnProperty.call(object, property)) {
+    object = _getPrototypeOf(object);
+    if (object === null) break;
+  }
+
+  return object;
+}
+
+function _get(target, property, receiver) {
+  if (typeof Reflect !== "undefined" && Reflect.get) {
+    _get = Reflect.get;
+  } else {
+    _get = function _get(target, property, receiver) {
+      var base = _superPropBase(target, property);
+
+      if (!base) return;
+      var desc = Object.getOwnPropertyDescriptor(base, property);
+
+      if (desc.get) {
+        return desc.get.call(receiver);
+      }
+
+      return desc.value;
+    };
+  }
+
+  return _get(target, property, receiver || target);
+}
+
+var consolePrefix = 'SweetAlert2:';
+/**
+ * Filter the unique values into a new array
+ * @param arr
+ */
+
+var uniqueArray = function uniqueArray(arr) {
+  var result = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    if (result.indexOf(arr[i]) === -1) {
+      result.push(arr[i]);
+    }
+  }
+
+  return result;
+};
+/**
+ * Returns the array ob object values (Object.values isn't supported in IE11)
+ * @param obj
+ */
+
+var objectValues = function objectValues(obj) {
+  return Object.keys(obj).map(function (key) {
+    return obj[key];
+  });
+};
+/**
+ * Convert NodeList to Array
+ * @param nodeList
+ */
+
+var toArray = function toArray(nodeList) {
+  return Array.prototype.slice.call(nodeList);
+};
+/**
+ * Standardise console warnings
+ * @param message
+ */
+
+var warn = function warn(message) {
+  console.warn("".concat(consolePrefix, " ").concat(message));
+};
+/**
+ * Standardise console errors
+ * @param message
+ */
+
+var error = function error(message) {
+  console.error("".concat(consolePrefix, " ").concat(message));
+};
+/**
+ * Private global state for `warnOnce`
+ * @type {Array}
+ * @private
+ */
+
+var previousWarnOnceMessages = [];
+/**
+ * Show a console warning, but only if it hasn't already been shown
+ * @param message
+ */
+
+var warnOnce = function warnOnce(message) {
+  if (!(previousWarnOnceMessages.indexOf(message) !== -1)) {
+    previousWarnOnceMessages.push(message);
+    warn(message);
+  }
+};
+/**
+ * Show a one-time console warning about deprecated params/methods
+ */
+
+var warnAboutDepreation = function warnAboutDepreation(deprecatedParam, useInstead) {
+  warnOnce("\"".concat(deprecatedParam, "\" is deprecated and will be removed in the next major release. Please use \"").concat(useInstead, "\" instead."));
+};
+/**
+ * If `arg` is a function, call it (with no arguments or context) and return the result.
+ * Otherwise, just pass the value through
+ * @param arg
+ */
+
+var callIfFunction = function callIfFunction(arg) {
+  return typeof arg === 'function' ? arg() : arg;
+};
+var isPromise = function isPromise(arg) {
+  return arg && Promise.resolve(arg) === arg;
+};
+
+var DismissReason = Object.freeze({
+  cancel: 'cancel',
+  backdrop: 'backdrop',
+  close: 'close',
+  esc: 'esc',
+  timer: 'timer'
+});
+
+var argsToParams = function argsToParams(args) {
+  var params = {};
+
+  switch (_typeof(args[0])) {
+    case 'object':
+      _extends(params, args[0]);
+
+      break;
+
+    default:
+      ['title', 'html', 'type'].forEach(function (name, index) {
+        switch (_typeof(args[index])) {
+          case 'string':
+            params[name] = args[index];
+            break;
+
+          case 'undefined':
+            break;
+
+          default:
+            error("Unexpected type of ".concat(name, "! Expected \"string\", got ").concat(_typeof(args[index])));
+        }
+      });
+  }
+
+  return params;
+};
+
+var swalPrefix = 'swal2-';
+var prefix = function prefix(items) {
+  var result = {};
+
+  for (var i in items) {
+    result[items[i]] = swalPrefix + items[i];
+  }
+
+  return result;
+};
+var swalClasses = prefix(['container', 'shown', 'height-auto', 'iosfix', 'popup', 'modal', 'no-backdrop', 'toast', 'toast-shown', 'toast-column', 'fade', 'show', 'hide', 'noanimation', 'close', 'title', 'header', 'content', 'actions', 'confirm', 'cancel', 'footer', 'icon', 'image', 'input', 'file', 'range', 'select', 'radio', 'checkbox', 'label', 'textarea', 'inputerror', 'validation-message', 'progress-steps', 'active-progress-step', 'progress-step', 'progress-step-line', 'loading', 'styled', 'top', 'top-start', 'top-end', 'top-left', 'top-right', 'center', 'center-start', 'center-end', 'center-left', 'center-right', 'bottom', 'bottom-start', 'bottom-end', 'bottom-left', 'bottom-right', 'grow-row', 'grow-column', 'grow-fullscreen', 'rtl']);
+var iconTypes = prefix(['success', 'warning', 'info', 'question', 'error']);
+
+var states = {
+  previousBodyPadding: null
+};
+var hasClass = function hasClass(elem, className) {
+  return elem.classList.contains(className);
+};
+
+var removeCustomClasses = function removeCustomClasses(elem) {
+  toArray(elem.classList).forEach(function (className) {
+    if (!(objectValues(swalClasses).indexOf(className) !== -1) && !(objectValues(iconTypes).indexOf(className) !== -1)) {
+      elem.classList.remove(className);
+    }
+  });
+};
+
+var applyCustomClass = function applyCustomClass(elem, customClass, className) {
+  removeCustomClasses(elem);
+
+  if (customClass && customClass[className]) {
+    if (typeof customClass[className] !== 'string' && !customClass[className].forEach) {
+      return warn("Invalid type of customClass.".concat(className, "! Expected string or iterable object, got \"").concat(_typeof(customClass[className]), "\""));
+    }
+
+    addClass(elem, customClass[className]);
+  }
+};
+function getInput(content, inputType) {
+  if (!inputType) {
+    return null;
+  }
+
+  switch (inputType) {
+    case 'select':
+    case 'textarea':
+    case 'file':
+      return getChildByClass(content, swalClasses[inputType]);
+
+    case 'checkbox':
+      return content.querySelector(".".concat(swalClasses.checkbox, " input"));
+
+    case 'radio':
+      return content.querySelector(".".concat(swalClasses.radio, " input:checked")) || content.querySelector(".".concat(swalClasses.radio, " input:first-child"));
+
+    case 'range':
+      return content.querySelector(".".concat(swalClasses.range, " input"));
+
+    default:
+      return getChildByClass(content, swalClasses.input);
+  }
+}
+var focusInput = function focusInput(input) {
+  input.focus(); // place cursor at end of text in text input
+
+  if (input.type !== 'file') {
+    // http://stackoverflow.com/a/2345915
+    var val = input.value;
+    input.value = '';
+    input.value = val;
+  }
+};
+var toggleClass = function toggleClass(target, classList, condition) {
+  if (!target || !classList) {
+    return;
+  }
+
+  if (typeof classList === 'string') {
+    classList = classList.split(/\s+/).filter(Boolean);
+  }
+
+  classList.forEach(function (className) {
+    if (target.forEach) {
+      target.forEach(function (elem) {
+        condition ? elem.classList.add(className) : elem.classList.remove(className);
+      });
+    } else {
+      condition ? target.classList.add(className) : target.classList.remove(className);
+    }
+  });
+};
+var addClass = function addClass(target, classList) {
+  toggleClass(target, classList, true);
+};
+var removeClass = function removeClass(target, classList) {
+  toggleClass(target, classList, false);
+};
+var getChildByClass = function getChildByClass(elem, className) {
+  for (var i = 0; i < elem.childNodes.length; i++) {
+    if (hasClass(elem.childNodes[i], className)) {
+      return elem.childNodes[i];
+    }
+  }
+};
+var applyNumericalStyle = function applyNumericalStyle(elem, property, value) {
+  if (value || parseInt(value) === 0) {
+    elem.style[property] = typeof value === 'number' ? value + 'px' : value;
+  } else {
+    elem.style.removeProperty(property);
+  }
+};
+var show = function show(elem) {
+  var display = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'flex';
+  elem.style.opacity = '';
+  elem.style.display = display;
+};
+var hide = function hide(elem) {
+  elem.style.opacity = '';
+  elem.style.display = 'none';
+};
+var toggle = function toggle(elem, condition, display) {
+  condition ? show(elem, display) : hide(elem);
+}; // borrowed from jquery $(elem).is(':visible') implementation
+
+var isVisible = function isVisible(elem) {
+  return !!(elem && (elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length));
+};
+var isScrollable = function isScrollable(elem) {
+  return !!(elem.scrollHeight > elem.clientHeight);
+}; // borrowed from https://stackoverflow.com/a/46352119
+
+var hasCssAnimation = function hasCssAnimation(elem) {
+  var style = window.getComputedStyle(elem);
+  var animDuration = parseFloat(style.getPropertyValue('animation-duration') || '0');
+  var transDuration = parseFloat(style.getPropertyValue('transition-duration') || '0');
+  return animDuration > 0 || transDuration > 0;
+};
+var contains = function contains(haystack, needle) {
+  if (typeof haystack.contains === 'function') {
+    return haystack.contains(needle);
+  }
+};
+
+var getContainer = function getContainer() {
+  return document.body.querySelector('.' + swalClasses.container);
+};
+var elementBySelector = function elementBySelector(selectorString) {
+  var container = getContainer();
+  return container ? container.querySelector(selectorString) : null;
+};
+
+var elementByClass = function elementByClass(className) {
+  return elementBySelector('.' + className);
+};
+
+var getPopup = function getPopup() {
+  return elementByClass(swalClasses.popup);
+};
+var getIcons = function getIcons() {
+  var popup = getPopup();
+  return toArray(popup.querySelectorAll('.' + swalClasses.icon));
+};
+var getIcon = function getIcon() {
+  var visibleIcon = getIcons().filter(function (icon) {
+    return isVisible(icon);
+  });
+  return visibleIcon.length ? visibleIcon[0] : null;
+};
+var getTitle = function getTitle() {
+  return elementByClass(swalClasses.title);
+};
+var getContent = function getContent() {
+  return elementByClass(swalClasses.content);
+};
+var getImage = function getImage() {
+  return elementByClass(swalClasses.image);
+};
+var getProgressSteps = function getProgressSteps() {
+  return elementByClass(swalClasses['progress-steps']);
+};
+var getValidationMessage = function getValidationMessage() {
+  return elementByClass(swalClasses['validation-message']);
+};
+var getConfirmButton = function getConfirmButton() {
+  return elementBySelector('.' + swalClasses.actions + ' .' + swalClasses.confirm);
+};
+var getCancelButton = function getCancelButton() {
+  return elementBySelector('.' + swalClasses.actions + ' .' + swalClasses.cancel);
+};
+var getActions = function getActions() {
+  return elementByClass(swalClasses.actions);
+};
+var getHeader = function getHeader() {
+  return elementByClass(swalClasses.header);
+};
+var getFooter = function getFooter() {
+  return elementByClass(swalClasses.footer);
+};
+var getCloseButton = function getCloseButton() {
+  return elementByClass(swalClasses.close);
+}; // https://github.com/jkup/focusable/blob/master/index.js
+
+var focusable = "\n  a[href],\n  area[href],\n  input:not([disabled]),\n  select:not([disabled]),\n  textarea:not([disabled]),\n  button:not([disabled]),\n  iframe,\n  object,\n  embed,\n  [tabindex=\"0\"],\n  [contenteditable],\n  audio[controls],\n  video[controls],\n  summary\n";
+var getFocusableElements = function getFocusableElements() {
+  var focusableElementsWithTabindex = toArray(getPopup().querySelectorAll('[tabindex]:not([tabindex="-1"]):not([tabindex="0"])')) // sort according to tabindex
+  .sort(function (a, b) {
+    a = parseInt(a.getAttribute('tabindex'));
+    b = parseInt(b.getAttribute('tabindex'));
+
+    if (a > b) {
+      return 1;
+    } else if (a < b) {
+      return -1;
+    }
+
+    return 0;
+  });
+  var otherFocusableElements = toArray(getPopup().querySelectorAll(focusable)).filter(function (el) {
+    return el.getAttribute('tabindex') !== '-1';
+  });
+  return uniqueArray(focusableElementsWithTabindex.concat(otherFocusableElements)).filter(function (el) {
+    return isVisible(el);
+  });
+};
+var isModal = function isModal() {
+  return !isToast() && !document.body.classList.contains(swalClasses['no-backdrop']);
+};
+var isToast = function isToast() {
+  return document.body.classList.contains(swalClasses['toast-shown']);
+};
+var isLoading = function isLoading() {
+  return getPopup().hasAttribute('data-loading');
+};
+
+// Detect Node env
+var isNodeEnv = function isNodeEnv() {
+  return typeof window === 'undefined' || typeof document === 'undefined';
+};
+
+var sweetHTML = "\n <div aria-labelledby=\"".concat(swalClasses.title, "\" aria-describedby=\"").concat(swalClasses.content, "\" class=\"").concat(swalClasses.popup, "\" tabindex=\"-1\">\n   <div class=\"").concat(swalClasses.header, "\">\n     <ul class=\"").concat(swalClasses['progress-steps'], "\"></ul>\n     <div class=\"").concat(swalClasses.icon, " ").concat(iconTypes.error, "\">\n       <span class=\"swal2-x-mark\"><span class=\"swal2-x-mark-line-left\"></span><span class=\"swal2-x-mark-line-right\"></span></span>\n     </div>\n     <div class=\"").concat(swalClasses.icon, " ").concat(iconTypes.question, "\"></div>\n     <div class=\"").concat(swalClasses.icon, " ").concat(iconTypes.warning, "\"></div>\n     <div class=\"").concat(swalClasses.icon, " ").concat(iconTypes.info, "\"></div>\n     <div class=\"").concat(swalClasses.icon, " ").concat(iconTypes.success, "\">\n       <div class=\"swal2-success-circular-line-left\"></div>\n       <span class=\"swal2-success-line-tip\"></span> <span class=\"swal2-success-line-long\"></span>\n       <div class=\"swal2-success-ring\"></div> <div class=\"swal2-success-fix\"></div>\n       <div class=\"swal2-success-circular-line-right\"></div>\n     </div>\n     <img class=\"").concat(swalClasses.image, "\" />\n     <h2 class=\"").concat(swalClasses.title, "\" id=\"").concat(swalClasses.title, "\"></h2>\n     <button type=\"button\" class=\"").concat(swalClasses.close, "\"></button>\n   </div>\n   <div class=\"").concat(swalClasses.content, "\">\n     <div id=\"").concat(swalClasses.content, "\"></div>\n     <input class=\"").concat(swalClasses.input, "\" />\n     <input type=\"file\" class=\"").concat(swalClasses.file, "\" />\n     <div class=\"").concat(swalClasses.range, "\">\n       <input type=\"range\" />\n       <output></output>\n     </div>\n     <select class=\"").concat(swalClasses.select, "\"></select>\n     <div class=\"").concat(swalClasses.radio, "\"></div>\n     <label for=\"").concat(swalClasses.checkbox, "\" class=\"").concat(swalClasses.checkbox, "\">\n       <input type=\"checkbox\" />\n       <span class=\"").concat(swalClasses.label, "\"></span>\n     </label>\n     <textarea class=\"").concat(swalClasses.textarea, "\"></textarea>\n     <div class=\"").concat(swalClasses['validation-message'], "\" id=\"").concat(swalClasses['validation-message'], "\"></div>\n   </div>\n   <div class=\"").concat(swalClasses.actions, "\">\n     <button type=\"button\" class=\"").concat(swalClasses.confirm, "\">OK</button>\n     <button type=\"button\" class=\"").concat(swalClasses.cancel, "\">Cancel</button>\n   </div>\n   <div class=\"").concat(swalClasses.footer, "\">\n   </div>\n </div>\n").replace(/(^|\n)\s*/g, '');
+
+var resetOldContainer = function resetOldContainer() {
+  var oldContainer = getContainer();
+
+  if (!oldContainer) {
+    return;
+  }
+
+  oldContainer.parentNode.removeChild(oldContainer);
+  removeClass([document.documentElement, document.body], [swalClasses['no-backdrop'], swalClasses['toast-shown'], swalClasses['has-column']]);
+};
+
+var oldInputVal; // IE11 workaround, see #1109 for details
+
+var resetValidationMessage = function resetValidationMessage(e) {
+  if (Swal.isVisible() && oldInputVal !== e.target.value) {
+    Swal.resetValidationMessage();
+  }
+
+  oldInputVal = e.target.value;
+};
+
+var addInputChangeListeners = function addInputChangeListeners() {
+  var content = getContent();
+  var input = getChildByClass(content, swalClasses.input);
+  var file = getChildByClass(content, swalClasses.file);
+  var range = content.querySelector(".".concat(swalClasses.range, " input"));
+  var rangeOutput = content.querySelector(".".concat(swalClasses.range, " output"));
+  var select = getChildByClass(content, swalClasses.select);
+  var checkbox = content.querySelector(".".concat(swalClasses.checkbox, " input"));
+  var textarea = getChildByClass(content, swalClasses.textarea);
+  input.oninput = resetValidationMessage;
+  file.onchange = resetValidationMessage;
+  select.onchange = resetValidationMessage;
+  checkbox.onchange = resetValidationMessage;
+  textarea.oninput = resetValidationMessage;
+
+  range.oninput = function (e) {
+    resetValidationMessage(e);
+    rangeOutput.value = range.value;
+  };
+
+  range.onchange = function (e) {
+    resetValidationMessage(e);
+    range.nextSibling.value = range.value;
+  };
+};
+
+var getTarget = function getTarget(target) {
+  return typeof target === 'string' ? document.querySelector(target) : target;
+};
+
+var setupAccessibility = function setupAccessibility(params) {
+  var popup = getPopup();
+  popup.setAttribute('role', params.toast ? 'alert' : 'dialog');
+  popup.setAttribute('aria-live', params.toast ? 'polite' : 'assertive');
+
+  if (!params.toast) {
+    popup.setAttribute('aria-modal', 'true');
+  }
+};
+
+var setupRTL = function setupRTL(targetElement) {
+  if (window.getComputedStyle(targetElement).direction === 'rtl') {
+    addClass(getContainer(), swalClasses.rtl);
+  }
+};
+/*
+ * Add modal + backdrop to DOM
+ */
+
+
+var init = function init(params) {
+  // Clean up the old popup container if it exists
+  resetOldContainer();
+  /* istanbul ignore if */
+
+  if (isNodeEnv()) {
+    error('SweetAlert2 requires document to initialize');
+    return;
+  }
+
+  var container = document.createElement('div');
+  container.className = swalClasses.container;
+  container.innerHTML = sweetHTML;
+  var targetElement = getTarget(params.target);
+  targetElement.appendChild(container);
+  setupAccessibility(params);
+  setupRTL(targetElement);
+  addInputChangeListeners();
+};
+
+var parseHtmlToContainer = function parseHtmlToContainer(param, target) {
+  // DOM element
+  if (param instanceof HTMLElement) {
+    target.appendChild(param); // JQuery element(s)
+  } else if (_typeof(param) === 'object') {
+    handleJqueryElem(target, param); // Plain string
+  } else if (param) {
+    target.innerHTML = param;
+  }
+};
+
+var handleJqueryElem = function handleJqueryElem(target, elem) {
+  target.innerHTML = '';
+
+  if (0 in elem) {
+    for (var i = 0; i in elem; i++) {
+      target.appendChild(elem[i].cloneNode(true));
+    }
+  } else {
+    target.appendChild(elem.cloneNode(true));
+  }
+};
+
+var animationEndEvent = function () {
+  // Prevent run in Node env
+
+  /* istanbul ignore if */
+  if (isNodeEnv()) {
+    return false;
+  }
+
+  var testEl = document.createElement('div');
+  var transEndEventNames = {
+    WebkitAnimation: 'webkitAnimationEnd',
+    OAnimation: 'oAnimationEnd oanimationend',
+    animation: 'animationend'
+  };
+
+  for (var i in transEndEventNames) {
+    if (Object.prototype.hasOwnProperty.call(transEndEventNames, i) && typeof testEl.style[i] !== 'undefined') {
+      return transEndEventNames[i];
+    }
+  }
+
+  return false;
+}();
+
+// Measure width of scrollbar
+// https://github.com/twbs/bootstrap/blob/master/js/modal.js#L279-L286
+var measureScrollbar = function measureScrollbar() {
+  var supportsTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
+
+  if (supportsTouch) {
+    return 0;
+  }
+
+  var scrollDiv = document.createElement('div');
+  scrollDiv.style.width = '50px';
+  scrollDiv.style.height = '50px';
+  scrollDiv.style.overflow = 'scroll';
+  document.body.appendChild(scrollDiv);
+  var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+  document.body.removeChild(scrollDiv);
+  return scrollbarWidth;
+};
+
+var renderActions = function renderActions(instance, params) {
+  var actions = getActions();
+  var confirmButton = getConfirmButton();
+  var cancelButton = getCancelButton(); // Actions (buttons) wrapper
+
+  if (!params.showConfirmButton && !params.showCancelButton) {
+    hide(actions);
+  } // Custom class
+
+
+  applyCustomClass(actions, params.customClass, 'actions'); // Render confirm button
+
+  renderButton(confirmButton, 'confirm', params); // render Cancel Button
+
+  renderButton(cancelButton, 'cancel', params);
+
+  if (params.buttonsStyling) {
+    handleButtonsStyling(confirmButton, cancelButton, params);
+  } else {
+    removeClass([confirmButton, cancelButton], swalClasses.styled);
+    confirmButton.style.backgroundColor = confirmButton.style.borderLeftColor = confirmButton.style.borderRightColor = '';
+    cancelButton.style.backgroundColor = cancelButton.style.borderLeftColor = cancelButton.style.borderRightColor = '';
+  }
+
+  if (params.reverseButtons) {
+    confirmButton.parentNode.insertBefore(cancelButton, confirmButton);
+  }
+};
+
+function handleButtonsStyling(confirmButton, cancelButton, params) {
+  addClass([confirmButton, cancelButton], swalClasses.styled); // Buttons background colors
+
+  if (params.confirmButtonColor) {
+    confirmButton.style.backgroundColor = params.confirmButtonColor;
+  }
+
+  if (params.cancelButtonColor) {
+    cancelButton.style.backgroundColor = params.cancelButtonColor;
+  } // Loading state
+
+
+  var confirmButtonBackgroundColor = window.getComputedStyle(confirmButton).getPropertyValue('background-color');
+  confirmButton.style.borderLeftColor = confirmButtonBackgroundColor;
+  confirmButton.style.borderRightColor = confirmButtonBackgroundColor;
+}
+
+function renderButton(button, buttonType, params) {
+  toggle(button, params['showC' + buttonType.substring(1) + 'Button'], 'inline-block');
+  button.innerHTML = params[buttonType + 'ButtonText']; // Set caption text
+
+  button.setAttribute('aria-label', params[buttonType + 'ButtonAriaLabel']); // ARIA label
+  // Add buttons custom classes
+
+  button.className = swalClasses[buttonType];
+  applyCustomClass(button, params.customClass, buttonType + 'Button');
+  addClass(button, params[buttonType + 'ButtonClass']);
+}
+
+function handleBackdropParam(container, backdrop) {
+  if (typeof backdrop === 'string') {
+    container.style.background = backdrop;
+  } else if (!backdrop) {
+    addClass([document.documentElement, document.body], swalClasses['no-backdrop']);
+  }
+}
+
+function handlePositionParam(container, position) {
+  if (position in swalClasses) {
+    addClass(container, swalClasses[position]);
+  } else {
+    warn('The "position" parameter is not valid, defaulting to "center"');
+    addClass(container, swalClasses.center);
+  }
+}
+
+function handleGrowParam(container, grow) {
+  if (grow && typeof grow === 'string') {
+    var growClass = 'grow-' + grow;
+
+    if (growClass in swalClasses) {
+      addClass(container, swalClasses[growClass]);
+    }
+  }
+}
+
+var renderContainer = function renderContainer(instance, params) {
+  var container = getContainer();
+
+  if (!container) {
+    return;
+  }
+
+  handleBackdropParam(container, params.backdrop);
+
+  if (!params.backdrop && params.allowOutsideClick) {
+    warn('"allowOutsideClick" parameter requires `backdrop` parameter to be set to `true`');
+  }
+
+  handlePositionParam(container, params.position);
+  handleGrowParam(container, params.grow); // Custom class
+
+  applyCustomClass(container, params.customClass, 'container');
+
+  if (params.customContainerClass) {
+    // @deprecated
+    addClass(container, params.customContainerClass);
+  }
+};
+
+/**
+ * This module containts `WeakMap`s for each effectively-"private  property" that a `Swal` has.
+ * For example, to set the private property "foo" of `this` to "bar", you can `privateProps.foo.set(this, 'bar')`
+ * This is the approach that Babel will probably take to implement private methods/fields
+ *   https://github.com/tc39/proposal-private-methods
+ *   https://github.com/babel/babel/pull/7555
+ * Once we have the changes from that PR in Babel, and our core class fits reasonable in *one module*
+ *   then we can use that language feature.
+ */
+var privateProps = {
+  promise: new WeakMap(),
+  innerParams: new WeakMap(),
+  domCache: new WeakMap()
+};
+
+var inputTypes = ['input', 'file', 'range', 'select', 'radio', 'checkbox', 'textarea'];
+var renderInput = function renderInput(instance, params) {
+  var content = getContent();
+  var innerParams = privateProps.innerParams.get(instance);
+  var rerender = !innerParams || params.input !== innerParams.input;
+  inputTypes.forEach(function (inputType) {
+    var inputClass = swalClasses[inputType];
+    var inputContainer = getChildByClass(content, inputClass); // set attributes
+
+    setAttributes(inputType, params.inputAttributes); // set class
+
+    inputContainer.className = inputClass;
+
+    if (rerender) {
+      hide(inputContainer);
+    }
+  });
+
+  if (params.input) {
+    if (rerender) {
+      showInput(params);
+    } // set custom class
+
+
+    setCustomClass(params);
+  }
+};
+
+var showInput = function showInput(params) {
+  if (!renderInputType[params.input]) {
+    return error("Unexpected type of input! Expected \"text\", \"email\", \"password\", \"number\", \"tel\", \"select\", \"radio\", \"checkbox\", \"textarea\", \"file\" or \"url\", got \"".concat(params.input, "\""));
+  }
+
+  var inputContainer = getInputContainer(params.input);
+  var input = renderInputType[params.input](inputContainer, params);
+  show(input); // input autofocus
+
+  setTimeout(function () {
+    focusInput(input);
+  });
+};
+
+var removeAttributes = function removeAttributes(input) {
+  for (var i = 0; i < input.attributes.length; i++) {
+    var attrName = input.attributes[i].name;
+
+    if (!(['type', 'value', 'style'].indexOf(attrName) !== -1)) {
+      input.removeAttribute(attrName);
+    }
+  }
+};
+
+var setAttributes = function setAttributes(inputType, inputAttributes) {
+  var input = getInput(getContent(), inputType);
+
+  if (!input) {
+    return;
+  }
+
+  removeAttributes(input);
+
+  for (var attr in inputAttributes) {
+    // Do not set a placeholder for <input type="range">
+    // it'll crash Edge, #1298
+    if (inputType === 'range' && attr === 'placeholder') {
+      continue;
+    }
+
+    input.setAttribute(attr, inputAttributes[attr]);
+  }
+};
+
+var setCustomClass = function setCustomClass(params) {
+  var inputContainer = getInputContainer(params.input);
+
+  if (params.inputClass) {
+    addClass(inputContainer, params.inputClass);
+  }
+
+  if (params.customClass) {
+    addClass(inputContainer, params.customClass.input);
+  }
+};
+
+var setInputPlaceholder = function setInputPlaceholder(input, params) {
+  if (!input.placeholder || params.inputPlaceholder) {
+    input.placeholder = params.inputPlaceholder;
+  }
+};
+
+var getInputContainer = function getInputContainer(inputType) {
+  var inputClass = swalClasses[inputType] ? swalClasses[inputType] : swalClasses.input;
+  return getChildByClass(getContent(), inputClass);
+};
+
+var renderInputType = {};
+
+renderInputType.text = renderInputType.email = renderInputType.password = renderInputType.number = renderInputType.tel = renderInputType.url = function (input, params) {
+  if (typeof params.inputValue === 'string' || typeof params.inputValue === 'number') {
+    input.value = params.inputValue;
+  } else if (!isPromise(params.inputValue)) {
+    warn("Unexpected type of inputValue! Expected \"string\", \"number\" or \"Promise\", got \"".concat(_typeof(params.inputValue), "\""));
+  }
+
+  setInputPlaceholder(input, params);
+  input.type = params.input;
+  return input;
+};
+
+renderInputType.file = function (input, params) {
+  setInputPlaceholder(input, params);
+  return input;
+};
+
+renderInputType.range = function (range, params) {
+  var rangeInput = range.querySelector('input');
+  var rangeOutput = range.querySelector('output');
+  rangeInput.value = params.inputValue;
+  rangeInput.type = params.input;
+  rangeOutput.value = params.inputValue;
+  return range;
+};
+
+renderInputType.select = function (select, params) {
+  select.innerHTML = '';
+
+  if (params.inputPlaceholder) {
+    var placeholder = document.createElement('option');
+    placeholder.innerHTML = params.inputPlaceholder;
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    select.appendChild(placeholder);
+  }
+
+  return select;
+};
+
+renderInputType.radio = function (radio) {
+  radio.innerHTML = '';
+  return radio;
+};
+
+renderInputType.checkbox = function (checkboxContainer, params) {
+  var checkbox = getInput(getContent(), 'checkbox');
+  checkbox.value = 1;
+  checkbox.id = swalClasses.checkbox;
+  checkbox.checked = Boolean(params.inputValue);
+  var label = checkboxContainer.querySelector('span');
+  label.innerHTML = params.inputPlaceholder;
+  return checkboxContainer;
+};
+
+renderInputType.textarea = function (textarea, params) {
+  textarea.value = params.inputValue;
+  setInputPlaceholder(textarea, params);
+
+  if ('MutationObserver' in window) {
+    // #1699
+    var initialPopupWidth = parseInt(window.getComputedStyle(getPopup()).width);
+    var popupPadding = parseInt(window.getComputedStyle(getPopup()).paddingLeft) + parseInt(window.getComputedStyle(getPopup()).paddingRight);
+
+    var outputsize = function outputsize() {
+      var contentWidth = textarea.offsetWidth + popupPadding;
+
+      if (contentWidth > initialPopupWidth) {
+        getPopup().style.width = contentWidth + 'px';
+      } else {
+        getPopup().style.width = null;
+      }
+    };
+
+    new MutationObserver(outputsize).observe(textarea, {
+      attributes: true,
+      attributeFilter: ['style']
+    });
+  }
+
+  return textarea;
+};
+
+var renderContent = function renderContent(instance, params) {
+  var content = getContent().querySelector('#' + swalClasses.content); // Content as HTML
+
+  if (params.html) {
+    parseHtmlToContainer(params.html, content);
+    show(content, 'block'); // Content as plain text
+  } else if (params.text) {
+    content.textContent = params.text;
+    show(content, 'block'); // No content
+  } else {
+    hide(content);
+  }
+
+  renderInput(instance, params); // Custom class
+
+  applyCustomClass(getContent(), params.customClass, 'content');
+};
+
+var renderFooter = function renderFooter(instance, params) {
+  var footer = getFooter();
+  toggle(footer, params.footer);
+
+  if (params.footer) {
+    parseHtmlToContainer(params.footer, footer);
+  } // Custom class
+
+
+  applyCustomClass(footer, params.customClass, 'footer');
+};
+
+var renderCloseButton = function renderCloseButton(instance, params) {
+  var closeButton = getCloseButton();
+  closeButton.innerHTML = params.closeButtonHtml; // Custom class
+
+  applyCustomClass(closeButton, params.customClass, 'closeButton');
+  toggle(closeButton, params.showCloseButton);
+  closeButton.setAttribute('aria-label', params.closeButtonAriaLabel);
+};
+
+var renderIcon = function renderIcon(instance, params) {
+  var innerParams = privateProps.innerParams.get(instance); // if the icon with the given type already rendered,
+  // apply the custom class without re-rendering the icon
+
+  if (innerParams && params.type === innerParams.type && getIcon()) {
+    applyCustomClass(getIcon(), params.customClass, 'icon');
+    return;
+  }
+
+  hideAllIcons();
+
+  if (!params.type) {
+    return;
+  }
+
+  adjustSuccessIconBackgoundColor();
+
+  if (Object.keys(iconTypes).indexOf(params.type) !== -1) {
+    var icon = elementBySelector(".".concat(swalClasses.icon, ".").concat(iconTypes[params.type]));
+    show(icon); // Custom class
+
+    applyCustomClass(icon, params.customClass, 'icon'); // Animate icon
+
+    toggleClass(icon, "swal2-animate-".concat(params.type, "-icon"), params.animation);
+  } else {
+    error("Unknown type! Expected \"success\", \"error\", \"warning\", \"info\" or \"question\", got \"".concat(params.type, "\""));
+  }
+};
+
+var hideAllIcons = function hideAllIcons() {
+  var icons = getIcons();
+
+  for (var i = 0; i < icons.length; i++) {
+    hide(icons[i]);
+  }
+}; // Adjust success icon background color to match the popup background color
+
+
+var adjustSuccessIconBackgoundColor = function adjustSuccessIconBackgoundColor() {
+  var popup = getPopup();
+  var popupBackgroundColor = window.getComputedStyle(popup).getPropertyValue('background-color');
+  var successIconParts = popup.querySelectorAll('[class^=swal2-success-circular-line], .swal2-success-fix');
+
+  for (var i = 0; i < successIconParts.length; i++) {
+    successIconParts[i].style.backgroundColor = popupBackgroundColor;
+  }
+};
+
+var renderImage = function renderImage(instance, params) {
+  var image = getImage();
+
+  if (!params.imageUrl) {
+    return hide(image);
+  }
+
+  show(image); // Src, alt
+
+  image.setAttribute('src', params.imageUrl);
+  image.setAttribute('alt', params.imageAlt); // Width, height
+
+  applyNumericalStyle(image, 'width', params.imageWidth);
+  applyNumericalStyle(image, 'height', params.imageHeight); // Class
+
+  image.className = swalClasses.image;
+  applyCustomClass(image, params.customClass, 'image');
+
+  if (params.imageClass) {
+    addClass(image, params.imageClass);
+  }
+};
+
+var createStepElement = function createStepElement(step) {
+  var stepEl = document.createElement('li');
+  addClass(stepEl, swalClasses['progress-step']);
+  stepEl.innerHTML = step;
+  return stepEl;
+};
+
+var createLineElement = function createLineElement(params) {
+  var lineEl = document.createElement('li');
+  addClass(lineEl, swalClasses['progress-step-line']);
+
+  if (params.progressStepsDistance) {
+    lineEl.style.width = params.progressStepsDistance;
+  }
+
+  return lineEl;
+};
+
+var renderProgressSteps = function renderProgressSteps(instance, params) {
+  var progressStepsContainer = getProgressSteps();
+
+  if (!params.progressSteps || params.progressSteps.length === 0) {
+    return hide(progressStepsContainer);
+  }
+
+  show(progressStepsContainer);
+  progressStepsContainer.innerHTML = '';
+  var currentProgressStep = parseInt(params.currentProgressStep === null ? Swal.getQueueStep() : params.currentProgressStep);
+
+  if (currentProgressStep >= params.progressSteps.length) {
+    warn('Invalid currentProgressStep parameter, it should be less than progressSteps.length ' + '(currentProgressStep like JS arrays starts from 0)');
+  }
+
+  params.progressSteps.forEach(function (step, index) {
+    var stepEl = createStepElement(step);
+    progressStepsContainer.appendChild(stepEl);
+
+    if (index === currentProgressStep) {
+      addClass(stepEl, swalClasses['active-progress-step']);
+    }
+
+    if (index !== params.progressSteps.length - 1) {
+      var lineEl = createLineElement(step);
+      progressStepsContainer.appendChild(lineEl);
+    }
+  });
+};
+
+var renderTitle = function renderTitle(instance, params) {
+  var title = getTitle();
+  toggle(title, params.title || params.titleText);
+
+  if (params.title) {
+    parseHtmlToContainer(params.title, title);
+  }
+
+  if (params.titleText) {
+    title.innerText = params.titleText;
+  } // Custom class
+
+
+  applyCustomClass(title, params.customClass, 'title');
+};
+
+var renderHeader = function renderHeader(instance, params) {
+  var header = getHeader(); // Custom class
+
+  applyCustomClass(header, params.customClass, 'header'); // Progress steps
+
+  renderProgressSteps(instance, params); // Icon
+
+  renderIcon(instance, params); // Image
+
+  renderImage(instance, params); // Title
+
+  renderTitle(instance, params); // Close button
+
+  renderCloseButton(instance, params);
+};
+
+var renderPopup = function renderPopup(instance, params) {
+  var popup = getPopup(); // Width
+
+  applyNumericalStyle(popup, 'width', params.width); // Padding
+
+  applyNumericalStyle(popup, 'padding', params.padding); // Background
+
+  if (params.background) {
+    popup.style.background = params.background;
+  } // Default Class
+
+
+  popup.className = swalClasses.popup;
+
+  if (params.toast) {
+    addClass([document.documentElement, document.body], swalClasses['toast-shown']);
+    addClass(popup, swalClasses.toast);
+  } else {
+    addClass(popup, swalClasses.modal);
+  } // Custom class
+
+
+  applyCustomClass(popup, params.customClass, 'popup');
+
+  if (typeof params.customClass === 'string') {
+    addClass(popup, params.customClass);
+  } // CSS animation
+
+
+  toggleClass(popup, swalClasses.noanimation, !params.animation);
+};
+
+var render = function render(instance, params) {
+  renderPopup(instance, params);
+  renderContainer(instance, params);
+  renderHeader(instance, params);
+  renderContent(instance, params);
+  renderActions(instance, params);
+  renderFooter(instance, params);
+
+  if (typeof params.onRender === 'function') {
+    params.onRender(getPopup());
+  }
+};
+
+/*
+ * Global function to determine if SweetAlert2 popup is shown
+ */
+
+var isVisible$1 = function isVisible$$1() {
+  return isVisible(getPopup());
+};
+/*
+ * Global function to click 'Confirm' button
+ */
+
+var clickConfirm = function clickConfirm() {
+  return getConfirmButton() && getConfirmButton().click();
+};
+/*
+ * Global function to click 'Cancel' button
+ */
+
+var clickCancel = function clickCancel() {
+  return getCancelButton() && getCancelButton().click();
+};
+
+function fire() {
+  var Swal = this;
+
+  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  return _construct(Swal, args);
+}
+
+/**
+ * Returns an extended version of `Swal` containing `params` as defaults.
+ * Useful for reusing Swal configuration.
+ *
+ * For example:
+ *
+ * Before:
+ * const textPromptOptions = { input: 'text', showCancelButton: true }
+ * const {value: firstName} = await Swal.fire({ ...textPromptOptions, title: 'What is your first name?' })
+ * const {value: lastName} = await Swal.fire({ ...textPromptOptions, title: 'What is your last name?' })
+ *
+ * After:
+ * const TextPrompt = Swal.mixin({ input: 'text', showCancelButton: true })
+ * const {value: firstName} = await TextPrompt('What is your first name?')
+ * const {value: lastName} = await TextPrompt('What is your last name?')
+ *
+ * @param mixinParams
+ */
+function mixin(mixinParams) {
+  var MixinSwal =
+  /*#__PURE__*/
+  function (_this) {
+    _inherits(MixinSwal, _this);
+
+    function MixinSwal() {
+      _classCallCheck(this, MixinSwal);
+
+      return _possibleConstructorReturn(this, _getPrototypeOf(MixinSwal).apply(this, arguments));
+    }
+
+    _createClass(MixinSwal, [{
+      key: "_main",
+      value: function _main(params) {
+        return _get(_getPrototypeOf(MixinSwal.prototype), "_main", this).call(this, _extends({}, mixinParams, params));
+      }
+    }]);
+
+    return MixinSwal;
+  }(this);
+
+  return MixinSwal;
+}
+
+// private global state for the queue feature
+var currentSteps = [];
+/*
+ * Global function for chaining sweetAlert popups
+ */
+
+var queue = function queue(steps) {
+  var Swal = this;
+  currentSteps = steps;
+
+  var resetAndResolve = function resetAndResolve(resolve, value) {
+    currentSteps = [];
+    document.body.removeAttribute('data-swal2-queue-step');
+    resolve(value);
+  };
+
+  var queueResult = [];
+  return new Promise(function (resolve) {
+    (function step(i, callback) {
+      if (i < currentSteps.length) {
+        document.body.setAttribute('data-swal2-queue-step', i);
+        Swal.fire(currentSteps[i]).then(function (result) {
+          if (typeof result.value !== 'undefined') {
+            queueResult.push(result.value);
+            step(i + 1, callback);
+          } else {
+            resetAndResolve(resolve, {
+              dismiss: result.dismiss
+            });
+          }
+        });
+      } else {
+        resetAndResolve(resolve, {
+          value: queueResult
+        });
+      }
+    })(0);
+  });
+};
+/*
+ * Global function for getting the index of current popup in queue
+ */
+
+var getQueueStep = function getQueueStep() {
+  return document.body.getAttribute('data-swal2-queue-step');
+};
+/*
+ * Global function for inserting a popup to the queue
+ */
+
+var insertQueueStep = function insertQueueStep(step, index) {
+  if (index && index < currentSteps.length) {
+    return currentSteps.splice(index, 0, step);
+  }
+
+  return currentSteps.push(step);
+};
+/*
+ * Global function for deleting a popup from the queue
+ */
+
+var deleteQueueStep = function deleteQueueStep(index) {
+  if (typeof currentSteps[index] !== 'undefined') {
+    currentSteps.splice(index, 1);
+  }
+};
+
+/**
+ * Show spinner instead of Confirm button and disable Cancel button
+ */
+
+var showLoading = function showLoading() {
+  var popup = getPopup();
+
+  if (!popup) {
+    Swal.fire('');
+  }
+
+  popup = getPopup();
+  var actions = getActions();
+  var confirmButton = getConfirmButton();
+  var cancelButton = getCancelButton();
+  show(actions);
+  show(confirmButton);
+  addClass([popup, actions], swalClasses.loading);
+  confirmButton.disabled = true;
+  cancelButton.disabled = true;
+  popup.setAttribute('data-loading', true);
+  popup.setAttribute('aria-busy', true);
+  popup.focus();
+};
+
+var RESTORE_FOCUS_TIMEOUT = 100;
+
+var globalState = {};
+var focusPreviousActiveElement = function focusPreviousActiveElement() {
+  if (globalState.previousActiveElement && globalState.previousActiveElement.focus) {
+    globalState.previousActiveElement.focus();
+    globalState.previousActiveElement = null;
+  } else if (document.body) {
+    document.body.focus();
+  }
+}; // Restore previous active (focused) element
+
+
+var restoreActiveElement = function restoreActiveElement() {
+  return new Promise(function (resolve) {
+    var x = window.scrollX;
+    var y = window.scrollY;
+    globalState.restoreFocusTimeout = setTimeout(function () {
+      focusPreviousActiveElement();
+      resolve();
+    }, RESTORE_FOCUS_TIMEOUT); // issues/900
+
+    if (typeof x !== 'undefined' && typeof y !== 'undefined') {
+      // IE doesn't have scrollX/scrollY support
+      window.scrollTo(x, y);
+    }
+  });
+};
+
+/**
+ * If `timer` parameter is set, returns number of milliseconds of timer remained.
+ * Otherwise, returns undefined.
+ */
+
+var getTimerLeft = function getTimerLeft() {
+  return globalState.timeout && globalState.timeout.getTimerLeft();
+};
+/**
+ * Stop timer. Returns number of milliseconds of timer remained.
+ * If `timer` parameter isn't set, returns undefined.
+ */
+
+var stopTimer = function stopTimer() {
+  return globalState.timeout && globalState.timeout.stop();
+};
+/**
+ * Resume timer. Returns number of milliseconds of timer remained.
+ * If `timer` parameter isn't set, returns undefined.
+ */
+
+var resumeTimer = function resumeTimer() {
+  return globalState.timeout && globalState.timeout.start();
+};
+/**
+ * Resume timer. Returns number of milliseconds of timer remained.
+ * If `timer` parameter isn't set, returns undefined.
+ */
+
+var toggleTimer = function toggleTimer() {
+  var timer = globalState.timeout;
+  return timer && (timer.running ? timer.stop() : timer.start());
+};
+/**
+ * Increase timer. Returns number of milliseconds of an updated timer.
+ * If `timer` parameter isn't set, returns undefined.
+ */
+
+var increaseTimer = function increaseTimer(n) {
+  return globalState.timeout && globalState.timeout.increase(n);
+};
+/**
+ * Check if timer is running. Returns true if timer is running
+ * or false if timer is paused or stopped.
+ * If `timer` parameter isn't set, returns undefined
+ */
+
+var isTimerRunning = function isTimerRunning() {
+  return globalState.timeout && globalState.timeout.isRunning();
+};
+
+var defaultParams = {
+  title: '',
+  titleText: '',
+  text: '',
+  html: '',
+  footer: '',
+  type: null,
+  toast: false,
+  customClass: '',
+  customContainerClass: '',
+  target: 'body',
+  backdrop: true,
+  animation: true,
+  heightAuto: true,
+  allowOutsideClick: true,
+  allowEscapeKey: true,
+  allowEnterKey: true,
+  stopKeydownPropagation: true,
+  keydownListenerCapture: false,
+  showConfirmButton: true,
+  showCancelButton: false,
+  preConfirm: null,
+  confirmButtonText: 'OK',
+  confirmButtonAriaLabel: '',
+  confirmButtonColor: null,
+  confirmButtonClass: '',
+  cancelButtonText: 'Cancel',
+  cancelButtonAriaLabel: '',
+  cancelButtonColor: null,
+  cancelButtonClass: '',
+  buttonsStyling: true,
+  reverseButtons: false,
+  focusConfirm: true,
+  focusCancel: false,
+  showCloseButton: false,
+  closeButtonHtml: '&times;',
+  closeButtonAriaLabel: 'Close this dialog',
+  showLoaderOnConfirm: false,
+  imageUrl: null,
+  imageWidth: null,
+  imageHeight: null,
+  imageAlt: '',
+  imageClass: '',
+  timer: null,
+  width: null,
+  padding: null,
+  background: null,
+  input: null,
+  inputPlaceholder: '',
+  inputValue: '',
+  inputOptions: {},
+  inputAutoTrim: true,
+  inputClass: '',
+  inputAttributes: {},
+  inputValidator: null,
+  validationMessage: null,
+  grow: false,
+  position: 'center',
+  progressSteps: [],
+  currentProgressStep: null,
+  progressStepsDistance: null,
+  onBeforeOpen: null,
+  onOpen: null,
+  onRender: null,
+  onClose: null,
+  onAfterClose: null,
+  scrollbarPadding: true
+};
+var updatableParams = ['title', 'titleText', 'text', 'html', 'type', 'customClass', 'showConfirmButton', 'showCancelButton', 'confirmButtonText', 'confirmButtonAriaLabel', 'confirmButtonColor', 'confirmButtonClass', 'cancelButtonText', 'cancelButtonAriaLabel', 'cancelButtonColor', 'cancelButtonClass', 'buttonsStyling', 'reverseButtons', 'imageUrl', 'imageWidth', 'imageHeigth', 'imageAlt', 'imageClass', 'progressSteps', 'currentProgressStep'];
+var deprecatedParams = {
+  customContainerClass: 'customClass',
+  confirmButtonClass: 'customClass',
+  cancelButtonClass: 'customClass',
+  imageClass: 'customClass',
+  inputClass: 'customClass'
+};
+var toastIncompatibleParams = ['allowOutsideClick', 'allowEnterKey', 'backdrop', 'focusConfirm', 'focusCancel', 'heightAuto', 'keydownListenerCapture'];
+/**
+ * Is valid parameter
+ * @param {String} paramName
+ */
+
+var isValidParameter = function isValidParameter(paramName) {
+  return Object.prototype.hasOwnProperty.call(defaultParams, paramName);
+};
+/**
+ * Is valid parameter for Swal.update() method
+ * @param {String} paramName
+ */
+
+var isUpdatableParameter = function isUpdatableParameter(paramName) {
+  return updatableParams.indexOf(paramName) !== -1;
+};
+/**
+ * Is deprecated parameter
+ * @param {String} paramName
+ */
+
+var isDeprecatedParameter = function isDeprecatedParameter(paramName) {
+  return deprecatedParams[paramName];
+};
+
+var checkIfParamIsValid = function checkIfParamIsValid(param) {
+  if (!isValidParameter(param)) {
+    warn("Unknown parameter \"".concat(param, "\""));
+  }
+};
+
+var checkIfToastParamIsValid = function checkIfToastParamIsValid(param) {
+  if (toastIncompatibleParams.indexOf(param) !== -1) {
+    warn("The parameter \"".concat(param, "\" is incompatible with toasts"));
+  }
+};
+
+var checkIfParamIsDeprecated = function checkIfParamIsDeprecated(param) {
+  if (isDeprecatedParameter(param)) {
+    warnAboutDepreation(param, isDeprecatedParameter(param));
+  }
+};
+/**
+ * Show relevant warnings for given params
+ *
+ * @param params
+ */
+
+
+var showWarningsForParams = function showWarningsForParams(params) {
+  for (var param in params) {
+    checkIfParamIsValid(param);
+
+    if (params.toast) {
+      checkIfToastParamIsValid(param);
+    }
+
+    checkIfParamIsDeprecated();
+  }
+};
+
+
+
+var staticMethods = Object.freeze({
+	isValidParameter: isValidParameter,
+	isUpdatableParameter: isUpdatableParameter,
+	isDeprecatedParameter: isDeprecatedParameter,
+	argsToParams: argsToParams,
+	isVisible: isVisible$1,
+	clickConfirm: clickConfirm,
+	clickCancel: clickCancel,
+	getContainer: getContainer,
+	getPopup: getPopup,
+	getTitle: getTitle,
+	getContent: getContent,
+	getImage: getImage,
+	getIcon: getIcon,
+	getIcons: getIcons,
+	getCloseButton: getCloseButton,
+	getActions: getActions,
+	getConfirmButton: getConfirmButton,
+	getCancelButton: getCancelButton,
+	getHeader: getHeader,
+	getFooter: getFooter,
+	getFocusableElements: getFocusableElements,
+	getValidationMessage: getValidationMessage,
+	isLoading: isLoading,
+	fire: fire,
+	mixin: mixin,
+	queue: queue,
+	getQueueStep: getQueueStep,
+	insertQueueStep: insertQueueStep,
+	deleteQueueStep: deleteQueueStep,
+	showLoading: showLoading,
+	enableLoading: showLoading,
+	getTimerLeft: getTimerLeft,
+	stopTimer: stopTimer,
+	resumeTimer: resumeTimer,
+	toggleTimer: toggleTimer,
+	increaseTimer: increaseTimer,
+	isTimerRunning: isTimerRunning
+});
+
+/**
+ * Enables buttons and hide loader.
+ */
+
+function hideLoading() {
+  var innerParams = privateProps.innerParams.get(this);
+  var domCache = privateProps.domCache.get(this);
+
+  if (!innerParams.showConfirmButton) {
+    hide(domCache.confirmButton);
+
+    if (!innerParams.showCancelButton) {
+      hide(domCache.actions);
+    }
+  }
+
+  removeClass([domCache.popup, domCache.actions], swalClasses.loading);
+  domCache.popup.removeAttribute('aria-busy');
+  domCache.popup.removeAttribute('data-loading');
+  domCache.confirmButton.disabled = false;
+  domCache.cancelButton.disabled = false;
+}
+
+function getInput$1(instance) {
+  var innerParams = privateProps.innerParams.get(instance || this);
+  var domCache = privateProps.domCache.get(instance || this);
+
+  if (!domCache) {
+    return null;
+  }
+
+  return getInput(domCache.content, innerParams.input);
+}
+
+var fixScrollbar = function fixScrollbar() {
+  // for queues, do not do this more than once
+  if (states.previousBodyPadding !== null) {
+    return;
+  } // if the body has overflow
+
+
+  if (document.body.scrollHeight > window.innerHeight) {
+    // add padding so the content doesn't shift after removal of scrollbar
+    states.previousBodyPadding = parseInt(window.getComputedStyle(document.body).getPropertyValue('padding-right'));
+    document.body.style.paddingRight = states.previousBodyPadding + measureScrollbar() + 'px';
+  }
+};
+var undoScrollbar = function undoScrollbar() {
+  if (states.previousBodyPadding !== null) {
+    document.body.style.paddingRight = states.previousBodyPadding + 'px';
+    states.previousBodyPadding = null;
+  }
+};
+
+/* istanbul ignore next */
+
+var iOSfix = function iOSfix() {
+  var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+  if (iOS && !hasClass(document.body, swalClasses.iosfix)) {
+    var offset = document.body.scrollTop;
+    document.body.style.top = offset * -1 + 'px';
+    addClass(document.body, swalClasses.iosfix);
+    lockBodyScroll();
+  }
+};
+
+var lockBodyScroll = function lockBodyScroll() {
+  // #1246
+  var container = getContainer();
+  var preventTouchMove;
+
+  container.ontouchstart = function (e) {
+    preventTouchMove = e.target === container || !isScrollable(container) && e.target.tagName !== 'INPUT' // #1603
+    ;
+  };
+
+  container.ontouchmove = function (e) {
+    if (preventTouchMove) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+};
+/* istanbul ignore next */
+
+
+var undoIOSfix = function undoIOSfix() {
+  if (hasClass(document.body, swalClasses.iosfix)) {
+    var offset = parseInt(document.body.style.top, 10);
+    removeClass(document.body, swalClasses.iosfix);
+    document.body.style.top = '';
+    document.body.scrollTop = offset * -1;
+  }
+};
+
+var isIE11 = function isIE11() {
+  return !!window.MSInputMethodContext && !!document.documentMode;
+}; // Fix IE11 centering sweetalert2/issues/933
+
+/* istanbul ignore next */
+
+
+var fixVerticalPositionIE = function fixVerticalPositionIE() {
+  var container = getContainer();
+  var popup = getPopup();
+  container.style.removeProperty('align-items');
+
+  if (popup.offsetTop < 0) {
+    container.style.alignItems = 'flex-start';
+  }
+};
+/* istanbul ignore next */
+
+
+var IEfix = function IEfix() {
+  if (typeof window !== 'undefined' && isIE11()) {
+    fixVerticalPositionIE();
+    window.addEventListener('resize', fixVerticalPositionIE);
+  }
+};
+/* istanbul ignore next */
+
+var undoIEfix = function undoIEfix() {
+  if (typeof window !== 'undefined' && isIE11()) {
+    window.removeEventListener('resize', fixVerticalPositionIE);
+  }
+};
+
+// Adding aria-hidden="true" to elements outside of the active modal dialog ensures that
+// elements not within the active modal dialog will not be surfaced if a user opens a screen
+// reader’s list of elements (headings, form controls, landmarks, etc.) in the document.
+
+var setAriaHidden = function setAriaHidden() {
+  var bodyChildren = toArray(document.body.children);
+  bodyChildren.forEach(function (el) {
+    if (el === getContainer() || contains(el, getContainer())) {
+      return;
+    }
+
+    if (el.hasAttribute('aria-hidden')) {
+      el.setAttribute('data-previous-aria-hidden', el.getAttribute('aria-hidden'));
+    }
+
+    el.setAttribute('aria-hidden', 'true');
+  });
+};
+var unsetAriaHidden = function unsetAriaHidden() {
+  var bodyChildren = toArray(document.body.children);
+  bodyChildren.forEach(function (el) {
+    if (el.hasAttribute('data-previous-aria-hidden')) {
+      el.setAttribute('aria-hidden', el.getAttribute('data-previous-aria-hidden'));
+      el.removeAttribute('data-previous-aria-hidden');
+    } else {
+      el.removeAttribute('aria-hidden');
+    }
+  });
+};
+
+/**
+ * This module containts `WeakMap`s for each effectively-"private  property" that a `Swal` has.
+ * For example, to set the private property "foo" of `this` to "bar", you can `privateProps.foo.set(this, 'bar')`
+ * This is the approach that Babel will probably take to implement private methods/fields
+ *   https://github.com/tc39/proposal-private-methods
+ *   https://github.com/babel/babel/pull/7555
+ * Once we have the changes from that PR in Babel, and our core class fits reasonable in *one module*
+ *   then we can use that language feature.
+ */
+var privateMethods = {
+  swalPromiseResolve: new WeakMap()
+};
+
+/*
+ * Instance method to close sweetAlert
+ */
+
+function removePopupAndResetState(instance, container, isToast, onAfterClose) {
+  if (isToast) {
+    triggerOnAfterCloseAndDispose(instance, onAfterClose);
+  } else {
+    restoreActiveElement().then(function () {
+      return triggerOnAfterCloseAndDispose(instance, onAfterClose);
+    });
+    globalState.keydownTarget.removeEventListener('keydown', globalState.keydownHandler, {
+      capture: globalState.keydownListenerCapture
+    });
+    globalState.keydownHandlerAdded = false;
+  }
+
+  if (container.parentNode) {
+    container.parentNode.removeChild(container);
+  }
+
+  if (isModal()) {
+    undoScrollbar();
+    undoIOSfix();
+    undoIEfix();
+    unsetAriaHidden();
+  }
+
+  removeBodyClasses();
+}
+
+function removeBodyClasses() {
+  removeClass([document.documentElement, document.body], [swalClasses.shown, swalClasses['height-auto'], swalClasses['no-backdrop'], swalClasses['toast-shown'], swalClasses['toast-column']]);
+}
+
+function disposeSwal(instance) {
+  // Unset this.params so GC will dispose it (#1569)
+  delete instance.params; // Unset globalState props so GC will dispose globalState (#1569)
+
+  delete globalState.keydownHandler;
+  delete globalState.keydownTarget; // Unset WeakMaps so GC will be able to dispose them (#1569)
+
+  unsetWeakMaps(privateProps);
+  unsetWeakMaps(privateMethods);
+}
+
+function close(resolveValue) {
+  var popup = getPopup();
+
+  if (!popup || hasClass(popup, swalClasses.hide)) {
+    return;
+  }
+
+  var innerParams = privateProps.innerParams.get(this);
+
+  if (!innerParams) {
+    return;
+  }
+
+  var swalPromiseResolve = privateMethods.swalPromiseResolve.get(this);
+  removeClass(popup, swalClasses.show);
+  addClass(popup, swalClasses.hide);
+  handlePopupAnimation(this, popup, innerParams); // Resolve Swal promise
+
+  swalPromiseResolve(resolveValue || {});
+}
+
+var handlePopupAnimation = function handlePopupAnimation(instance, popup, innerParams) {
+  var container = getContainer(); // If animation is supported, animate
+
+  var animationIsSupported = animationEndEvent && hasCssAnimation(popup);
+  var onClose = innerParams.onClose,
+      onAfterClose = innerParams.onAfterClose;
+
+  if (onClose !== null && typeof onClose === 'function') {
+    onClose(popup);
+  }
+
+  if (animationIsSupported) {
+    animatePopup(instance, popup, container, onAfterClose);
+  } else {
+    // Otherwise, remove immediately
+    removePopupAndResetState(instance, container, isToast(), onAfterClose);
+  }
+};
+
+var animatePopup = function animatePopup(instance, popup, container, onAfterClose) {
+  globalState.swalCloseEventFinishedCallback = removePopupAndResetState.bind(null, instance, container, isToast(), onAfterClose);
+  popup.addEventListener(animationEndEvent, function (e) {
+    if (e.target === popup) {
+      globalState.swalCloseEventFinishedCallback();
+      delete globalState.swalCloseEventFinishedCallback;
+    }
+  });
+};
+
+var unsetWeakMaps = function unsetWeakMaps(obj) {
+  for (var i in obj) {
+    obj[i] = new WeakMap();
+  }
+};
+
+var triggerOnAfterCloseAndDispose = function triggerOnAfterCloseAndDispose(instance, onAfterClose) {
+  setTimeout(function () {
+    if (onAfterClose !== null && typeof onAfterClose === 'function') {
+      onAfterClose();
+    }
+
+    if (!getPopup()) {
+      disposeSwal(instance);
+    }
+  });
+};
+
+function setButtonsDisabled(instance, buttons, disabled) {
+  var domCache = privateProps.domCache.get(instance);
+  buttons.forEach(function (button) {
+    domCache[button].disabled = disabled;
+  });
+}
+
+function setInputDisabled(input, disabled) {
+  if (!input) {
+    return false;
+  }
+
+  if (input.type === 'radio') {
+    var radiosContainer = input.parentNode.parentNode;
+    var radios = radiosContainer.querySelectorAll('input');
+
+    for (var i = 0; i < radios.length; i++) {
+      radios[i].disabled = disabled;
+    }
+  } else {
+    input.disabled = disabled;
+  }
+}
+
+function enableButtons() {
+  setButtonsDisabled(this, ['confirmButton', 'cancelButton'], false);
+}
+function disableButtons() {
+  setButtonsDisabled(this, ['confirmButton', 'cancelButton'], true);
+} // @deprecated
+
+function enableConfirmButton() {
+  warnAboutDepreation('Swal.enableConfirmButton()', "Swal.getConfirmButton().removeAttribute('disabled')");
+  setButtonsDisabled(this, ['confirmButton'], false);
+} // @deprecated
+
+function disableConfirmButton() {
+  warnAboutDepreation('Swal.disableConfirmButton()', "Swal.getConfirmButton().setAttribute('disabled', '')");
+  setButtonsDisabled(this, ['confirmButton'], true);
+}
+function enableInput() {
+  return setInputDisabled(this.getInput(), false);
+}
+function disableInput() {
+  return setInputDisabled(this.getInput(), true);
+}
+
+function showValidationMessage(error) {
+  var domCache = privateProps.domCache.get(this);
+  domCache.validationMessage.innerHTML = error;
+  var popupComputedStyle = window.getComputedStyle(domCache.popup);
+  domCache.validationMessage.style.marginLeft = "-".concat(popupComputedStyle.getPropertyValue('padding-left'));
+  domCache.validationMessage.style.marginRight = "-".concat(popupComputedStyle.getPropertyValue('padding-right'));
+  show(domCache.validationMessage);
+  var input = this.getInput();
+
+  if (input) {
+    input.setAttribute('aria-invalid', true);
+    input.setAttribute('aria-describedBy', swalClasses['validation-message']);
+    focusInput(input);
+    addClass(input, swalClasses.inputerror);
+  }
+} // Hide block with validation message
+
+function resetValidationMessage$1() {
+  var domCache = privateProps.domCache.get(this);
+
+  if (domCache.validationMessage) {
+    hide(domCache.validationMessage);
+  }
+
+  var input = this.getInput();
+
+  if (input) {
+    input.removeAttribute('aria-invalid');
+    input.removeAttribute('aria-describedBy');
+    removeClass(input, swalClasses.inputerror);
+  }
+}
+
+function getProgressSteps$1() {
+  warnAboutDepreation('Swal.getProgressSteps()', "const swalInstance = Swal.fire({progressSteps: ['1', '2', '3']}); const progressSteps = swalInstance.params.progressSteps");
+  var innerParams = privateProps.innerParams.get(this);
+  return innerParams.progressSteps;
+}
+function setProgressSteps(progressSteps) {
+  warnAboutDepreation('Swal.setProgressSteps()', 'Swal.update()');
+  var innerParams = privateProps.innerParams.get(this);
+
+  var updatedParams = _extends({}, innerParams, {
+    progressSteps: progressSteps
+  });
+
+  renderProgressSteps(this, updatedParams);
+  privateProps.innerParams.set(this, updatedParams);
+}
+function showProgressSteps() {
+  var domCache = privateProps.domCache.get(this);
+  show(domCache.progressSteps);
+}
+function hideProgressSteps() {
+  var domCache = privateProps.domCache.get(this);
+  hide(domCache.progressSteps);
+}
+
+var Timer =
+/*#__PURE__*/
+function () {
+  function Timer(callback, delay) {
+    _classCallCheck(this, Timer);
+
+    this.callback = callback;
+    this.remaining = delay;
+    this.running = false;
+    this.start();
+  }
+
+  _createClass(Timer, [{
+    key: "start",
+    value: function start() {
+      if (!this.running) {
+        this.running = true;
+        this.started = new Date();
+        this.id = setTimeout(this.callback, this.remaining);
+      }
+
+      return this.remaining;
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      if (this.running) {
+        this.running = false;
+        clearTimeout(this.id);
+        this.remaining -= new Date() - this.started;
+      }
+
+      return this.remaining;
+    }
+  }, {
+    key: "increase",
+    value: function increase(n) {
+      var running = this.running;
+
+      if (running) {
+        this.stop();
+      }
+
+      this.remaining += n;
+
+      if (running) {
+        this.start();
+      }
+
+      return this.remaining;
+    }
+  }, {
+    key: "getTimerLeft",
+    value: function getTimerLeft() {
+      if (this.running) {
+        this.stop();
+        this.start();
+      }
+
+      return this.remaining;
+    }
+  }, {
+    key: "isRunning",
+    value: function isRunning() {
+      return this.running;
+    }
+  }]);
+
+  return Timer;
+}();
+
+var defaultInputValidators = {
+  email: function email(string, validationMessage) {
+    return /^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9-]{2,24}$/.test(string) ? Promise.resolve() : Promise.resolve(validationMessage || 'Invalid email address');
+  },
+  url: function url(string, validationMessage) {
+    // taken from https://stackoverflow.com/a/3809435 with a small change from #1306
+    return /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,63}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)$/.test(string) ? Promise.resolve() : Promise.resolve(validationMessage || 'Invalid URL');
+  }
+};
+
+function setDefaultInputValidators(params) {
+  // Use default `inputValidator` for supported input types if not provided
+  if (!params.inputValidator) {
+    Object.keys(defaultInputValidators).forEach(function (key) {
+      if (params.input === key) {
+        params.inputValidator = defaultInputValidators[key];
+      }
+    });
+  }
+}
+
+function validateCustomTargetElement(params) {
+  // Determine if the custom target element is valid
+  if (!params.target || typeof params.target === 'string' && !document.querySelector(params.target) || typeof params.target !== 'string' && !params.target.appendChild) {
+    warn('Target parameter is not valid, defaulting to "body"');
+    params.target = 'body';
+  }
+}
+/**
+ * Set type, text and actions on popup
+ *
+ * @param params
+ * @returns {boolean}
+ */
+
+
+function setParameters(params) {
+  setDefaultInputValidators(params); // showLoaderOnConfirm && preConfirm
+
+  if (params.showLoaderOnConfirm && !params.preConfirm) {
+    warn('showLoaderOnConfirm is set to true, but preConfirm is not defined.\n' + 'showLoaderOnConfirm should be used together with preConfirm, see usage example:\n' + 'https://sweetalert2.github.io/#ajax-request');
+  } // params.animation will be actually used in renderPopup.js
+  // but in case when params.animation is a function, we need to call that function
+  // before popup (re)initialization, so it'll be possible to check Swal.isVisible()
+  // inside the params.animation function
+
+
+  params.animation = callIfFunction(params.animation);
+  validateCustomTargetElement(params); // Replace newlines with <br> in title
+
+  if (typeof params.title === 'string') {
+    params.title = params.title.split('\n').join('<br />');
+  }
+
+  init(params);
+}
+
+function swalOpenAnimationFinished(popup, container) {
+  popup.removeEventListener(animationEndEvent, swalOpenAnimationFinished);
+  container.style.overflowY = 'auto';
+}
+/**
+ * Open popup, add necessary classes and styles, fix scrollbar
+ *
+ * @param {Array} params
+ */
+
+
+var openPopup = function openPopup(params) {
+  var container = getContainer();
+  var popup = getPopup();
+
+  if (typeof params.onBeforeOpen === 'function') {
+    params.onBeforeOpen(popup);
+  }
+
+  addClasses(container, popup, params); // scrolling is 'hidden' until animation is done, after that 'auto'
+
+  setScrollingVisibility(container, popup);
+
+  if (isModal()) {
+    fixScrollContainer(container, params.scrollbarPadding);
+  }
+
+  if (!isToast() && !globalState.previousActiveElement) {
+    globalState.previousActiveElement = document.activeElement;
+  }
+
+  if (typeof params.onOpen === 'function') {
+    setTimeout(function () {
+      return params.onOpen(popup);
+    });
+  }
+};
+
+var setScrollingVisibility = function setScrollingVisibility(container, popup) {
+  if (animationEndEvent && hasCssAnimation(popup)) {
+    container.style.overflowY = 'hidden';
+    popup.addEventListener(animationEndEvent, swalOpenAnimationFinished.bind(null, popup, container));
+  } else {
+    container.style.overflowY = 'auto';
+  }
+};
+
+var fixScrollContainer = function fixScrollContainer(container, scrollbarPadding) {
+  iOSfix();
+  IEfix();
+  setAriaHidden();
+
+  if (scrollbarPadding) {
+    fixScrollbar();
+  } // sweetalert2/issues/1247
+
+
+  setTimeout(function () {
+    container.scrollTop = 0;
+  });
+};
+
+var addClasses = function addClasses(container, popup, params) {
+  if (params.animation) {
+    addClass(popup, swalClasses.show);
+    addClass(container, swalClasses.fade);
+  }
+
+  show(popup);
+  addClass([document.documentElement, document.body, container], swalClasses.shown);
+
+  if (params.heightAuto && params.backdrop && !params.toast) {
+    addClass([document.documentElement, document.body], swalClasses['height-auto']);
+  }
+};
+
+var handleInputOptionsAndValue = function handleInputOptionsAndValue(instance, params) {
+  if (params.input === 'select' || params.input === 'radio') {
+    handleInputOptions(instance, params);
+  } else if (['text', 'email', 'number', 'tel', 'textarea'].indexOf(params.input) !== -1 && isPromise(params.inputValue)) {
+    handleInputValue(instance, params);
+  }
+};
+var getInputValue = function getInputValue(instance, innerParams) {
+  var input = instance.getInput();
+
+  if (!input) {
+    return null;
+  }
+
+  switch (innerParams.input) {
+    case 'checkbox':
+      return getCheckboxValue(input);
+
+    case 'radio':
+      return getRadioValue(input);
+
+    case 'file':
+      return getFileValue(input);
+
+    default:
+      return innerParams.inputAutoTrim ? input.value.trim() : input.value;
+  }
+};
+
+var getCheckboxValue = function getCheckboxValue(input) {
+  return input.checked ? 1 : 0;
+};
+
+var getRadioValue = function getRadioValue(input) {
+  return input.checked ? input.value : null;
+};
+
+var getFileValue = function getFileValue(input) {
+  return input.files.length ? input.getAttribute('multiple') !== null ? input.files : input.files[0] : null;
+};
+
+var handleInputOptions = function handleInputOptions(instance, params) {
+  var content = getContent();
+
+  var processInputOptions = function processInputOptions(inputOptions) {
+    return populateInputOptions[params.input](content, formatInputOptions(inputOptions), params);
+  };
+
+  if (isPromise(params.inputOptions)) {
+    showLoading();
+    params.inputOptions.then(function (inputOptions) {
+      instance.hideLoading();
+      processInputOptions(inputOptions);
+    });
+  } else if (_typeof(params.inputOptions) === 'object') {
+    processInputOptions(params.inputOptions);
+  } else {
+    error("Unexpected type of inputOptions! Expected object, Map or Promise, got ".concat(_typeof(params.inputOptions)));
+  }
+};
+
+var handleInputValue = function handleInputValue(instance, params) {
+  var input = instance.getInput();
+  hide(input);
+  params.inputValue.then(function (inputValue) {
+    input.value = params.input === 'number' ? parseFloat(inputValue) || 0 : inputValue + '';
+    show(input);
+    input.focus();
+    instance.hideLoading();
+  })["catch"](function (err) {
+    error('Error in inputValue promise: ' + err);
+    input.value = '';
+    show(input);
+    input.focus();
+    instance.hideLoading();
+  });
+};
+
+var populateInputOptions = {
+  select: function select(content, inputOptions, params) {
+    var select = getChildByClass(content, swalClasses.select);
+    inputOptions.forEach(function (inputOption) {
+      var optionValue = inputOption[0];
+      var optionLabel = inputOption[1];
+      var option = document.createElement('option');
+      option.value = optionValue;
+      option.innerHTML = optionLabel;
+
+      if (params.inputValue.toString() === optionValue.toString()) {
+        option.selected = true;
+      }
+
+      select.appendChild(option);
+    });
+    select.focus();
+  },
+  radio: function radio(content, inputOptions, params) {
+    var radio = getChildByClass(content, swalClasses.radio);
+    inputOptions.forEach(function (inputOption) {
+      var radioValue = inputOption[0];
+      var radioLabel = inputOption[1];
+      var radioInput = document.createElement('input');
+      var radioLabelElement = document.createElement('label');
+      radioInput.type = 'radio';
+      radioInput.name = swalClasses.radio;
+      radioInput.value = radioValue;
+
+      if (params.inputValue.toString() === radioValue.toString()) {
+        radioInput.checked = true;
+      }
+
+      var label = document.createElement('span');
+      label.innerHTML = radioLabel;
+      label.className = swalClasses.label;
+      radioLabelElement.appendChild(radioInput);
+      radioLabelElement.appendChild(label);
+      radio.appendChild(radioLabelElement);
+    });
+    var radios = radio.querySelectorAll('input');
+
+    if (radios.length) {
+      radios[0].focus();
+    }
+  }
+  /**
+   * Converts `inputOptions` into an array of `[value, label]`s
+   * @param inputOptions
+   */
+
+};
+
+var formatInputOptions = function formatInputOptions(inputOptions) {
+  var result = [];
+
+  if (typeof Map !== 'undefined' && inputOptions instanceof Map) {
+    inputOptions.forEach(function (value, key) {
+      result.push([key, value]);
+    });
+  } else {
+    Object.keys(inputOptions).forEach(function (key) {
+      result.push([key, inputOptions[key]]);
+    });
+  }
+
+  return result;
+};
+
+var handleConfirmButtonClick = function handleConfirmButtonClick(instance, innerParams) {
+  instance.disableButtons();
+
+  if (innerParams.input) {
+    handleConfirmWithInput(instance, innerParams);
+  } else {
+    confirm(instance, innerParams, true);
+  }
+};
+var handleCancelButtonClick = function handleCancelButtonClick(instance, dismissWith) {
+  instance.disableButtons();
+  dismissWith(DismissReason.cancel);
+};
+
+var handleConfirmWithInput = function handleConfirmWithInput(instance, innerParams) {
+  var inputValue = getInputValue(instance, innerParams);
+
+  if (innerParams.inputValidator) {
+    instance.disableInput();
+    var validationPromise = Promise.resolve().then(function () {
+      return innerParams.inputValidator(inputValue, innerParams.validationMessage);
+    });
+    validationPromise.then(function (validationMessage) {
+      instance.enableButtons();
+      instance.enableInput();
+
+      if (validationMessage) {
+        instance.showValidationMessage(validationMessage);
+      } else {
+        confirm(instance, innerParams, inputValue);
+      }
+    });
+  } else if (!instance.getInput().checkValidity()) {
+    instance.enableButtons();
+    instance.showValidationMessage(innerParams.validationMessage);
+  } else {
+    confirm(instance, innerParams, inputValue);
+  }
+};
+
+var succeedWith = function succeedWith(instance, value) {
+  instance.closePopup({
+    value: value
+  });
+};
+
+var confirm = function confirm(instance, innerParams, value) {
+  if (innerParams.showLoaderOnConfirm) {
+    showLoading(); // TODO: make showLoading an *instance* method
+  }
+
+  if (innerParams.preConfirm) {
+    instance.resetValidationMessage();
+    var preConfirmPromise = Promise.resolve().then(function () {
+      return innerParams.preConfirm(value, innerParams.validationMessage);
+    });
+    preConfirmPromise.then(function (preConfirmValue) {
+      if (isVisible(getValidationMessage()) || preConfirmValue === false) {
+        instance.hideLoading();
+      } else {
+        succeedWith(instance, typeof preConfirmValue === 'undefined' ? value : preConfirmValue);
+      }
+    });
+  } else {
+    succeedWith(instance, value);
+  }
+};
+
+var addKeydownHandler = function addKeydownHandler(instance, globalState, innerParams, dismissWith) {
+  if (globalState.keydownTarget && globalState.keydownHandlerAdded) {
+    globalState.keydownTarget.removeEventListener('keydown', globalState.keydownHandler, {
+      capture: globalState.keydownListenerCapture
+    });
+    globalState.keydownHandlerAdded = false;
+  }
+
+  if (!innerParams.toast) {
+    globalState.keydownHandler = function (e) {
+      return keydownHandler(instance, e, innerParams, dismissWith);
+    };
+
+    globalState.keydownTarget = innerParams.keydownListenerCapture ? window : getPopup();
+    globalState.keydownListenerCapture = innerParams.keydownListenerCapture;
+    globalState.keydownTarget.addEventListener('keydown', globalState.keydownHandler, {
+      capture: globalState.keydownListenerCapture
+    });
+    globalState.keydownHandlerAdded = true;
+  }
+}; // Focus handling
+
+var setFocus = function setFocus(innerParams, index, increment) {
+  var focusableElements = getFocusableElements(); // search for visible elements and select the next possible match
+
+  for (var i = 0; i < focusableElements.length; i++) {
+    index = index + increment; // rollover to first item
+
+    if (index === focusableElements.length) {
+      index = 0; // go to last item
+    } else if (index === -1) {
+      index = focusableElements.length - 1;
+    }
+
+    return focusableElements[index].focus();
+  } // no visible focusable elements, focus the popup
+
+
+  getPopup().focus();
+};
+var arrowKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Left', 'Right', 'Up', 'Down' // IE11
+];
+var escKeys = ['Escape', 'Esc' // IE11
+];
+
+var keydownHandler = function keydownHandler(instance, e, innerParams, dismissWith) {
+  if (innerParams.stopKeydownPropagation) {
+    e.stopPropagation();
+  } // ENTER
+
+
+  if (e.key === 'Enter') {
+    handleEnter(instance, e, innerParams); // TAB
+  } else if (e.key === 'Tab') {
+    handleTab(e, innerParams); // ARROWS - switch focus between buttons
+  } else if (arrowKeys.indexOf(e.key) !== -1) {
+    handleArrows(); // ESC
+  } else if (escKeys.indexOf(e.key) !== -1) {
+    handleEsc(e, innerParams, dismissWith);
+  }
+};
+
+var handleEnter = function handleEnter(instance, e, innerParams) {
+  // #720 #721
+  if (e.isComposing) {
+    return;
+  }
+
+  if (e.target && instance.getInput() && e.target.outerHTML === instance.getInput().outerHTML) {
+    if (['textarea', 'file'].indexOf(innerParams.input) !== -1) {
+      return; // do not submit
+    }
+
+    clickConfirm();
+    e.preventDefault();
+  }
+};
+
+var handleTab = function handleTab(e, innerParams) {
+  var targetElement = e.target;
+  var focusableElements = getFocusableElements();
+  var btnIndex = -1;
+
+  for (var i = 0; i < focusableElements.length; i++) {
+    if (targetElement === focusableElements[i]) {
+      btnIndex = i;
+      break;
+    }
+  }
+
+  if (!e.shiftKey) {
+    // Cycle to the next button
+    setFocus(innerParams, btnIndex, 1);
+  } else {
+    // Cycle to the prev button
+    setFocus(innerParams, btnIndex, -1);
+  }
+
+  e.stopPropagation();
+  e.preventDefault();
+};
+
+var handleArrows = function handleArrows() {
+  var confirmButton = getConfirmButton();
+  var cancelButton = getCancelButton(); // focus Cancel button if Confirm button is currently focused
+
+  if (document.activeElement === confirmButton && isVisible(cancelButton)) {
+    cancelButton.focus(); // and vice versa
+  } else if (document.activeElement === cancelButton && isVisible(confirmButton)) {
+    confirmButton.focus();
+  }
+};
+
+var handleEsc = function handleEsc(e, innerParams, dismissWith) {
+  if (callIfFunction(innerParams.allowEscapeKey)) {
+    e.preventDefault();
+    dismissWith(DismissReason.esc);
+  }
+};
+
+var handlePopupClick = function handlePopupClick(domCache, innerParams, dismissWith) {
+  if (innerParams.toast) {
+    handleToastClick(domCache, innerParams, dismissWith);
+  } else {
+    // Ignore click events that had mousedown on the popup but mouseup on the container
+    // This can happen when the user drags a slider
+    handleModalMousedown(domCache); // Ignore click events that had mousedown on the container but mouseup on the popup
+
+    handleContainerMousedown(domCache);
+    handleModalClick(domCache, innerParams, dismissWith);
+  }
+};
+
+var handleToastClick = function handleToastClick(domCache, innerParams, dismissWith) {
+  // Closing toast by internal click
+  domCache.popup.onclick = function () {
+    if (innerParams.showConfirmButton || innerParams.showCancelButton || innerParams.showCloseButton || innerParams.input) {
+      return;
+    }
+
+    dismissWith(DismissReason.close);
+  };
+};
+
+var ignoreOutsideClick = false;
+
+var handleModalMousedown = function handleModalMousedown(domCache) {
+  domCache.popup.onmousedown = function () {
+    domCache.container.onmouseup = function (e) {
+      domCache.container.onmouseup = undefined; // We only check if the mouseup target is the container because usually it doesn't
+      // have any other direct children aside of the popup
+
+      if (e.target === domCache.container) {
+        ignoreOutsideClick = true;
+      }
+    };
+  };
+};
+
+var handleContainerMousedown = function handleContainerMousedown(domCache) {
+  domCache.container.onmousedown = function () {
+    domCache.popup.onmouseup = function (e) {
+      domCache.popup.onmouseup = undefined; // We also need to check if the mouseup target is a child of the popup
+
+      if (e.target === domCache.popup || domCache.popup.contains(e.target)) {
+        ignoreOutsideClick = true;
+      }
+    };
+  };
+};
+
+var handleModalClick = function handleModalClick(domCache, innerParams, dismissWith) {
+  domCache.container.onclick = function (e) {
+    if (ignoreOutsideClick) {
+      ignoreOutsideClick = false;
+      return;
+    }
+
+    if (e.target === domCache.container && callIfFunction(innerParams.allowOutsideClick)) {
+      dismissWith(DismissReason.backdrop);
+    }
+  };
+};
+
+function _main(userParams) {
+  showWarningsForParams(userParams); // Check if there is another Swal closing
+
+  if (getPopup() && globalState.swalCloseEventFinishedCallback) {
+    globalState.swalCloseEventFinishedCallback();
+    delete globalState.swalCloseEventFinishedCallback;
+  } // Check if there is a swal disposal defer timer
+
+
+  if (globalState.deferDisposalTimer) {
+    clearTimeout(globalState.deferDisposalTimer);
+    delete globalState.deferDisposalTimer;
+  }
+
+  var innerParams = _extends({}, defaultParams, userParams);
+
+  setParameters(innerParams);
+  Object.freeze(innerParams); // clear the previous timer
+
+  if (globalState.timeout) {
+    globalState.timeout.stop();
+    delete globalState.timeout;
+  } // clear the restore focus timeout
+
+
+  clearTimeout(globalState.restoreFocusTimeout);
+  var domCache = populateDomCache(this);
+  render(this, innerParams);
+  privateProps.innerParams.set(this, innerParams);
+  return swalPromise(this, domCache, innerParams);
+}
+
+var swalPromise = function swalPromise(instance, domCache, innerParams) {
+  return new Promise(function (resolve) {
+    // functions to handle all closings/dismissals
+    var dismissWith = function dismissWith(dismiss) {
+      instance.closePopup({
+        dismiss: dismiss
+      });
+    };
+
+    privateMethods.swalPromiseResolve.set(instance, resolve);
+    setupTimer(globalState, innerParams, dismissWith);
+
+    domCache.confirmButton.onclick = function () {
+      return handleConfirmButtonClick(instance, innerParams);
+    };
+
+    domCache.cancelButton.onclick = function () {
+      return handleCancelButtonClick(instance, dismissWith);
+    };
+
+    domCache.closeButton.onclick = function () {
+      return dismissWith(DismissReason.close);
+    };
+
+    handlePopupClick(domCache, innerParams, dismissWith);
+    addKeydownHandler(instance, globalState, innerParams, dismissWith);
+
+    if (innerParams.toast && (innerParams.input || innerParams.footer || innerParams.showCloseButton)) {
+      addClass(document.body, swalClasses['toast-column']);
+    } else {
+      removeClass(document.body, swalClasses['toast-column']);
+    }
+
+    handleInputOptionsAndValue(instance, innerParams);
+    openPopup(innerParams);
+    initFocus(domCache, innerParams); // Scroll container to top on open (#1247)
+
+    domCache.container.scrollTop = 0;
+  });
+};
+
+var populateDomCache = function populateDomCache(instance) {
+  var domCache = {
+    popup: getPopup(),
+    container: getContainer(),
+    content: getContent(),
+    actions: getActions(),
+    confirmButton: getConfirmButton(),
+    cancelButton: getCancelButton(),
+    closeButton: getCloseButton(),
+    validationMessage: getValidationMessage(),
+    progressSteps: getProgressSteps()
+  };
+  privateProps.domCache.set(instance, domCache);
+  return domCache;
+};
+
+var setupTimer = function setupTimer(globalState$$1, innerParams, dismissWith) {
+  if (innerParams.timer) {
+    globalState$$1.timeout = new Timer(function () {
+      dismissWith('timer');
+      delete globalState$$1.timeout;
+    }, innerParams.timer);
+  }
+};
+
+var initFocus = function initFocus(domCache, innerParams) {
+  if (innerParams.toast) {
+    return;
+  }
+
+  if (!callIfFunction(innerParams.allowEnterKey)) {
+    return blurActiveElement();
+  }
+
+  if (innerParams.focusCancel && isVisible(domCache.cancelButton)) {
+    return domCache.cancelButton.focus();
+  }
+
+  if (innerParams.focusConfirm && isVisible(domCache.confirmButton)) {
+    return domCache.confirmButton.focus();
+  }
+
+  setFocus(innerParams, -1, 1);
+};
+
+var blurActiveElement = function blurActiveElement() {
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
+};
+
+/**
+ * Updates popup parameters.
+ */
+
+function update(params) {
+  var validUpdatableParams = {}; // assign valid params from `params` to `defaults`
+
+  Object.keys(params).forEach(function (param) {
+    if (Swal.isUpdatableParameter(param)) {
+      validUpdatableParams[param] = params[param];
+    } else {
+      warn("Invalid parameter to update: \"".concat(param, "\". Updatable params are listed here: https://github.com/sweetalert2/sweetalert2/blob/master/src/utils/params.js"));
+    }
+  });
+  var innerParams = privateProps.innerParams.get(this);
+
+  var updatedParams = _extends({}, innerParams, validUpdatableParams);
+
+  render(this, updatedParams);
+  privateProps.innerParams.set(this, updatedParams);
+  Object.defineProperties(this, {
+    params: {
+      value: _extends({}, this.params, params),
+      writable: false,
+      enumerable: true
+    }
+  });
+}
+
+
+
+var instanceMethods = Object.freeze({
+	hideLoading: hideLoading,
+	disableLoading: hideLoading,
+	getInput: getInput$1,
+	close: close,
+	closePopup: close,
+	closeModal: close,
+	closeToast: close,
+	enableButtons: enableButtons,
+	disableButtons: disableButtons,
+	enableConfirmButton: enableConfirmButton,
+	disableConfirmButton: disableConfirmButton,
+	enableInput: enableInput,
+	disableInput: disableInput,
+	showValidationMessage: showValidationMessage,
+	resetValidationMessage: resetValidationMessage$1,
+	getProgressSteps: getProgressSteps$1,
+	setProgressSteps: setProgressSteps,
+	showProgressSteps: showProgressSteps,
+	hideProgressSteps: hideProgressSteps,
+	_main: _main,
+	update: update
+});
+
+var currentInstance; // SweetAlert constructor
+
+function SweetAlert() {
+  // Prevent run in Node env
+
+  /* istanbul ignore if */
+  if (typeof window === 'undefined') {
+    return;
+  } // Check for the existence of Promise
+
+  /* istanbul ignore if */
+
+
+  if (typeof Promise === 'undefined') {
+    error('This package requires a Promise library, please include a shim to enable it in this browser (See: https://github.com/sweetalert2/sweetalert2/wiki/Migration-from-SweetAlert-to-SweetAlert2#1-ie-support)');
+  }
+
+  currentInstance = this;
+
+  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  var outerParams = Object.freeze(this.constructor.argsToParams(args));
+  Object.defineProperties(this, {
+    params: {
+      value: outerParams,
+      writable: false,
+      enumerable: true,
+      configurable: true
+    }
+  });
+
+  var promise = this._main(this.params);
+
+  privateProps.promise.set(this, promise);
+} // `catch` cannot be the name of a module export, so we define our thenable methods here instead
+
+
+SweetAlert.prototype.then = function (onFulfilled) {
+  var promise = privateProps.promise.get(this);
+  return promise.then(onFulfilled);
+};
+
+SweetAlert.prototype["finally"] = function (onFinally) {
+  var promise = privateProps.promise.get(this);
+  return promise["finally"](onFinally);
+}; // Assign instance methods from src/instanceMethods/*.js to prototype
+
+
+_extends(SweetAlert.prototype, instanceMethods); // Assign static methods from src/staticMethods/*.js to constructor
+
+
+_extends(SweetAlert, staticMethods); // Proxy to instance methods to constructor, for now, for backwards compatibility
+
+
+Object.keys(instanceMethods).forEach(function (key) {
+  SweetAlert[key] = function () {
+    if (currentInstance) {
+      var _currentInstance;
+
+      return (_currentInstance = currentInstance)[key].apply(_currentInstance, arguments);
+    }
+  };
+});
+SweetAlert.DismissReason = DismissReason;
+SweetAlert.version = '8.18.3';
+
+var Swal = SweetAlert;
+Swal["default"] = Swal;
+
+return Swal;
+
+})));
+if (typeof this !== 'undefined' && this.Sweetalert2){  this.swal = this.sweetAlert = this.Swal = this.SweetAlert = this.Sweetalert2}
+
+"undefined"!=typeof document&&function(e,t){var n=e.createElement("style");if(e.getElementsByTagName("head")[0].appendChild(n),n.styleSheet)n.styleSheet.disabled||(n.styleSheet.cssText=t);else try{n.innerHTML=t}catch(e){n.innerText=t}}(document,"@charset \"UTF-8\";.swal2-popup.swal2-toast{flex-direction:row;align-items:center;width:auto;padding:.625em;overflow-y:hidden;box-shadow:0 0 .625em #d9d9d9}.swal2-popup.swal2-toast .swal2-header{flex-direction:row}.swal2-popup.swal2-toast .swal2-title{flex-grow:1;justify-content:flex-start;margin:0 .6em;font-size:1em}.swal2-popup.swal2-toast .swal2-footer{margin:.5em 0 0;padding:.5em 0 0;font-size:.8em}.swal2-popup.swal2-toast .swal2-close{position:static;width:.8em;height:.8em;line-height:.8}.swal2-popup.swal2-toast .swal2-content{justify-content:flex-start;font-size:1em}.swal2-popup.swal2-toast .swal2-icon{width:2em;min-width:2em;height:2em;margin:0}.swal2-popup.swal2-toast .swal2-icon::before{display:flex;align-items:center;font-size:2em;font-weight:700}@media all and (-ms-high-contrast:none),(-ms-high-contrast:active){.swal2-popup.swal2-toast .swal2-icon::before{font-size:.25em}}.swal2-popup.swal2-toast .swal2-icon.swal2-success .swal2-success-ring{width:2em;height:2em}.swal2-popup.swal2-toast .swal2-icon.swal2-error [class^=swal2-x-mark-line]{top:.875em;width:1.375em}.swal2-popup.swal2-toast .swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=left]{left:.3125em}.swal2-popup.swal2-toast .swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=right]{right:.3125em}.swal2-popup.swal2-toast .swal2-actions{flex-basis:auto!important;width:auto;height:auto;margin:0 .3125em}.swal2-popup.swal2-toast .swal2-styled{margin:0 .3125em;padding:.3125em .625em;font-size:1em}.swal2-popup.swal2-toast .swal2-styled:focus{box-shadow:0 0 0 .0625em #fff,0 0 0 .125em rgba(50,100,150,.4)}.swal2-popup.swal2-toast .swal2-success{border-color:#a5dc86}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-circular-line]{position:absolute;width:1.6em;height:3em;transform:rotate(45deg);border-radius:50%}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-circular-line][class$=left]{top:-.8em;left:-.5em;transform:rotate(-45deg);transform-origin:2em 2em;border-radius:4em 0 0 4em}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-circular-line][class$=right]{top:-.25em;left:.9375em;transform-origin:0 1.5em;border-radius:0 4em 4em 0}.swal2-popup.swal2-toast .swal2-success .swal2-success-ring{width:2em;height:2em}.swal2-popup.swal2-toast .swal2-success .swal2-success-fix{top:0;left:.4375em;width:.4375em;height:2.6875em}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-line]{height:.3125em}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-line][class$=tip]{top:1.125em;left:.1875em;width:.75em}.swal2-popup.swal2-toast .swal2-success [class^=swal2-success-line][class$=long]{top:.9375em;right:.1875em;width:1.375em}.swal2-popup.swal2-toast.swal2-show{-webkit-animation:swal2-toast-show .5s;animation:swal2-toast-show .5s}.swal2-popup.swal2-toast.swal2-hide{-webkit-animation:swal2-toast-hide .1s forwards;animation:swal2-toast-hide .1s forwards}.swal2-popup.swal2-toast .swal2-animate-success-icon .swal2-success-line-tip{-webkit-animation:swal2-toast-animate-success-line-tip .75s;animation:swal2-toast-animate-success-line-tip .75s}.swal2-popup.swal2-toast .swal2-animate-success-icon .swal2-success-line-long{-webkit-animation:swal2-toast-animate-success-line-long .75s;animation:swal2-toast-animate-success-line-long .75s}.swal2-container{display:flex;position:fixed;z-index:1060;top:0;right:0;bottom:0;left:0;flex-direction:row;align-items:center;justify-content:center;padding:.625em;overflow-x:hidden;background-color:transparent;-webkit-overflow-scrolling:touch}.swal2-container.swal2-top{align-items:flex-start}.swal2-container.swal2-top-left,.swal2-container.swal2-top-start{align-items:flex-start;justify-content:flex-start}.swal2-container.swal2-top-end,.swal2-container.swal2-top-right{align-items:flex-start;justify-content:flex-end}.swal2-container.swal2-center{align-items:center}.swal2-container.swal2-center-left,.swal2-container.swal2-center-start{align-items:center;justify-content:flex-start}.swal2-container.swal2-center-end,.swal2-container.swal2-center-right{align-items:center;justify-content:flex-end}.swal2-container.swal2-bottom{align-items:flex-end}.swal2-container.swal2-bottom-left,.swal2-container.swal2-bottom-start{align-items:flex-end;justify-content:flex-start}.swal2-container.swal2-bottom-end,.swal2-container.swal2-bottom-right{align-items:flex-end;justify-content:flex-end}.swal2-container.swal2-bottom-end>:first-child,.swal2-container.swal2-bottom-left>:first-child,.swal2-container.swal2-bottom-right>:first-child,.swal2-container.swal2-bottom-start>:first-child,.swal2-container.swal2-bottom>:first-child{margin-top:auto}.swal2-container.swal2-grow-fullscreen>.swal2-modal{display:flex!important;flex:1;align-self:stretch;justify-content:center}.swal2-container.swal2-grow-row>.swal2-modal{display:flex!important;flex:1;align-content:center;justify-content:center}.swal2-container.swal2-grow-column{flex:1;flex-direction:column}.swal2-container.swal2-grow-column.swal2-bottom,.swal2-container.swal2-grow-column.swal2-center,.swal2-container.swal2-grow-column.swal2-top{align-items:center}.swal2-container.swal2-grow-column.swal2-bottom-left,.swal2-container.swal2-grow-column.swal2-bottom-start,.swal2-container.swal2-grow-column.swal2-center-left,.swal2-container.swal2-grow-column.swal2-center-start,.swal2-container.swal2-grow-column.swal2-top-left,.swal2-container.swal2-grow-column.swal2-top-start{align-items:flex-start}.swal2-container.swal2-grow-column.swal2-bottom-end,.swal2-container.swal2-grow-column.swal2-bottom-right,.swal2-container.swal2-grow-column.swal2-center-end,.swal2-container.swal2-grow-column.swal2-center-right,.swal2-container.swal2-grow-column.swal2-top-end,.swal2-container.swal2-grow-column.swal2-top-right{align-items:flex-end}.swal2-container.swal2-grow-column>.swal2-modal{display:flex!important;flex:1;align-content:center;justify-content:center}.swal2-container:not(.swal2-top):not(.swal2-top-start):not(.swal2-top-end):not(.swal2-top-left):not(.swal2-top-right):not(.swal2-center-start):not(.swal2-center-end):not(.swal2-center-left):not(.swal2-center-right):not(.swal2-bottom):not(.swal2-bottom-start):not(.swal2-bottom-end):not(.swal2-bottom-left):not(.swal2-bottom-right):not(.swal2-grow-fullscreen)>.swal2-modal{margin:auto}@media all and (-ms-high-contrast:none),(-ms-high-contrast:active){.swal2-container .swal2-modal{margin:0!important}}.swal2-container.swal2-fade{transition:background-color .1s}.swal2-container.swal2-shown{background-color:rgba(0,0,0,.4)}.swal2-popup{display:none;position:relative;box-sizing:border-box;flex-direction:column;justify-content:center;width:32em;max-width:100%;padding:1.25em;border:none;border-radius:.3125em;background:#fff;font-family:inherit;font-size:1rem}.swal2-popup:focus{outline:0}.swal2-popup.swal2-loading{overflow-y:hidden}.swal2-header{display:flex;flex-direction:column;align-items:center}.swal2-title{position:relative;max-width:100%;margin:0 0 .4em;padding:0;color:#595959;font-size:1.875em;font-weight:600;text-align:center;text-transform:none;word-wrap:break-word}.swal2-actions{display:flex;z-index:1;flex-wrap:wrap;align-items:center;justify-content:center;width:100%;margin:1.25em auto 0}.swal2-actions:not(.swal2-loading) .swal2-styled[disabled]{opacity:.4}.swal2-actions:not(.swal2-loading) .swal2-styled:hover{background-image:linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1))}.swal2-actions:not(.swal2-loading) .swal2-styled:active{background-image:linear-gradient(rgba(0,0,0,.2),rgba(0,0,0,.2))}.swal2-actions.swal2-loading .swal2-styled.swal2-confirm{box-sizing:border-box;width:2.5em;height:2.5em;margin:.46875em;padding:0;-webkit-animation:swal2-rotate-loading 1.5s linear 0s infinite normal;animation:swal2-rotate-loading 1.5s linear 0s infinite normal;border:.25em solid transparent;border-radius:100%;border-color:transparent;background-color:transparent!important;color:transparent;cursor:default;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.swal2-actions.swal2-loading .swal2-styled.swal2-cancel{margin-right:30px;margin-left:30px}.swal2-actions.swal2-loading :not(.swal2-styled).swal2-confirm::after{content:\"\";display:inline-block;width:15px;height:15px;margin-left:5px;-webkit-animation:swal2-rotate-loading 1.5s linear 0s infinite normal;animation:swal2-rotate-loading 1.5s linear 0s infinite normal;border:3px solid #999;border-radius:50%;border-right-color:transparent;box-shadow:1px 1px 1px #fff}.swal2-styled{margin:.3125em;padding:.625em 2em;box-shadow:none;font-weight:500}.swal2-styled:not([disabled]){cursor:pointer}.swal2-styled.swal2-confirm{border:0;border-radius:.25em;background:initial;background-color:#3085d6;color:#fff;font-size:1.0625em}.swal2-styled.swal2-cancel{border:0;border-radius:.25em;background:initial;background-color:#aaa;color:#fff;font-size:1.0625em}.swal2-styled:focus{outline:0;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(50,100,150,.4)}.swal2-styled::-moz-focus-inner{border:0}.swal2-footer{justify-content:center;margin:1.25em 0 0;padding:1em 0 0;border-top:1px solid #eee;color:#545454;font-size:1em}.swal2-image{max-width:100%;margin:1.25em auto}.swal2-close{position:absolute;z-index:2;top:0;right:0;justify-content:center;width:1.2em;height:1.2em;padding:0;overflow:hidden;transition:color .1s ease-out;border:none;border-radius:0;outline:initial;background:0 0;color:#ccc;font-family:serif;font-size:2.5em;line-height:1.2;cursor:pointer}.swal2-close:hover{transform:none;background:0 0;color:#f27474}.swal2-content{z-index:1;justify-content:center;margin:0;padding:0;color:#545454;font-size:1.125em;font-weight:400;line-height:normal;text-align:center;word-wrap:break-word}.swal2-checkbox,.swal2-file,.swal2-input,.swal2-radio,.swal2-select,.swal2-textarea{margin:1em auto}.swal2-file,.swal2-input,.swal2-textarea{box-sizing:border-box;width:100%;transition:border-color .3s,box-shadow .3s;border:1px solid #d9d9d9;border-radius:.1875em;background:inherit;box-shadow:inset 0 1px 1px rgba(0,0,0,.06);color:inherit;font-size:1.125em}.swal2-file.swal2-inputerror,.swal2-input.swal2-inputerror,.swal2-textarea.swal2-inputerror{border-color:#f27474!important;box-shadow:0 0 2px #f27474!important}.swal2-file:focus,.swal2-input:focus,.swal2-textarea:focus{border:1px solid #b4dbed;outline:0;box-shadow:0 0 3px #c4e6f5}.swal2-file::-webkit-input-placeholder,.swal2-input::-webkit-input-placeholder,.swal2-textarea::-webkit-input-placeholder{color:#ccc}.swal2-file::-moz-placeholder,.swal2-input::-moz-placeholder,.swal2-textarea::-moz-placeholder{color:#ccc}.swal2-file:-ms-input-placeholder,.swal2-input:-ms-input-placeholder,.swal2-textarea:-ms-input-placeholder{color:#ccc}.swal2-file::-ms-input-placeholder,.swal2-input::-ms-input-placeholder,.swal2-textarea::-ms-input-placeholder{color:#ccc}.swal2-file::placeholder,.swal2-input::placeholder,.swal2-textarea::placeholder{color:#ccc}.swal2-range{margin:1em auto;background:inherit}.swal2-range input{width:80%}.swal2-range output{width:20%;color:inherit;font-weight:600;text-align:center}.swal2-range input,.swal2-range output{height:2.625em;padding:0;font-size:1.125em;line-height:2.625em}.swal2-input{height:2.625em;padding:0 .75em}.swal2-input[type=number]{max-width:10em}.swal2-file{background:inherit;font-size:1.125em}.swal2-textarea{height:6.75em;padding:.75em}.swal2-select{min-width:50%;max-width:100%;padding:.375em .625em;background:inherit;color:inherit;font-size:1.125em}.swal2-checkbox,.swal2-radio{align-items:center;justify-content:center;background:inherit;color:inherit}.swal2-checkbox label,.swal2-radio label{margin:0 .6em;font-size:1.125em}.swal2-checkbox input,.swal2-radio input{margin:0 .4em}.swal2-validation-message{display:none;align-items:center;justify-content:center;padding:.625em;overflow:hidden;background:#f0f0f0;color:#666;font-size:1em;font-weight:300}.swal2-validation-message::before{content:\"!\";display:inline-block;width:1.5em;min-width:1.5em;height:1.5em;margin:0 .625em;zoom:normal;border-radius:50%;background-color:#f27474;color:#fff;font-weight:600;line-height:1.5em;text-align:center}.swal2-icon{position:relative;box-sizing:content-box;justify-content:center;width:5em;height:5em;margin:1.25em auto 1.875em;zoom:normal;border:.25em solid transparent;border-radius:50%;font-family:inherit;line-height:5em;cursor:default;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.swal2-icon::before{display:flex;align-items:center;height:92%;font-size:3.75em}.swal2-icon.swal2-error{border-color:#f27474}.swal2-icon.swal2-error .swal2-x-mark{position:relative;flex-grow:1}.swal2-icon.swal2-error [class^=swal2-x-mark-line]{display:block;position:absolute;top:2.3125em;width:2.9375em;height:.3125em;border-radius:.125em;background-color:#f27474}.swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=left]{left:1.0625em;transform:rotate(45deg)}.swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=right]{right:1em;transform:rotate(-45deg)}.swal2-icon.swal2-warning{border-color:#facea8;color:#f8bb86}.swal2-icon.swal2-warning::before{content:\"!\"}.swal2-icon.swal2-info{border-color:#9de0f6;color:#3fc3ee}.swal2-icon.swal2-info::before{content:\"i\"}.swal2-icon.swal2-question{border-color:#c9dae1;color:#87adbd}.swal2-icon.swal2-question::before{content:\"?\"}.swal2-icon.swal2-question.swal2-arabic-question-mark::before{content:\"؟\"}.swal2-icon.swal2-success{border-color:#a5dc86}.swal2-icon.swal2-success [class^=swal2-success-circular-line]{position:absolute;width:3.75em;height:7.5em;transform:rotate(45deg);border-radius:50%}.swal2-icon.swal2-success [class^=swal2-success-circular-line][class$=left]{top:-.4375em;left:-2.0635em;transform:rotate(-45deg);transform-origin:3.75em 3.75em;border-radius:7.5em 0 0 7.5em}.swal2-icon.swal2-success [class^=swal2-success-circular-line][class$=right]{top:-.6875em;left:1.875em;transform:rotate(-45deg);transform-origin:0 3.75em;border-radius:0 7.5em 7.5em 0}.swal2-icon.swal2-success .swal2-success-ring{position:absolute;z-index:2;top:-.25em;left:-.25em;box-sizing:content-box;width:100%;height:100%;border:.25em solid rgba(165,220,134,.3);border-radius:50%}.swal2-icon.swal2-success .swal2-success-fix{position:absolute;z-index:1;top:.5em;left:1.625em;width:.4375em;height:5.625em;transform:rotate(-45deg)}.swal2-icon.swal2-success [class^=swal2-success-line]{display:block;position:absolute;z-index:2;height:.3125em;border-radius:.125em;background-color:#a5dc86}.swal2-icon.swal2-success [class^=swal2-success-line][class$=tip]{top:2.875em;left:.875em;width:1.5625em;transform:rotate(45deg)}.swal2-icon.swal2-success [class^=swal2-success-line][class$=long]{top:2.375em;right:.5em;width:2.9375em;transform:rotate(-45deg)}.swal2-progress-steps{align-items:center;margin:0 0 1.25em;padding:0;background:inherit;font-weight:600}.swal2-progress-steps li{display:inline-block;position:relative}.swal2-progress-steps .swal2-progress-step{z-index:20;width:2em;height:2em;border-radius:2em;background:#3085d6;color:#fff;line-height:2em;text-align:center}.swal2-progress-steps .swal2-progress-step.swal2-active-progress-step{background:#3085d6}.swal2-progress-steps .swal2-progress-step.swal2-active-progress-step~.swal2-progress-step{background:#add8e6;color:#fff}.swal2-progress-steps .swal2-progress-step.swal2-active-progress-step~.swal2-progress-step-line{background:#add8e6}.swal2-progress-steps .swal2-progress-step-line{z-index:10;width:2.5em;height:.4em;margin:0 -1px;background:#3085d6}[class^=swal2]{-webkit-tap-highlight-color:transparent}.swal2-show{-webkit-animation:swal2-show .3s;animation:swal2-show .3s}.swal2-show.swal2-noanimation{-webkit-animation:none;animation:none}.swal2-hide{-webkit-animation:swal2-hide .15s forwards;animation:swal2-hide .15s forwards}.swal2-hide.swal2-noanimation{-webkit-animation:none;animation:none}.swal2-rtl .swal2-close{right:auto;left:0}.swal2-animate-success-icon .swal2-success-line-tip{-webkit-animation:swal2-animate-success-line-tip .75s;animation:swal2-animate-success-line-tip .75s}.swal2-animate-success-icon .swal2-success-line-long{-webkit-animation:swal2-animate-success-line-long .75s;animation:swal2-animate-success-line-long .75s}.swal2-animate-success-icon .swal2-success-circular-line-right{-webkit-animation:swal2-rotate-success-circular-line 4.25s ease-in;animation:swal2-rotate-success-circular-line 4.25s ease-in}.swal2-animate-error-icon{-webkit-animation:swal2-animate-error-icon .5s;animation:swal2-animate-error-icon .5s}.swal2-animate-error-icon .swal2-x-mark{-webkit-animation:swal2-animate-error-x-mark .5s;animation:swal2-animate-error-x-mark .5s}@supports (-ms-accelerator:true){.swal2-range input{width:100%!important}.swal2-range output{display:none}}@media all and (-ms-high-contrast:none),(-ms-high-contrast:active){.swal2-range input{width:100%!important}.swal2-range output{display:none}}@-moz-document url-prefix(){.swal2-close:focus{outline:2px solid rgba(50,100,150,.4)}}@-webkit-keyframes swal2-toast-show{0%{transform:translateY(-.625em) rotateZ(2deg)}33%{transform:translateY(0) rotateZ(-2deg)}66%{transform:translateY(.3125em) rotateZ(2deg)}100%{transform:translateY(0) rotateZ(0)}}@keyframes swal2-toast-show{0%{transform:translateY(-.625em) rotateZ(2deg)}33%{transform:translateY(0) rotateZ(-2deg)}66%{transform:translateY(.3125em) rotateZ(2deg)}100%{transform:translateY(0) rotateZ(0)}}@-webkit-keyframes swal2-toast-hide{100%{transform:rotateZ(1deg);opacity:0}}@keyframes swal2-toast-hide{100%{transform:rotateZ(1deg);opacity:0}}@-webkit-keyframes swal2-toast-animate-success-line-tip{0%{top:.5625em;left:.0625em;width:0}54%{top:.125em;left:.125em;width:0}70%{top:.625em;left:-.25em;width:1.625em}84%{top:1.0625em;left:.75em;width:.5em}100%{top:1.125em;left:.1875em;width:.75em}}@keyframes swal2-toast-animate-success-line-tip{0%{top:.5625em;left:.0625em;width:0}54%{top:.125em;left:.125em;width:0}70%{top:.625em;left:-.25em;width:1.625em}84%{top:1.0625em;left:.75em;width:.5em}100%{top:1.125em;left:.1875em;width:.75em}}@-webkit-keyframes swal2-toast-animate-success-line-long{0%{top:1.625em;right:1.375em;width:0}65%{top:1.25em;right:.9375em;width:0}84%{top:.9375em;right:0;width:1.125em}100%{top:.9375em;right:.1875em;width:1.375em}}@keyframes swal2-toast-animate-success-line-long{0%{top:1.625em;right:1.375em;width:0}65%{top:1.25em;right:.9375em;width:0}84%{top:.9375em;right:0;width:1.125em}100%{top:.9375em;right:.1875em;width:1.375em}}@-webkit-keyframes swal2-show{0%{transform:scale(.7)}45%{transform:scale(1.05)}80%{transform:scale(.95)}100%{transform:scale(1)}}@keyframes swal2-show{0%{transform:scale(.7)}45%{transform:scale(1.05)}80%{transform:scale(.95)}100%{transform:scale(1)}}@-webkit-keyframes swal2-hide{0%{transform:scale(1);opacity:1}100%{transform:scale(.5);opacity:0}}@keyframes swal2-hide{0%{transform:scale(1);opacity:1}100%{transform:scale(.5);opacity:0}}@-webkit-keyframes swal2-animate-success-line-tip{0%{top:1.1875em;left:.0625em;width:0}54%{top:1.0625em;left:.125em;width:0}70%{top:2.1875em;left:-.375em;width:3.125em}84%{top:3em;left:1.3125em;width:1.0625em}100%{top:2.8125em;left:.875em;width:1.5625em}}@keyframes swal2-animate-success-line-tip{0%{top:1.1875em;left:.0625em;width:0}54%{top:1.0625em;left:.125em;width:0}70%{top:2.1875em;left:-.375em;width:3.125em}84%{top:3em;left:1.3125em;width:1.0625em}100%{top:2.8125em;left:.875em;width:1.5625em}}@-webkit-keyframes swal2-animate-success-line-long{0%{top:3.375em;right:2.875em;width:0}65%{top:3.375em;right:2.875em;width:0}84%{top:2.1875em;right:0;width:3.4375em}100%{top:2.375em;right:.5em;width:2.9375em}}@keyframes swal2-animate-success-line-long{0%{top:3.375em;right:2.875em;width:0}65%{top:3.375em;right:2.875em;width:0}84%{top:2.1875em;right:0;width:3.4375em}100%{top:2.375em;right:.5em;width:2.9375em}}@-webkit-keyframes swal2-rotate-success-circular-line{0%{transform:rotate(-45deg)}5%{transform:rotate(-45deg)}12%{transform:rotate(-405deg)}100%{transform:rotate(-405deg)}}@keyframes swal2-rotate-success-circular-line{0%{transform:rotate(-45deg)}5%{transform:rotate(-45deg)}12%{transform:rotate(-405deg)}100%{transform:rotate(-405deg)}}@-webkit-keyframes swal2-animate-error-x-mark{0%{margin-top:1.625em;transform:scale(.4);opacity:0}50%{margin-top:1.625em;transform:scale(.4);opacity:0}80%{margin-top:-.375em;transform:scale(1.15)}100%{margin-top:0;transform:scale(1);opacity:1}}@keyframes swal2-animate-error-x-mark{0%{margin-top:1.625em;transform:scale(.4);opacity:0}50%{margin-top:1.625em;transform:scale(.4);opacity:0}80%{margin-top:-.375em;transform:scale(1.15)}100%{margin-top:0;transform:scale(1);opacity:1}}@-webkit-keyframes swal2-animate-error-icon{0%{transform:rotateX(100deg);opacity:0}100%{transform:rotateX(0);opacity:1}}@keyframes swal2-animate-error-icon{0%{transform:rotateX(100deg);opacity:0}100%{transform:rotateX(0);opacity:1}}@-webkit-keyframes swal2-rotate-loading{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}@keyframes swal2-rotate-loading{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown){overflow:hidden}body.swal2-height-auto{height:auto!important}body.swal2-no-backdrop .swal2-shown{top:auto;right:auto;bottom:auto;left:auto;max-width:calc(100% - .625em * 2);background-color:transparent}body.swal2-no-backdrop .swal2-shown>.swal2-modal{box-shadow:0 0 10px rgba(0,0,0,.4)}body.swal2-no-backdrop .swal2-shown.swal2-top{top:0;left:50%;transform:translateX(-50%)}body.swal2-no-backdrop .swal2-shown.swal2-top-left,body.swal2-no-backdrop .swal2-shown.swal2-top-start{top:0;left:0}body.swal2-no-backdrop .swal2-shown.swal2-top-end,body.swal2-no-backdrop .swal2-shown.swal2-top-right{top:0;right:0}body.swal2-no-backdrop .swal2-shown.swal2-center{top:50%;left:50%;transform:translate(-50%,-50%)}body.swal2-no-backdrop .swal2-shown.swal2-center-left,body.swal2-no-backdrop .swal2-shown.swal2-center-start{top:50%;left:0;transform:translateY(-50%)}body.swal2-no-backdrop .swal2-shown.swal2-center-end,body.swal2-no-backdrop .swal2-shown.swal2-center-right{top:50%;right:0;transform:translateY(-50%)}body.swal2-no-backdrop .swal2-shown.swal2-bottom{bottom:0;left:50%;transform:translateX(-50%)}body.swal2-no-backdrop .swal2-shown.swal2-bottom-left,body.swal2-no-backdrop .swal2-shown.swal2-bottom-start{bottom:0;left:0}body.swal2-no-backdrop .swal2-shown.swal2-bottom-end,body.swal2-no-backdrop .swal2-shown.swal2-bottom-right{right:0;bottom:0}@media print{body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown){overflow-y:scroll!important}body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown)>[aria-hidden=true]{display:none}body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) .swal2-container{position:static!important}}body.swal2-toast-shown .swal2-container{background-color:transparent}body.swal2-toast-shown .swal2-container.swal2-shown{background-color:transparent}body.swal2-toast-shown .swal2-container.swal2-top{top:0;right:auto;bottom:auto;left:50%;transform:translateX(-50%)}body.swal2-toast-shown .swal2-container.swal2-top-end,body.swal2-toast-shown .swal2-container.swal2-top-right{top:0;right:0;bottom:auto;left:auto}body.swal2-toast-shown .swal2-container.swal2-top-left,body.swal2-toast-shown .swal2-container.swal2-top-start{top:0;right:auto;bottom:auto;left:0}body.swal2-toast-shown .swal2-container.swal2-center-left,body.swal2-toast-shown .swal2-container.swal2-center-start{top:50%;right:auto;bottom:auto;left:0;transform:translateY(-50%)}body.swal2-toast-shown .swal2-container.swal2-center{top:50%;right:auto;bottom:auto;left:50%;transform:translate(-50%,-50%)}body.swal2-toast-shown .swal2-container.swal2-center-end,body.swal2-toast-shown .swal2-container.swal2-center-right{top:50%;right:0;bottom:auto;left:auto;transform:translateY(-50%)}body.swal2-toast-shown .swal2-container.swal2-bottom-left,body.swal2-toast-shown .swal2-container.swal2-bottom-start{top:auto;right:auto;bottom:0;left:0}body.swal2-toast-shown .swal2-container.swal2-bottom{top:auto;right:auto;bottom:0;left:50%;transform:translateX(-50%)}body.swal2-toast-shown .swal2-container.swal2-bottom-end,body.swal2-toast-shown .swal2-container.swal2-bottom-right{top:auto;right:0;bottom:0;left:auto}body.swal2-toast-column .swal2-toast{flex-direction:column;align-items:stretch}body.swal2-toast-column .swal2-toast .swal2-actions{flex:1;align-self:stretch;height:2.2em;margin-top:.3125em}body.swal2-toast-column .swal2-toast .swal2-loading{justify-content:center}body.swal2-toast-column .swal2-toast .swal2-input{height:2em;margin:.3125em auto;font-size:1em}body.swal2-toast-column .swal2-toast .swal2-validation-message{font-size:1em}");
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/SweetAlert.js":
+/*!****************************************************!*\
+  !*** ./node_modules/sweetalert2/src/SweetAlert.js ***!
+  \****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utils_utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/DismissReason.js */ "./node_modules/sweetalert2/src/utils/DismissReason.js");
+/* harmony import */ var _staticMethods_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./staticMethods.js */ "./node_modules/sweetalert2/src/staticMethods.js");
+/* harmony import */ var _instanceMethods_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./instanceMethods.js */ "./node_modules/sweetalert2/src/instanceMethods.js");
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+
+
+
+
+
+
+let currentInstance
+
+// SweetAlert constructor
+function SweetAlert (...args) {
+  // Prevent run in Node env
+  /* istanbul ignore if */
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  // Check for the existence of Promise
+  /* istanbul ignore if */
+  if (typeof Promise === 'undefined') {
+    Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_0__["error"])('This package requires a Promise library, please include a shim to enable it in this browser (See: https://github.com/sweetalert2/sweetalert2/wiki/Migration-from-SweetAlert-to-SweetAlert2#1-ie-support)')
+  }
+
+  currentInstance = this
+
+  const outerParams = Object.freeze(this.constructor.argsToParams(args))
+
+  Object.defineProperties(this, {
+    params: {
+      value: outerParams,
+      writable: false,
+      enumerable: true,
+      configurable: true
+    }
+  })
+
+  const promise = this._main(this.params)
+  _privateProps_js__WEBPACK_IMPORTED_MODULE_4__["default"].promise.set(this, promise)
+}
+
+// `catch` cannot be the name of a module export, so we define our thenable methods here instead
+SweetAlert.prototype.then = function (onFulfilled) {
+  const promise = _privateProps_js__WEBPACK_IMPORTED_MODULE_4__["default"].promise.get(this)
+  return promise.then(onFulfilled)
+}
+SweetAlert.prototype.finally = function (onFinally) {
+  const promise = _privateProps_js__WEBPACK_IMPORTED_MODULE_4__["default"].promise.get(this)
+  return promise.finally(onFinally)
+}
+
+// Assign instance methods from src/instanceMethods/*.js to prototype
+Object.assign(SweetAlert.prototype, _instanceMethods_js__WEBPACK_IMPORTED_MODULE_3__)
+
+// Assign static methods from src/staticMethods/*.js to constructor
+Object.assign(SweetAlert, _staticMethods_js__WEBPACK_IMPORTED_MODULE_2__)
+
+// Proxy to instance methods to constructor, for now, for backwards compatibility
+Object.keys(_instanceMethods_js__WEBPACK_IMPORTED_MODULE_3__).forEach(key => {
+  SweetAlert[key] = function (...args) {
+    if (currentInstance) {
+      return currentInstance[key](...args)
+    }
+  }
+})
+
+SweetAlert.DismissReason = _utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_1__["DismissReason"]
+
+SweetAlert.version = '8.18.3'
+
+/* harmony default export */ __webpack_exports__["default"] = (SweetAlert);
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/constants.js":
+/*!***************************************************!*\
+  !*** ./node_modules/sweetalert2/src/constants.js ***!
+  \***************************************************/
+/*! exports provided: RESTORE_FOCUS_TIMEOUT */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "RESTORE_FOCUS_TIMEOUT", function() { return RESTORE_FOCUS_TIMEOUT; });
+const RESTORE_FOCUS_TIMEOUT = 100
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/globalState.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/sweetalert2/src/globalState.js ***!
+  \*****************************************************/
+/*! exports provided: default, restoreActiveElement */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "restoreActiveElement", function() { return restoreActiveElement; });
+/* harmony import */ var _constants_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants.js */ "./node_modules/sweetalert2/src/constants.js");
+
+
+const globalState = {}
+
+/* harmony default export */ __webpack_exports__["default"] = (globalState);
+
+const focusPreviousActiveElement = () => {
+  if (globalState.previousActiveElement && globalState.previousActiveElement.focus) {
+    globalState.previousActiveElement.focus()
+    globalState.previousActiveElement = null
+  } else if (document.body) {
+    document.body.focus()
+  }
+}
+
+// Restore previous active (focused) element
+const restoreActiveElement = () => {
+  return new Promise(resolve => {
+    const x = window.scrollX
+    const y = window.scrollY
+    globalState.restoreFocusTimeout = setTimeout(() => {
+      focusPreviousActiveElement()
+      resolve()
+    }, _constants_js__WEBPACK_IMPORTED_MODULE_0__["RESTORE_FOCUS_TIMEOUT"]) // issues/900
+    if (typeof x !== 'undefined' && typeof y !== 'undefined') { // IE doesn't have scrollX/scrollY support
+      window.scrollTo(x, y)
+    }
+  })
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods.js ***!
+  \*********************************************************/
+/*! exports provided: hideLoading, disableLoading, getInput, close, closePopup, closeModal, closeToast, enableButtons, disableButtons, enableConfirmButton, disableConfirmButton, enableInput, disableInput, showValidationMessage, resetValidationMessage, getProgressSteps, setProgressSteps, showProgressSteps, hideProgressSteps, _main, update */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _instanceMethods_hideLoading_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./instanceMethods/hideLoading.js */ "./node_modules/sweetalert2/src/instanceMethods/hideLoading.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "hideLoading", function() { return _instanceMethods_hideLoading_js__WEBPACK_IMPORTED_MODULE_0__["hideLoading"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "disableLoading", function() { return _instanceMethods_hideLoading_js__WEBPACK_IMPORTED_MODULE_0__["disableLoading"]; });
+
+/* harmony import */ var _instanceMethods_getInput_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./instanceMethods/getInput.js */ "./node_modules/sweetalert2/src/instanceMethods/getInput.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getInput", function() { return _instanceMethods_getInput_js__WEBPACK_IMPORTED_MODULE_1__["getInput"]; });
+
+/* harmony import */ var _instanceMethods_close_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./instanceMethods/close.js */ "./node_modules/sweetalert2/src/instanceMethods/close.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "close", function() { return _instanceMethods_close_js__WEBPACK_IMPORTED_MODULE_2__["close"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "closePopup", function() { return _instanceMethods_close_js__WEBPACK_IMPORTED_MODULE_2__["closePopup"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "closeModal", function() { return _instanceMethods_close_js__WEBPACK_IMPORTED_MODULE_2__["closeModal"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "closeToast", function() { return _instanceMethods_close_js__WEBPACK_IMPORTED_MODULE_2__["closeToast"]; });
+
+/* harmony import */ var _instanceMethods_enable_disable_elements_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./instanceMethods/enable-disable-elements.js */ "./node_modules/sweetalert2/src/instanceMethods/enable-disable-elements.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableButtons", function() { return _instanceMethods_enable_disable_elements_js__WEBPACK_IMPORTED_MODULE_3__["enableButtons"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "disableButtons", function() { return _instanceMethods_enable_disable_elements_js__WEBPACK_IMPORTED_MODULE_3__["disableButtons"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableConfirmButton", function() { return _instanceMethods_enable_disable_elements_js__WEBPACK_IMPORTED_MODULE_3__["enableConfirmButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "disableConfirmButton", function() { return _instanceMethods_enable_disable_elements_js__WEBPACK_IMPORTED_MODULE_3__["disableConfirmButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableInput", function() { return _instanceMethods_enable_disable_elements_js__WEBPACK_IMPORTED_MODULE_3__["enableInput"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "disableInput", function() { return _instanceMethods_enable_disable_elements_js__WEBPACK_IMPORTED_MODULE_3__["disableInput"]; });
+
+/* harmony import */ var _instanceMethods_show_reset_validation_error_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./instanceMethods/show-reset-validation-error.js */ "./node_modules/sweetalert2/src/instanceMethods/show-reset-validation-error.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "showValidationMessage", function() { return _instanceMethods_show_reset_validation_error_js__WEBPACK_IMPORTED_MODULE_4__["showValidationMessage"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "resetValidationMessage", function() { return _instanceMethods_show_reset_validation_error_js__WEBPACK_IMPORTED_MODULE_4__["resetValidationMessage"]; });
+
+/* harmony import */ var _instanceMethods_progress_steps_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./instanceMethods/progress-steps.js */ "./node_modules/sweetalert2/src/instanceMethods/progress-steps.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getProgressSteps", function() { return _instanceMethods_progress_steps_js__WEBPACK_IMPORTED_MODULE_5__["getProgressSteps"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "setProgressSteps", function() { return _instanceMethods_progress_steps_js__WEBPACK_IMPORTED_MODULE_5__["setProgressSteps"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "showProgressSteps", function() { return _instanceMethods_progress_steps_js__WEBPACK_IMPORTED_MODULE_5__["showProgressSteps"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "hideProgressSteps", function() { return _instanceMethods_progress_steps_js__WEBPACK_IMPORTED_MODULE_5__["hideProgressSteps"]; });
+
+/* harmony import */ var _instanceMethods_main_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./instanceMethods/_main.js */ "./node_modules/sweetalert2/src/instanceMethods/_main.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "_main", function() { return _instanceMethods_main_js__WEBPACK_IMPORTED_MODULE_6__["_main"]; });
+
+/* harmony import */ var _instanceMethods_update_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./instanceMethods/update.js */ "./node_modules/sweetalert2/src/instanceMethods/update.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "update", function() { return _instanceMethods_update_js__WEBPACK_IMPORTED_MODULE_7__["update"]; });
+
+
+
+
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/_main.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/_main.js ***!
+  \***************************************************************/
+/*! exports provided: _main */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "_main", function() { return _main; });
+/* harmony import */ var _utils_params_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/params.js */ "./node_modules/sweetalert2/src/utils/params.js");
+/* harmony import */ var _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _utils_classes_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _utils_Timer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/Timer.js */ "./node_modules/sweetalert2/src/utils/Timer.js");
+/* harmony import */ var _utils_utils_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _utils_setParameters_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utils/setParameters.js */ "./node_modules/sweetalert2/src/utils/setParameters.js");
+/* harmony import */ var _globalState_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../globalState.js */ "./node_modules/sweetalert2/src/globalState.js");
+/* harmony import */ var _utils_openPopup_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../utils/openPopup.js */ "./node_modules/sweetalert2/src/utils/openPopup.js");
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+/* harmony import */ var _privateMethods_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../privateMethods.js */ "./node_modules/sweetalert2/src/privateMethods.js");
+/* harmony import */ var _utils_dom_inputUtils_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../utils/dom/inputUtils.js */ "./node_modules/sweetalert2/src/utils/dom/inputUtils.js");
+/* harmony import */ var _buttons_handlers_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./buttons-handlers.js */ "./node_modules/sweetalert2/src/instanceMethods/buttons-handlers.js");
+/* harmony import */ var _keydown_handler_js__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./keydown-handler.js */ "./node_modules/sweetalert2/src/instanceMethods/keydown-handler.js");
+/* harmony import */ var _popup_click_handler_js__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./popup-click-handler.js */ "./node_modules/sweetalert2/src/instanceMethods/popup-click-handler.js");
+/* harmony import */ var _utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../utils/DismissReason.js */ "./node_modules/sweetalert2/src/utils/DismissReason.js");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function _main (userParams) {
+  Object(_utils_params_js__WEBPACK_IMPORTED_MODULE_0__["showWarningsForParams"])(userParams)
+
+  // Check if there is another Swal closing
+  if (_utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getPopup"]() && _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].swalCloseEventFinishedCallback) {
+    _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].swalCloseEventFinishedCallback()
+    delete _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].swalCloseEventFinishedCallback
+  }
+
+  // Check if there is a swal disposal defer timer
+  if (_globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].deferDisposalTimer) {
+    clearTimeout(_globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].deferDisposalTimer)
+    delete _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].deferDisposalTimer
+  }
+
+  const innerParams = Object.assign({}, _utils_params_js__WEBPACK_IMPORTED_MODULE_0__["default"], userParams)
+  Object(_utils_setParameters_js__WEBPACK_IMPORTED_MODULE_5__["default"])(innerParams)
+  Object.freeze(innerParams)
+
+  // clear the previous timer
+  if (_globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].timeout) {
+    _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].timeout.stop()
+    delete _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].timeout
+  }
+
+  // clear the restore focus timeout
+  clearTimeout(_globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].restoreFocusTimeout)
+
+  const domCache = populateDomCache(this)
+
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["render"](this, innerParams)
+
+  _privateProps_js__WEBPACK_IMPORTED_MODULE_8__["default"].innerParams.set(this, innerParams)
+
+  return swalPromise(this, domCache, innerParams)
+}
+
+const swalPromise = (instance, domCache, innerParams) => {
+  return new Promise((resolve) => {
+    // functions to handle all closings/dismissals
+    const dismissWith = (dismiss) => {
+      instance.closePopup({ dismiss })
+    }
+
+    _privateMethods_js__WEBPACK_IMPORTED_MODULE_9__["default"].swalPromiseResolve.set(instance, resolve)
+
+    setupTimer(_globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"], innerParams, dismissWith)
+
+    domCache.confirmButton.onclick = () => Object(_buttons_handlers_js__WEBPACK_IMPORTED_MODULE_11__["handleConfirmButtonClick"])(instance, innerParams)
+    domCache.cancelButton.onclick = () => Object(_buttons_handlers_js__WEBPACK_IMPORTED_MODULE_11__["handleCancelButtonClick"])(instance, dismissWith)
+
+    domCache.closeButton.onclick = () => dismissWith(_utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_14__["DismissReason"].close)
+
+    Object(_popup_click_handler_js__WEBPACK_IMPORTED_MODULE_13__["handlePopupClick"])(domCache, innerParams, dismissWith)
+
+    Object(_keydown_handler_js__WEBPACK_IMPORTED_MODULE_12__["addKeydownHandler"])(instance, _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"], innerParams, dismissWith)
+
+    if (innerParams.toast && (innerParams.input || innerParams.footer || innerParams.showCloseButton)) {
+      _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["addClass"](document.body, _utils_classes_js__WEBPACK_IMPORTED_MODULE_2__["swalClasses"]['toast-column'])
+    } else {
+      _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["removeClass"](document.body, _utils_classes_js__WEBPACK_IMPORTED_MODULE_2__["swalClasses"]['toast-column'])
+    }
+
+    Object(_utils_dom_inputUtils_js__WEBPACK_IMPORTED_MODULE_10__["handleInputOptionsAndValue"])(instance, innerParams)
+
+    Object(_utils_openPopup_js__WEBPACK_IMPORTED_MODULE_7__["openPopup"])(innerParams)
+
+    initFocus(domCache, innerParams)
+
+    // Scroll container to top on open (#1247)
+    domCache.container.scrollTop = 0
+  })
+}
+
+const populateDomCache = (instance) => {
+  const domCache = {
+    popup: _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getPopup"](),
+    container: _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getContainer"](),
+    content: _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getContent"](),
+    actions: _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getActions"](),
+    confirmButton: _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getConfirmButton"](),
+    cancelButton: _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getCancelButton"](),
+    closeButton: _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getCloseButton"](),
+    validationMessage: _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getValidationMessage"](),
+    progressSteps: _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getProgressSteps"]()
+  }
+  _privateProps_js__WEBPACK_IMPORTED_MODULE_8__["default"].domCache.set(instance, domCache)
+
+  return domCache
+}
+
+const setupTimer = (globalState, innerParams, dismissWith) => {
+  if (innerParams.timer) {
+    globalState.timeout = new _utils_Timer_js__WEBPACK_IMPORTED_MODULE_3__["default"](() => {
+      dismissWith('timer')
+      delete globalState.timeout
+    }, innerParams.timer)
+  }
+}
+
+const initFocus = (domCache, innerParams) => {
+  if (innerParams.toast) {
+    return
+  }
+
+  if (!Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_4__["callIfFunction"])(innerParams.allowEnterKey)) {
+    return blurActiveElement()
+  }
+
+  if (innerParams.focusCancel && _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["isVisible"](domCache.cancelButton)) {
+    return domCache.cancelButton.focus()
+  }
+
+  if (innerParams.focusConfirm && _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["isVisible"](domCache.confirmButton)) {
+    return domCache.confirmButton.focus()
+  }
+
+  Object(_keydown_handler_js__WEBPACK_IMPORTED_MODULE_12__["setFocus"])(innerParams, -1, 1)
+}
+
+const blurActiveElement = () => {
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur()
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/buttons-handlers.js":
+/*!**************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/buttons-handlers.js ***!
+  \**************************************************************************/
+/*! exports provided: handleConfirmButtonClick, handleCancelButtonClick */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "handleConfirmButtonClick", function() { return handleConfirmButtonClick; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "handleCancelButtonClick", function() { return handleCancelButtonClick; });
+/* harmony import */ var _utils_dom_domUtils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/dom/domUtils.js */ "./node_modules/sweetalert2/src/utils/dom/domUtils.js");
+/* harmony import */ var _utils_dom_inputUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/dom/inputUtils.js */ "./node_modules/sweetalert2/src/utils/dom/inputUtils.js");
+/* harmony import */ var _utils_dom_getters_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/dom/getters.js */ "./node_modules/sweetalert2/src/utils/dom/getters.js");
+/* harmony import */ var _staticMethods_showLoading_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../staticMethods/showLoading.js */ "./node_modules/sweetalert2/src/staticMethods/showLoading.js");
+/* harmony import */ var _utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/DismissReason.js */ "./node_modules/sweetalert2/src/utils/DismissReason.js");
+
+
+
+
+
+
+const handleConfirmButtonClick = (instance, innerParams) => {
+  instance.disableButtons()
+  if (innerParams.input) {
+    handleConfirmWithInput(instance, innerParams)
+  } else {
+    confirm(instance, innerParams, true)
+  }
+}
+
+const handleCancelButtonClick = (instance, dismissWith) => {
+  instance.disableButtons()
+  dismissWith(_utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_4__["DismissReason"].cancel)
+}
+
+const handleConfirmWithInput = (instance, innerParams) => {
+  const inputValue = Object(_utils_dom_inputUtils_js__WEBPACK_IMPORTED_MODULE_1__["getInputValue"])(instance, innerParams)
+
+  if (innerParams.inputValidator) {
+    instance.disableInput()
+    const validationPromise = Promise.resolve().then(() => innerParams.inputValidator(inputValue, innerParams.validationMessage))
+    validationPromise.then(
+      (validationMessage) => {
+        instance.enableButtons()
+        instance.enableInput()
+        if (validationMessage) {
+          instance.showValidationMessage(validationMessage)
+        } else {
+          confirm(instance, innerParams, inputValue)
+        }
+      }
+    )
+  } else if (!instance.getInput().checkValidity()) {
+    instance.enableButtons()
+    instance.showValidationMessage(innerParams.validationMessage)
+  } else {
+    confirm(instance, innerParams, inputValue)
+  }
+}
+
+const succeedWith = (instance, value) => {
+  instance.closePopup({ value })
+}
+
+const confirm = (instance, innerParams, value) => {
+  if (innerParams.showLoaderOnConfirm) {
+    Object(_staticMethods_showLoading_js__WEBPACK_IMPORTED_MODULE_3__["showLoading"])() // TODO: make showLoading an *instance* method
+  }
+
+  if (innerParams.preConfirm) {
+    instance.resetValidationMessage()
+    const preConfirmPromise = Promise.resolve().then(() => innerParams.preConfirm(value, innerParams.validationMessage))
+    preConfirmPromise.then(
+      (preConfirmValue) => {
+        if (Object(_utils_dom_domUtils_js__WEBPACK_IMPORTED_MODULE_0__["isVisible"])(Object(_utils_dom_getters_js__WEBPACK_IMPORTED_MODULE_2__["getValidationMessage"])()) || preConfirmValue === false) {
+          instance.hideLoading()
+        } else {
+          succeedWith(instance, typeof (preConfirmValue) === 'undefined' ? value : preConfirmValue)
+        }
+      }
+    )
+  } else {
+    succeedWith(instance, value)
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/close.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/close.js ***!
+  \***************************************************************/
+/*! exports provided: close, closePopup, closeModal, closeToast */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "close", function() { return close; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "closePopup", function() { return close; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "closeModal", function() { return close; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "closeToast", function() { return close; });
+/* harmony import */ var _utils_scrollbarFix_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/scrollbarFix.js */ "./node_modules/sweetalert2/src/utils/scrollbarFix.js");
+/* harmony import */ var _utils_iosFix_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/iosFix.js */ "./node_modules/sweetalert2/src/utils/iosFix.js");
+/* harmony import */ var _utils_ieFix_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/ieFix.js */ "./node_modules/sweetalert2/src/utils/ieFix.js");
+/* harmony import */ var _utils_aria_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/aria.js */ "./node_modules/sweetalert2/src/utils/aria.js");
+/* harmony import */ var _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils/dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _utils_classes_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utils/classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _globalState_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../globalState.js */ "./node_modules/sweetalert2/src/globalState.js");
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+/* harmony import */ var _privateMethods_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../privateMethods.js */ "./node_modules/sweetalert2/src/privateMethods.js");
+
+
+
+
+
+
+
+
+
+
+/*
+ * Instance method to close sweetAlert
+ */
+
+function removePopupAndResetState (instance, container, isToast, onAfterClose) {
+  if (isToast) {
+    triggerOnAfterCloseAndDispose(instance, onAfterClose)
+  } else {
+    Object(_globalState_js__WEBPACK_IMPORTED_MODULE_6__["restoreActiveElement"])().then(() => triggerOnAfterCloseAndDispose(instance, onAfterClose))
+    _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].keydownTarget.removeEventListener('keydown', _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].keydownHandler, { capture: _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].keydownListenerCapture })
+    _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].keydownHandlerAdded = false
+  }
+
+  if (container.parentNode) {
+    container.parentNode.removeChild(container)
+  }
+
+  if (_utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["isModal"]()) {
+    Object(_utils_scrollbarFix_js__WEBPACK_IMPORTED_MODULE_0__["undoScrollbar"])()
+    Object(_utils_iosFix_js__WEBPACK_IMPORTED_MODULE_1__["undoIOSfix"])()
+    Object(_utils_ieFix_js__WEBPACK_IMPORTED_MODULE_2__["undoIEfix"])()
+    Object(_utils_aria_js__WEBPACK_IMPORTED_MODULE_3__["unsetAriaHidden"])()
+  }
+
+  removeBodyClasses()
+}
+
+function removeBodyClasses () {
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["removeClass"](
+    [document.documentElement, document.body],
+    [
+      _utils_classes_js__WEBPACK_IMPORTED_MODULE_5__["swalClasses"].shown,
+      _utils_classes_js__WEBPACK_IMPORTED_MODULE_5__["swalClasses"]['height-auto'],
+      _utils_classes_js__WEBPACK_IMPORTED_MODULE_5__["swalClasses"]['no-backdrop'],
+      _utils_classes_js__WEBPACK_IMPORTED_MODULE_5__["swalClasses"]['toast-shown'],
+      _utils_classes_js__WEBPACK_IMPORTED_MODULE_5__["swalClasses"]['toast-column']
+    ]
+  )
+}
+
+function disposeSwal (instance) {
+  // Unset this.params so GC will dispose it (#1569)
+  delete instance.params
+  // Unset globalState props so GC will dispose globalState (#1569)
+  delete _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].keydownHandler
+  delete _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].keydownTarget
+  // Unset WeakMaps so GC will be able to dispose them (#1569)
+  unsetWeakMaps(_privateProps_js__WEBPACK_IMPORTED_MODULE_7__["default"])
+  unsetWeakMaps(_privateMethods_js__WEBPACK_IMPORTED_MODULE_8__["default"])
+}
+
+function close (resolveValue) {
+  const popup = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["getPopup"]()
+
+  if (!popup || _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["hasClass"](popup, _utils_classes_js__WEBPACK_IMPORTED_MODULE_5__["swalClasses"].hide)) {
+    return
+  }
+
+  const innerParams = _privateProps_js__WEBPACK_IMPORTED_MODULE_7__["default"].innerParams.get(this)
+  if (!innerParams) {
+    return
+  }
+  const swalPromiseResolve = _privateMethods_js__WEBPACK_IMPORTED_MODULE_8__["default"].swalPromiseResolve.get(this)
+
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["removeClass"](popup, _utils_classes_js__WEBPACK_IMPORTED_MODULE_5__["swalClasses"].show)
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["addClass"](popup, _utils_classes_js__WEBPACK_IMPORTED_MODULE_5__["swalClasses"].hide)
+
+  handlePopupAnimation(this, popup, innerParams)
+
+  // Resolve Swal promise
+  swalPromiseResolve(resolveValue || {})
+}
+
+const handlePopupAnimation = (instance, popup, innerParams) => {
+  const container = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["getContainer"]()
+  // If animation is supported, animate
+  const animationIsSupported = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["animationEndEvent"] && _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["hasCssAnimation"](popup)
+
+  const { onClose, onAfterClose } = innerParams
+
+  if (onClose !== null && typeof onClose === 'function') {
+    onClose(popup)
+  }
+
+  if (animationIsSupported) {
+    animatePopup(instance, popup, container, onAfterClose)
+  } else {
+    // Otherwise, remove immediately
+    removePopupAndResetState(instance, container, _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["isToast"](), onAfterClose)
+  }
+}
+
+const animatePopup = (instance, popup, container, onAfterClose) => {
+  _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].swalCloseEventFinishedCallback = removePopupAndResetState.bind(null, instance, container, _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["isToast"](), onAfterClose)
+  popup.addEventListener(_utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["animationEndEvent"], function (e) {
+    if (e.target === popup) {
+      _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].swalCloseEventFinishedCallback()
+      delete _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].swalCloseEventFinishedCallback
+    }
+  })
+}
+
+const unsetWeakMaps = (obj) => {
+  for (const i in obj) {
+    obj[i] = new WeakMap()
+  }
+}
+
+const triggerOnAfterCloseAndDispose = (instance, onAfterClose) => {
+  setTimeout(() => {
+    if (onAfterClose !== null && typeof onAfterClose === 'function') {
+      onAfterClose()
+    }
+    if (!_utils_dom_index_js__WEBPACK_IMPORTED_MODULE_4__["getPopup"]()) {
+      disposeSwal(instance)
+    }
+  })
+}
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/enable-disable-elements.js":
+/*!*********************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/enable-disable-elements.js ***!
+  \*********************************************************************************/
+/*! exports provided: enableButtons, disableButtons, enableConfirmButton, disableConfirmButton, enableInput, disableInput */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "enableButtons", function() { return enableButtons; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "disableButtons", function() { return disableButtons; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "enableConfirmButton", function() { return enableConfirmButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "disableConfirmButton", function() { return disableConfirmButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "enableInput", function() { return enableInput; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "disableInput", function() { return disableInput; });
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+/* harmony import */ var _utils_utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+
+
+
+function setButtonsDisabled (instance, buttons, disabled) {
+  const domCache = _privateProps_js__WEBPACK_IMPORTED_MODULE_0__["default"].domCache.get(instance)
+  buttons.forEach(button => {
+    domCache[button].disabled = disabled
+  })
+}
+
+function setInputDisabled (input, disabled) {
+  if (!input) {
+    return false
+  }
+  if (input.type === 'radio') {
+    const radiosContainer = input.parentNode.parentNode
+    const radios = radiosContainer.querySelectorAll('input')
+    for (let i = 0; i < radios.length; i++) {
+      radios[i].disabled = disabled
+    }
+  } else {
+    input.disabled = disabled
+  }
+}
+
+function enableButtons () {
+  setButtonsDisabled(this, ['confirmButton', 'cancelButton'], false)
+}
+
+function disableButtons () {
+  setButtonsDisabled(this, ['confirmButton', 'cancelButton'], true)
+}
+
+// @deprecated
+function enableConfirmButton () {
+  Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_1__["warnAboutDepreation"])('Swal.enableConfirmButton()', `Swal.getConfirmButton().removeAttribute('disabled')`)
+  setButtonsDisabled(this, ['confirmButton'], false)
+}
+
+// @deprecated
+function disableConfirmButton () {
+  Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_1__["warnAboutDepreation"])('Swal.disableConfirmButton()', `Swal.getConfirmButton().setAttribute('disabled', '')`)
+  setButtonsDisabled(this, ['confirmButton'], true)
+}
+
+function enableInput () {
+  return setInputDisabled(this.getInput(), false)
+}
+
+function disableInput () {
+  return setInputDisabled(this.getInput(), true)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/getInput.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/getInput.js ***!
+  \******************************************************************/
+/*! exports provided: getInput */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getInput", function() { return getInput; });
+/* harmony import */ var _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+
+
+
+// Get input element by specified type or, if type isn't specified, by params.input
+function getInput (instance) {
+  const innerParams = _privateProps_js__WEBPACK_IMPORTED_MODULE_1__["default"].innerParams.get(instance || this)
+  const domCache = _privateProps_js__WEBPACK_IMPORTED_MODULE_1__["default"].domCache.get(instance || this)
+  if (!domCache) {
+    return null
+  }
+  return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getInput"](domCache.content, innerParams.input)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/hideLoading.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/hideLoading.js ***!
+  \*********************************************************************/
+/*! exports provided: hideLoading, disableLoading */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideLoading", function() { return hideLoading; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "disableLoading", function() { return hideLoading; });
+/* harmony import */ var _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+
+
+
+
+/**
+ * Enables buttons and hide loader.
+ */
+function hideLoading () {
+  const innerParams = _privateProps_js__WEBPACK_IMPORTED_MODULE_2__["default"].innerParams.get(this)
+  const domCache = _privateProps_js__WEBPACK_IMPORTED_MODULE_2__["default"].domCache.get(this)
+  if (!innerParams.showConfirmButton) {
+    _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["hide"](domCache.confirmButton)
+    if (!innerParams.showCancelButton) {
+      _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["hide"](domCache.actions)
+    }
+  }
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["removeClass"]([domCache.popup, domCache.actions], _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].loading)
+  domCache.popup.removeAttribute('aria-busy')
+  domCache.popup.removeAttribute('data-loading')
+  domCache.confirmButton.disabled = false
+  domCache.cancelButton.disabled = false
+}
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/keydown-handler.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/keydown-handler.js ***!
+  \*************************************************************************/
+/*! exports provided: addKeydownHandler, setFocus */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addKeydownHandler", function() { return addKeydownHandler; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setFocus", function() { return setFocus; });
+/* harmony import */ var _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/DismissReason.js */ "./node_modules/sweetalert2/src/utils/DismissReason.js");
+/* harmony import */ var _utils_utils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../staticMethods/dom.js */ "./node_modules/sweetalert2/src/staticMethods/dom.js");
+
+
+
+
+
+const addKeydownHandler = (instance, globalState, innerParams, dismissWith) => {
+  if (globalState.keydownTarget && globalState.keydownHandlerAdded) {
+    globalState.keydownTarget.removeEventListener('keydown', globalState.keydownHandler, { capture: globalState.keydownListenerCapture })
+    globalState.keydownHandlerAdded = false
+  }
+
+  if (!innerParams.toast) {
+    globalState.keydownHandler = (e) => keydownHandler(instance, e, innerParams, dismissWith)
+    globalState.keydownTarget = innerParams.keydownListenerCapture ? window : _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getPopup"]()
+    globalState.keydownListenerCapture = innerParams.keydownListenerCapture
+    globalState.keydownTarget.addEventListener('keydown', globalState.keydownHandler, { capture: globalState.keydownListenerCapture })
+    globalState.keydownHandlerAdded = true
+  }
+}
+
+// Focus handling
+const setFocus = (innerParams, index, increment) => {
+  const focusableElements = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getFocusableElements"]()
+  // search for visible elements and select the next possible match
+  for (let i = 0; i < focusableElements.length; i++) {
+    index = index + increment
+
+    // rollover to first item
+    if (index === focusableElements.length) {
+      index = 0
+
+      // go to last item
+    } else if (index === -1) {
+      index = focusableElements.length - 1
+    }
+
+    return focusableElements[index].focus()
+  }
+  // no visible focusable elements, focus the popup
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getPopup"]().focus()
+}
+
+const arrowKeys = [
+  'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+  'Left', 'Right', 'Up', 'Down' // IE11
+]
+
+const escKeys = [
+  'Escape',
+  'Esc' // IE11
+]
+
+const keydownHandler = (instance, e, innerParams, dismissWith) => {
+  if (innerParams.stopKeydownPropagation) {
+    e.stopPropagation()
+  }
+
+  // ENTER
+  if (e.key === 'Enter') {
+    handleEnter(instance, e, innerParams)
+
+  // TAB
+  } else if (e.key === 'Tab') {
+    handleTab(e, innerParams)
+
+  // ARROWS - switch focus between buttons
+  } else if (arrowKeys.includes(e.key)) {
+    handleArrows()
+
+  // ESC
+  } else if (escKeys.includes(e.key)) {
+    handleEsc(e, innerParams, dismissWith)
+  }
+}
+
+const handleEnter = (instance, e, innerParams) => {
+  // #720 #721
+  if (e.isComposing) {
+    return
+  }
+
+  if (e.target && instance.getInput() && e.target.outerHTML === instance.getInput().outerHTML) {
+    if (['textarea', 'file'].includes(innerParams.input)) {
+      return // do not submit
+    }
+
+    Object(_staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_3__["clickConfirm"])()
+    e.preventDefault()
+  }
+}
+
+const handleTab = (e, innerParams) => {
+  const targetElement = e.target
+
+  const focusableElements = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getFocusableElements"]()
+  let btnIndex = -1
+  for (let i = 0; i < focusableElements.length; i++) {
+    if (targetElement === focusableElements[i]) {
+      btnIndex = i
+      break
+    }
+  }
+
+  if (!e.shiftKey) {
+    // Cycle to the next button
+    setFocus(innerParams, btnIndex, 1)
+  } else {
+    // Cycle to the prev button
+    setFocus(innerParams, btnIndex, -1)
+  }
+  e.stopPropagation()
+  e.preventDefault()
+}
+
+const handleArrows = () => {
+  const confirmButton = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getConfirmButton"]()
+  const cancelButton = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getCancelButton"]()
+  // focus Cancel button if Confirm button is currently focused
+  if (document.activeElement === confirmButton && _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["isVisible"](cancelButton)) {
+    cancelButton.focus()
+    // and vice versa
+  } else if (document.activeElement === cancelButton && _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["isVisible"](confirmButton)) {
+    confirmButton.focus()
+  }
+}
+
+const handleEsc = (e, innerParams, dismissWith) => {
+  if (Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_2__["callIfFunction"])(innerParams.allowEscapeKey)) {
+    e.preventDefault()
+    dismissWith(_utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_1__["DismissReason"].esc)
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/popup-click-handler.js":
+/*!*****************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/popup-click-handler.js ***!
+  \*****************************************************************************/
+/*! exports provided: handlePopupClick */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "handlePopupClick", function() { return handlePopupClick; });
+/* harmony import */ var _utils_utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/DismissReason.js */ "./node_modules/sweetalert2/src/utils/DismissReason.js");
+
+
+
+const handlePopupClick = (domCache, innerParams, dismissWith) => {
+  if (innerParams.toast) {
+    handleToastClick(domCache, innerParams, dismissWith)
+  } else {
+    // Ignore click events that had mousedown on the popup but mouseup on the container
+    // This can happen when the user drags a slider
+    handleModalMousedown(domCache)
+
+    // Ignore click events that had mousedown on the container but mouseup on the popup
+    handleContainerMousedown(domCache)
+
+    handleModalClick(domCache, innerParams, dismissWith)
+  }
+}
+
+const handleToastClick = (domCache, innerParams, dismissWith) => {
+  // Closing toast by internal click
+  domCache.popup.onclick = () => {
+    if (
+      innerParams.showConfirmButton ||
+      innerParams.showCancelButton ||
+      innerParams.showCloseButton ||
+      innerParams.input
+    ) {
+      return
+    }
+    dismissWith(_utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_1__["DismissReason"].close)
+  }
+}
+
+let ignoreOutsideClick = false
+
+const handleModalMousedown = (domCache) => {
+  domCache.popup.onmousedown = () => {
+    domCache.container.onmouseup = function (e) {
+      domCache.container.onmouseup = undefined
+      // We only check if the mouseup target is the container because usually it doesn't
+      // have any other direct children aside of the popup
+      if (e.target === domCache.container) {
+        ignoreOutsideClick = true
+      }
+    }
+  }
+}
+
+const handleContainerMousedown = (domCache) => {
+  domCache.container.onmousedown = () => {
+    domCache.popup.onmouseup = function (e) {
+      domCache.popup.onmouseup = undefined
+      // We also need to check if the mouseup target is a child of the popup
+      if (e.target === domCache.popup || domCache.popup.contains(e.target)) {
+        ignoreOutsideClick = true
+      }
+    }
+  }
+}
+
+const handleModalClick = (domCache, innerParams, dismissWith) => {
+  domCache.container.onclick = (e) => {
+    if (ignoreOutsideClick) {
+      ignoreOutsideClick = false
+      return
+    }
+    if (e.target === domCache.container && Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_0__["callIfFunction"])(innerParams.allowOutsideClick)) {
+      dismissWith(_utils_DismissReason_js__WEBPACK_IMPORTED_MODULE_1__["DismissReason"].backdrop)
+    }
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/progress-steps.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/progress-steps.js ***!
+  \************************************************************************/
+/*! exports provided: getProgressSteps, setProgressSteps, showProgressSteps, hideProgressSteps */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getProgressSteps", function() { return getProgressSteps; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setProgressSteps", function() { return setProgressSteps; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showProgressSteps", function() { return showProgressSteps; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hideProgressSteps", function() { return hideProgressSteps; });
+/* harmony import */ var _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _utils_dom_renderers_renderProgressSteps_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/dom/renderers/renderProgressSteps.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderProgressSteps.js");
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+/* harmony import */ var _utils_utils_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils/utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+
+
+
+
+
+function getProgressSteps () {
+  Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_3__["warnAboutDepreation"])('Swal.getProgressSteps()', `const swalInstance = Swal.fire({progressSteps: ['1', '2', '3']}); const progressSteps = swalInstance.params.progressSteps`)
+  const innerParams = _privateProps_js__WEBPACK_IMPORTED_MODULE_2__["default"].innerParams.get(this)
+  return innerParams.progressSteps
+}
+
+function setProgressSteps (progressSteps) {
+  Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_3__["warnAboutDepreation"])('Swal.setProgressSteps()', 'Swal.update()')
+  const innerParams = _privateProps_js__WEBPACK_IMPORTED_MODULE_2__["default"].innerParams.get(this)
+  const updatedParams = Object.assign({}, innerParams, { progressSteps })
+  Object(_utils_dom_renderers_renderProgressSteps_js__WEBPACK_IMPORTED_MODULE_1__["renderProgressSteps"])(this, updatedParams)
+  _privateProps_js__WEBPACK_IMPORTED_MODULE_2__["default"].innerParams.set(this, updatedParams)
+}
+
+function showProgressSteps () {
+  const domCache = _privateProps_js__WEBPACK_IMPORTED_MODULE_2__["default"].domCache.get(this)
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["show"](domCache.progressSteps)
+}
+
+function hideProgressSteps () {
+  const domCache = _privateProps_js__WEBPACK_IMPORTED_MODULE_2__["default"].domCache.get(this)
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["hide"](domCache.progressSteps)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/show-reset-validation-error.js":
+/*!*************************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/show-reset-validation-error.js ***!
+  \*************************************************************************************/
+/*! exports provided: showValidationMessage, resetValidationMessage */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showValidationMessage", function() { return showValidationMessage; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resetValidationMessage", function() { return resetValidationMessage; });
+/* harmony import */ var _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+
+
+
+
+// Show block with validation message
+function showValidationMessage (error) {
+  const domCache = _privateProps_js__WEBPACK_IMPORTED_MODULE_2__["default"].domCache.get(this)
+  domCache.validationMessage.innerHTML = error
+  const popupComputedStyle = window.getComputedStyle(domCache.popup)
+  domCache.validationMessage.style.marginLeft = `-${popupComputedStyle.getPropertyValue('padding-left')}`
+  domCache.validationMessage.style.marginRight = `-${popupComputedStyle.getPropertyValue('padding-right')}`
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["show"](domCache.validationMessage)
+
+  const input = this.getInput()
+  if (input) {
+    input.setAttribute('aria-invalid', true)
+    input.setAttribute('aria-describedBy', _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"]['validation-message'])
+    _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["focusInput"](input)
+    _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["addClass"](input, _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].inputerror)
+  }
+}
+
+// Hide block with validation message
+function resetValidationMessage () {
+  const domCache = _privateProps_js__WEBPACK_IMPORTED_MODULE_2__["default"].domCache.get(this)
+  if (domCache.validationMessage) {
+    _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["hide"](domCache.validationMessage)
+  }
+
+  const input = this.getInput()
+  if (input) {
+    input.removeAttribute('aria-invalid')
+    input.removeAttribute('aria-describedBy')
+    _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["removeClass"](input, _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].inputerror)
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/instanceMethods/update.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/instanceMethods/update.js ***!
+  \****************************************************************/
+/*! exports provided: update */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "update", function() { return update; });
+/* harmony import */ var _src_utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../src/utils/dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _src_utils_utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../src/utils/utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _sweetalert2_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../sweetalert2.js */ "./node_modules/sweetalert2/src/sweetalert2.js");
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+
+
+
+
+
+/**
+ * Updates popup parameters.
+ */
+function update (params) {
+  const validUpdatableParams = {}
+
+  // assign valid params from `params` to `defaults`
+  Object.keys(params).forEach(param => {
+    if (_sweetalert2_js__WEBPACK_IMPORTED_MODULE_2__["default"].isUpdatableParameter(param)) {
+      validUpdatableParams[param] = params[param]
+    } else {
+      Object(_src_utils_utils_js__WEBPACK_IMPORTED_MODULE_1__["warn"])(`Invalid parameter to update: "${param}". Updatable params are listed here: https://github.com/sweetalert2/sweetalert2/blob/master/src/utils/params.js`)
+    }
+  })
+
+  const innerParams = _privateProps_js__WEBPACK_IMPORTED_MODULE_3__["default"].innerParams.get(this)
+  const updatedParams = Object.assign({}, innerParams, validUpdatableParams)
+
+  _src_utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["render"](this, updatedParams)
+
+  _privateProps_js__WEBPACK_IMPORTED_MODULE_3__["default"].innerParams.set(this, updatedParams)
+  Object.defineProperties(this, {
+    params: {
+      value: Object.assign({}, this.params, params),
+      writable: false,
+      enumerable: true
+    }
+  })
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/privateMethods.js":
+/*!********************************************************!*\
+  !*** ./node_modules/sweetalert2/src/privateMethods.js ***!
+  \********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/**
+ * This module containts `WeakMap`s for each effectively-"private  property" that a `Swal` has.
+ * For example, to set the private property "foo" of `this` to "bar", you can `privateProps.foo.set(this, 'bar')`
+ * This is the approach that Babel will probably take to implement private methods/fields
+ *   https://github.com/tc39/proposal-private-methods
+ *   https://github.com/babel/babel/pull/7555
+ * Once we have the changes from that PR in Babel, and our core class fits reasonable in *one module*
+ *   then we can use that language feature.
+ */
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  swalPromiseResolve: new WeakMap()
+});
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/privateProps.js":
+/*!******************************************************!*\
+  !*** ./node_modules/sweetalert2/src/privateProps.js ***!
+  \******************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/**
+ * This module containts `WeakMap`s for each effectively-"private  property" that a `Swal` has.
+ * For example, to set the private property "foo" of `this` to "bar", you can `privateProps.foo.set(this, 'bar')`
+ * This is the approach that Babel will probably take to implement private methods/fields
+ *   https://github.com/tc39/proposal-private-methods
+ *   https://github.com/babel/babel/pull/7555
+ * Once we have the changes from that PR in Babel, and our core class fits reasonable in *one module*
+ *   then we can use that language feature.
+ */
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+  promise: new WeakMap(),
+  innerParams: new WeakMap(),
+  domCache: new WeakMap()
+});
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/staticMethods.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/sweetalert2/src/staticMethods.js ***!
+  \*******************************************************/
+/*! exports provided: isValidParameter, isUpdatableParameter, isDeprecatedParameter, argsToParams, getContainer, getPopup, getTitle, getContent, getImage, getIcon, getIcons, getCloseButton, getActions, getConfirmButton, getCancelButton, getHeader, getFooter, getFocusableElements, getValidationMessage, isLoading, isVisible, clickConfirm, clickCancel, fire, mixin, queue, getQueueStep, insertQueueStep, deleteQueueStep, showLoading, enableLoading, getTimerLeft, stopTimer, resumeTimer, toggleTimer, increaseTimer, isTimerRunning */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _staticMethods_argsToParams_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./staticMethods/argsToParams.js */ "./node_modules/sweetalert2/src/staticMethods/argsToParams.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "argsToParams", function() { return _staticMethods_argsToParams_js__WEBPACK_IMPORTED_MODULE_0__["argsToParams"]; });
+
+/* harmony import */ var _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./staticMethods/dom.js */ "./node_modules/sweetalert2/src/staticMethods/dom.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getContainer", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getContainer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getPopup", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getPopup"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getTitle", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getTitle"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getContent", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getContent"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getImage", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getImage"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getIcon", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getIcon"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getIcons", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getIcons"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getCloseButton", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getCloseButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getActions", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getActions"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getConfirmButton", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getConfirmButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getCancelButton", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getCancelButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getHeader", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getHeader"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getFooter", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getFooter"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getFocusableElements", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getFocusableElements"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getValidationMessage", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["getValidationMessage"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isLoading", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["isLoading"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isVisible", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["isVisible"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clickConfirm", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["clickConfirm"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "clickCancel", function() { return _staticMethods_dom_js__WEBPACK_IMPORTED_MODULE_1__["clickCancel"]; });
+
+/* harmony import */ var _staticMethods_fire_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./staticMethods/fire.js */ "./node_modules/sweetalert2/src/staticMethods/fire.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "fire", function() { return _staticMethods_fire_js__WEBPACK_IMPORTED_MODULE_2__["fire"]; });
+
+/* harmony import */ var _staticMethods_mixin_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./staticMethods/mixin.js */ "./node_modules/sweetalert2/src/staticMethods/mixin.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "mixin", function() { return _staticMethods_mixin_js__WEBPACK_IMPORTED_MODULE_3__["mixin"]; });
+
+/* harmony import */ var _staticMethods_queue_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./staticMethods/queue.js */ "./node_modules/sweetalert2/src/staticMethods/queue.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "queue", function() { return _staticMethods_queue_js__WEBPACK_IMPORTED_MODULE_4__["queue"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getQueueStep", function() { return _staticMethods_queue_js__WEBPACK_IMPORTED_MODULE_4__["getQueueStep"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "insertQueueStep", function() { return _staticMethods_queue_js__WEBPACK_IMPORTED_MODULE_4__["insertQueueStep"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "deleteQueueStep", function() { return _staticMethods_queue_js__WEBPACK_IMPORTED_MODULE_4__["deleteQueueStep"]; });
+
+/* harmony import */ var _staticMethods_showLoading_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./staticMethods/showLoading.js */ "./node_modules/sweetalert2/src/staticMethods/showLoading.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "showLoading", function() { return _staticMethods_showLoading_js__WEBPACK_IMPORTED_MODULE_5__["showLoading"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "enableLoading", function() { return _staticMethods_showLoading_js__WEBPACK_IMPORTED_MODULE_5__["enableLoading"]; });
+
+/* harmony import */ var _staticMethods_timer_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./staticMethods/timer.js */ "./node_modules/sweetalert2/src/staticMethods/timer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getTimerLeft", function() { return _staticMethods_timer_js__WEBPACK_IMPORTED_MODULE_6__["getTimerLeft"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "stopTimer", function() { return _staticMethods_timer_js__WEBPACK_IMPORTED_MODULE_6__["stopTimer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "resumeTimer", function() { return _staticMethods_timer_js__WEBPACK_IMPORTED_MODULE_6__["resumeTimer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "toggleTimer", function() { return _staticMethods_timer_js__WEBPACK_IMPORTED_MODULE_6__["toggleTimer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "increaseTimer", function() { return _staticMethods_timer_js__WEBPACK_IMPORTED_MODULE_6__["increaseTimer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isTimerRunning", function() { return _staticMethods_timer_js__WEBPACK_IMPORTED_MODULE_6__["isTimerRunning"]; });
+
+/* harmony import */ var _utils_params_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./utils/params.js */ "./node_modules/sweetalert2/src/utils/params.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isValidParameter", function() { return _utils_params_js__WEBPACK_IMPORTED_MODULE_7__["isValidParameter"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isUpdatableParameter", function() { return _utils_params_js__WEBPACK_IMPORTED_MODULE_7__["isUpdatableParameter"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isDeprecatedParameter", function() { return _utils_params_js__WEBPACK_IMPORTED_MODULE_7__["isDeprecatedParameter"]; });
+
+
+
+
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/staticMethods/argsToParams.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/staticMethods/argsToParams.js ***!
+  \********************************************************************/
+/*! exports provided: argsToParams */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "argsToParams", function() { return argsToParams; });
+/* harmony import */ var _utils_utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+
+
+const argsToParams = (args) => {
+  const params = {}
+  switch (typeof args[0]) {
+    case 'object':
+      Object.assign(params, args[0])
+      break
+
+    default:
+      ['title', 'html', 'type'].forEach((name, index) => {
+        switch (typeof args[index]) {
+          case 'string':
+            params[name] = args[index]
+            break
+          case 'undefined':
+            break
+          default:
+            Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_0__["error"])(`Unexpected type of ${name}! Expected "string", got ${typeof args[index]}`)
+        }
+      })
+  }
+  return params
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/staticMethods/dom.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/sweetalert2/src/staticMethods/dom.js ***!
+  \***********************************************************/
+/*! exports provided: getContainer, getPopup, getTitle, getContent, getImage, getIcon, getIcons, getCloseButton, getActions, getConfirmButton, getCancelButton, getHeader, getFooter, getFocusableElements, getValidationMessage, isLoading, isVisible, clickConfirm, clickCancel */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isVisible", function() { return isVisible; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clickConfirm", function() { return clickConfirm; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "clickCancel", function() { return clickCancel; });
+/* harmony import */ var _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _utils_dom_domUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/dom/domUtils.js */ "./node_modules/sweetalert2/src/utils/dom/domUtils.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getContainer", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getContainer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getPopup", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getPopup"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getTitle", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getTitle"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getContent", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getContent"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getImage", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getImage"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getIcon", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getIcon"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getIcons", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getIcons"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getCloseButton", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getCloseButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getActions", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getActions"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getConfirmButton", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getConfirmButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getCancelButton", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getCancelButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getHeader", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getHeader"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getFooter", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getFooter"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getFocusableElements", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getFocusableElements"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getValidationMessage", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getValidationMessage"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isLoading", function() { return _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["isLoading"]; });
+
+
+
+
+
+
+/*
+ * Global function to determine if SweetAlert2 popup is shown
+ */
+const isVisible = () => {
+  return _utils_dom_domUtils_js__WEBPACK_IMPORTED_MODULE_1__["isVisible"](_utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getPopup"]())
+}
+
+/*
+ * Global function to click 'Confirm' button
+ */
+const clickConfirm = () => _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getConfirmButton"]() && _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getConfirmButton"]().click()
+
+/*
+ * Global function to click 'Cancel' button
+ */
+const clickCancel = () => _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getCancelButton"]() && _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getCancelButton"]().click()
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/staticMethods/fire.js":
+/*!************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/staticMethods/fire.js ***!
+  \************************************************************/
+/*! exports provided: fire */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "fire", function() { return fire; });
+function fire (...args) {
+  const Swal = this
+  return new Swal(...args)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/staticMethods/mixin.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/staticMethods/mixin.js ***!
+  \*************************************************************/
+/*! exports provided: mixin */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mixin", function() { return mixin; });
+/**
+ * Returns an extended version of `Swal` containing `params` as defaults.
+ * Useful for reusing Swal configuration.
+ *
+ * For example:
+ *
+ * Before:
+ * const textPromptOptions = { input: 'text', showCancelButton: true }
+ * const {value: firstName} = await Swal.fire({ ...textPromptOptions, title: 'What is your first name?' })
+ * const {value: lastName} = await Swal.fire({ ...textPromptOptions, title: 'What is your last name?' })
+ *
+ * After:
+ * const TextPrompt = Swal.mixin({ input: 'text', showCancelButton: true })
+ * const {value: firstName} = await TextPrompt('What is your first name?')
+ * const {value: lastName} = await TextPrompt('What is your last name?')
+ *
+ * @param mixinParams
+ */
+function mixin (mixinParams) {
+  class MixinSwal extends this {
+    _main (params) {
+      return super._main(Object.assign({}, mixinParams, params))
+    }
+  }
+
+  return MixinSwal
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/staticMethods/queue.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/staticMethods/queue.js ***!
+  \*************************************************************/
+/*! exports provided: queue, getQueueStep, insertQueueStep, deleteQueueStep */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "queue", function() { return queue; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getQueueStep", function() { return getQueueStep; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "insertQueueStep", function() { return insertQueueStep; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "deleteQueueStep", function() { return deleteQueueStep; });
+// private global state for the queue feature
+let currentSteps = []
+
+/*
+ * Global function for chaining sweetAlert popups
+ */
+const queue = function (steps) {
+  const Swal = this
+  currentSteps = steps
+
+  const resetAndResolve = (resolve, value) => {
+    currentSteps = []
+    document.body.removeAttribute('data-swal2-queue-step')
+    resolve(value)
+  }
+
+  const queueResult = []
+  return new Promise((resolve) => {
+    (function step (i, callback) {
+      if (i < currentSteps.length) {
+        document.body.setAttribute('data-swal2-queue-step', i)
+        Swal.fire(currentSteps[i]).then((result) => {
+          if (typeof result.value !== 'undefined') {
+            queueResult.push(result.value)
+            step(i + 1, callback)
+          } else {
+            resetAndResolve(resolve, { dismiss: result.dismiss })
+          }
+        })
+      } else {
+        resetAndResolve(resolve, { value: queueResult })
+      }
+    })(0)
+  })
+}
+
+/*
+ * Global function for getting the index of current popup in queue
+ */
+const getQueueStep = () => document.body.getAttribute('data-swal2-queue-step')
+
+/*
+ * Global function for inserting a popup to the queue
+ */
+const insertQueueStep = (step, index) => {
+  if (index && index < currentSteps.length) {
+    return currentSteps.splice(index, 0, step)
+  }
+  return currentSteps.push(step)
+}
+
+/*
+ * Global function for deleting a popup from the queue
+ */
+const deleteQueueStep = (index) => {
+  if (typeof currentSteps[index] !== 'undefined') {
+    currentSteps.splice(index, 1)
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/staticMethods/showLoading.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/staticMethods/showLoading.js ***!
+  \*******************************************************************/
+/*! exports provided: showLoading, enableLoading */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showLoading", function() { return showLoading; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "enableLoading", function() { return showLoading; });
+/* harmony import */ var _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _sweetalert2_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../sweetalert2.js */ "./node_modules/sweetalert2/src/sweetalert2.js");
+/* harmony import */ var _utils_classes_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+
+
+
+
+/**
+ * Show spinner instead of Confirm button and disable Cancel button
+ */
+const showLoading = () => {
+  let popup = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getPopup"]()
+  if (!popup) {
+    _sweetalert2_js__WEBPACK_IMPORTED_MODULE_1__["default"].fire('')
+  }
+  popup = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getPopup"]()
+  const actions = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getActions"]()
+  const confirmButton = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getConfirmButton"]()
+  const cancelButton = _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getCancelButton"]()
+
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["show"](actions)
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["show"](confirmButton)
+  _utils_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["addClass"]([popup, actions], _utils_classes_js__WEBPACK_IMPORTED_MODULE_2__["swalClasses"].loading)
+  confirmButton.disabled = true
+  cancelButton.disabled = true
+
+  popup.setAttribute('data-loading', true)
+  popup.setAttribute('aria-busy', true)
+  popup.focus()
+}
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/staticMethods/timer.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/staticMethods/timer.js ***!
+  \*************************************************************/
+/*! exports provided: getTimerLeft, stopTimer, resumeTimer, toggleTimer, increaseTimer, isTimerRunning */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTimerLeft", function() { return getTimerLeft; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stopTimer", function() { return stopTimer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "resumeTimer", function() { return resumeTimer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toggleTimer", function() { return toggleTimer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "increaseTimer", function() { return increaseTimer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isTimerRunning", function() { return isTimerRunning; });
+/* harmony import */ var _globalState_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../globalState.js */ "./node_modules/sweetalert2/src/globalState.js");
+
+
+/**
+ * If `timer` parameter is set, returns number of milliseconds of timer remained.
+ * Otherwise, returns undefined.
+ */
+const getTimerLeft = () => {
+  return _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout && _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout.getTimerLeft()
+}
+
+/**
+ * Stop timer. Returns number of milliseconds of timer remained.
+ * If `timer` parameter isn't set, returns undefined.
+ */
+const stopTimer = () => {
+  return _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout && _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout.stop()
+}
+
+/**
+ * Resume timer. Returns number of milliseconds of timer remained.
+ * If `timer` parameter isn't set, returns undefined.
+ */
+const resumeTimer = () => {
+  return _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout && _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout.start()
+}
+
+/**
+ * Resume timer. Returns number of milliseconds of timer remained.
+ * If `timer` parameter isn't set, returns undefined.
+ */
+const toggleTimer = () => {
+  const timer = _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout
+  return timer && (timer.running ? timer.stop() : timer.start())
+}
+
+/**
+ * Increase timer. Returns number of milliseconds of an updated timer.
+ * If `timer` parameter isn't set, returns undefined.
+ */
+const increaseTimer = (n) => {
+  return _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout && _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout.increase(n)
+}
+
+/**
+ * Check if timer is running. Returns true if timer is running
+ * or false if timer is paused or stopped.
+ * If `timer` parameter isn't set, returns undefined
+ */
+const isTimerRunning = () => {
+  return _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout && _globalState_js__WEBPACK_IMPORTED_MODULE_0__["default"].timeout.isRunning()
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/sweetalert2.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/sweetalert2/src/sweetalert2.js ***!
+  \*****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _SweetAlert_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./SweetAlert.js */ "./node_modules/sweetalert2/src/SweetAlert.js");
+
+
+const Swal = _SweetAlert_js__WEBPACK_IMPORTED_MODULE_0__["default"]
+Swal.default = Swal
+
+/* harmony default export */ __webpack_exports__["default"] = (Swal);
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/DismissReason.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/DismissReason.js ***!
+  \*************************************************************/
+/*! exports provided: DismissReason */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DismissReason", function() { return DismissReason; });
+const DismissReason = Object.freeze({
+  cancel: 'cancel',
+  backdrop: 'backdrop',
+  close: 'close',
+  esc: 'esc',
+  timer: 'timer'
+})
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/Timer.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/Timer.js ***!
+  \*****************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Timer; });
+class Timer {
+  constructor (callback, delay) {
+    this.callback = callback
+    this.remaining = delay
+    this.running = false
+
+    this.start()
+  }
+
+  start () {
+    if (!this.running) {
+      this.running = true
+      this.started = new Date()
+      this.id = setTimeout(this.callback, this.remaining)
+    }
+    return this.remaining
+  }
+
+  stop () {
+    if (this.running) {
+      this.running = false
+      clearTimeout(this.id)
+      this.remaining -= new Date() - this.started
+    }
+    return this.remaining
+  }
+
+  increase (n) {
+    const running = this.running
+    if (running) {
+      this.stop()
+    }
+    this.remaining += n
+    if (running) {
+      this.start()
+    }
+    return this.remaining
+  }
+
+  getTimerLeft () {
+    if (this.running) {
+      this.stop()
+      this.start()
+    }
+    return this.remaining
+  }
+
+  isRunning () {
+    return this.running
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/aria.js":
+/*!****************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/aria.js ***!
+  \****************************************************/
+/*! exports provided: setAriaHidden, unsetAriaHidden */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setAriaHidden", function() { return setAriaHidden; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "unsetAriaHidden", function() { return unsetAriaHidden; });
+/* harmony import */ var _dom_getters_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dom/getters.js */ "./node_modules/sweetalert2/src/utils/dom/getters.js");
+/* harmony import */ var _dom_domUtils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dom/domUtils.js */ "./node_modules/sweetalert2/src/utils/dom/domUtils.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+
+
+
+
+// From https://developer.paciellogroup.com/blog/2018/06/the-current-state-of-modal-dialog-accessibility/
+// Adding aria-hidden="true" to elements outside of the active modal dialog ensures that
+// elements not within the active modal dialog will not be surfaced if a user opens a screen
+// reader’s list of elements (headings, form controls, landmarks, etc.) in the document.
+
+const setAriaHidden = () => {
+  const bodyChildren = Object(_utils_js__WEBPACK_IMPORTED_MODULE_2__["toArray"])(document.body.children)
+  bodyChildren.forEach(el => {
+    if (el === Object(_dom_getters_js__WEBPACK_IMPORTED_MODULE_0__["getContainer"])() || Object(_dom_domUtils_js__WEBPACK_IMPORTED_MODULE_1__["contains"])(el, Object(_dom_getters_js__WEBPACK_IMPORTED_MODULE_0__["getContainer"])())) {
+      return
+    }
+
+    if (el.hasAttribute('aria-hidden')) {
+      el.setAttribute('data-previous-aria-hidden', el.getAttribute('aria-hidden'))
+    }
+    el.setAttribute('aria-hidden', 'true')
+  })
+}
+
+const unsetAriaHidden = () => {
+  const bodyChildren = Object(_utils_js__WEBPACK_IMPORTED_MODULE_2__["toArray"])(document.body.children)
+  bodyChildren.forEach(el => {
+    if (el.hasAttribute('data-previous-aria-hidden')) {
+      el.setAttribute('aria-hidden', el.getAttribute('data-previous-aria-hidden'))
+      el.removeAttribute('data-previous-aria-hidden')
+    } else {
+      el.removeAttribute('aria-hidden')
+    }
+  })
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/classes.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/classes.js ***!
+  \*******************************************************/
+/*! exports provided: swalPrefix, prefix, swalClasses, iconTypes */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "swalPrefix", function() { return swalPrefix; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "prefix", function() { return prefix; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "swalClasses", function() { return swalClasses; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "iconTypes", function() { return iconTypes; });
+const swalPrefix = 'swal2-'
+
+const prefix = (items) => {
+  const result = {}
+  for (const i in items) {
+    result[items[i]] = swalPrefix + items[i]
+  }
+  return result
+}
+
+const swalClasses = prefix([
+  'container',
+  'shown',
+  'height-auto',
+  'iosfix',
+  'popup',
+  'modal',
+  'no-backdrop',
+  'toast',
+  'toast-shown',
+  'toast-column',
+  'fade',
+  'show',
+  'hide',
+  'noanimation',
+  'close',
+  'title',
+  'header',
+  'content',
+  'actions',
+  'confirm',
+  'cancel',
+  'footer',
+  'icon',
+  'image',
+  'input',
+  'file',
+  'range',
+  'select',
+  'radio',
+  'checkbox',
+  'label',
+  'textarea',
+  'inputerror',
+  'validation-message',
+  'progress-steps',
+  'active-progress-step',
+  'progress-step',
+  'progress-step-line',
+  'loading',
+  'styled',
+  'top',
+  'top-start',
+  'top-end',
+  'top-left',
+  'top-right',
+  'center',
+  'center-start',
+  'center-end',
+  'center-left',
+  'center-right',
+  'bottom',
+  'bottom-start',
+  'bottom-end',
+  'bottom-left',
+  'bottom-right',
+  'grow-row',
+  'grow-column',
+  'grow-fullscreen',
+  'rtl'
+])
+
+const iconTypes = prefix([
+  'success',
+  'warning',
+  'info',
+  'question',
+  'error'
+])
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/defaultInputValidators.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/defaultInputValidators.js ***!
+  \**********************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+  email: (string, validationMessage) => {
+    return /^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9-]{2,24}$/.test(string)
+      ? Promise.resolve()
+      : Promise.resolve(validationMessage || 'Invalid email address')
+  },
+  url: (string, validationMessage) => {
+    // taken from https://stackoverflow.com/a/3809435 with a small change from #1306
+    return /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,63}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)$/.test(string)
+      ? Promise.resolve()
+      : Promise.resolve(validationMessage || 'Invalid URL')
+  }
+});
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/animationEndEvent.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/animationEndEvent.js ***!
+  \*********************************************************************/
+/*! exports provided: animationEndEvent */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "animationEndEvent", function() { return animationEndEvent; });
+/* harmony import */ var _isNodeEnv_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../isNodeEnv.js */ "./node_modules/sweetalert2/src/utils/isNodeEnv.js");
+
+
+const animationEndEvent = (() => {
+  // Prevent run in Node env
+  /* istanbul ignore if */
+  if (Object(_isNodeEnv_js__WEBPACK_IMPORTED_MODULE_0__["isNodeEnv"])()) {
+    return false
+  }
+
+  const testEl = document.createElement('div')
+  const transEndEventNames = {
+    WebkitAnimation: 'webkitAnimationEnd',
+    OAnimation: 'oAnimationEnd oanimationend',
+    animation: 'animationend'
+  }
+  for (const i in transEndEventNames) {
+    if (Object.prototype.hasOwnProperty.call(transEndEventNames, i) && typeof testEl.style[i] !== 'undefined') {
+      return transEndEventNames[i]
+    }
+  }
+
+  return false
+})()
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/domUtils.js":
+/*!************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/domUtils.js ***!
+  \************************************************************/
+/*! exports provided: states, hasClass, applyCustomClass, getInput, focusInput, toggleClass, addClass, removeClass, getChildByClass, applyNumericalStyle, show, hide, toggle, isVisible, isScrollable, hasCssAnimation, contains */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "states", function() { return states; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasClass", function() { return hasClass; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "applyCustomClass", function() { return applyCustomClass; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getInput", function() { return getInput; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "focusInput", function() { return focusInput; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toggleClass", function() { return toggleClass; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addClass", function() { return addClass; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "removeClass", function() { return removeClass; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getChildByClass", function() { return getChildByClass; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "applyNumericalStyle", function() { return applyNumericalStyle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "show", function() { return show; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hide", function() { return hide; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toggle", function() { return toggle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isVisible", function() { return isVisible; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isScrollable", function() { return isScrollable; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasCssAnimation", function() { return hasCssAnimation; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "contains", function() { return contains; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+
+
+
+// Remember state in cases where opening and handling a modal will fiddle with it.
+const states = {
+  previousBodyPadding: null
+}
+
+const hasClass = (elem, className) => {
+  return elem.classList.contains(className)
+}
+
+const removeCustomClasses = (elem) => {
+  Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["toArray"])(elem.classList).forEach(className => {
+    if (!Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["objectValues"])(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]).includes(className) && !Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["objectValues"])(_classes_js__WEBPACK_IMPORTED_MODULE_0__["iconTypes"]).includes(className)) {
+      elem.classList.remove(className)
+    }
+  })
+}
+
+const applyCustomClass = (elem, customClass, className) => {
+  removeCustomClasses(elem)
+
+  if (customClass && customClass[className]) {
+    if (typeof customClass[className] !== 'string' && !customClass[className].forEach) {
+      return Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["warn"])(`Invalid type of customClass.${className}! Expected string or iterable object, got "${typeof customClass[className]}"`)
+    }
+
+    addClass(elem, customClass[className])
+  }
+}
+
+function getInput (content, inputType) {
+  if (!inputType) {
+    return null
+  }
+  switch (inputType) {
+    case 'select':
+    case 'textarea':
+    case 'file':
+      return getChildByClass(content, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"][inputType])
+    case 'checkbox':
+      return content.querySelector(`.${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].checkbox} input`)
+    case 'radio':
+      return content.querySelector(`.${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].radio} input:checked`) ||
+        content.querySelector(`.${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].radio} input:first-child`)
+    case 'range':
+      return content.querySelector(`.${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].range} input`)
+    default:
+      return getChildByClass(content, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].input)
+  }
+}
+
+const focusInput = (input) => {
+  input.focus()
+
+  // place cursor at end of text in text input
+  if (input.type !== 'file') {
+    // http://stackoverflow.com/a/2345915
+    const val = input.value
+    input.value = ''
+    input.value = val
+  }
+}
+
+const toggleClass = (target, classList, condition) => {
+  if (!target || !classList) {
+    return
+  }
+  if (typeof classList === 'string') {
+    classList = classList.split(/\s+/).filter(Boolean)
+  }
+  classList.forEach((className) => {
+    if (target.forEach) {
+      target.forEach((elem) => {
+        condition ? elem.classList.add(className) : elem.classList.remove(className)
+      })
+    } else {
+      condition ? target.classList.add(className) : target.classList.remove(className)
+    }
+  })
+}
+
+const addClass = (target, classList) => {
+  toggleClass(target, classList, true)
+}
+
+const removeClass = (target, classList) => {
+  toggleClass(target, classList, false)
+}
+
+const getChildByClass = (elem, className) => {
+  for (let i = 0; i < elem.childNodes.length; i++) {
+    if (hasClass(elem.childNodes[i], className)) {
+      return elem.childNodes[i]
+    }
+  }
+}
+
+const applyNumericalStyle = (elem, property, value) => {
+  if (value || parseInt(value) === 0) {
+    elem.style[property] = (typeof value === 'number') ? value + 'px' : value
+  } else {
+    elem.style.removeProperty(property)
+  }
+}
+
+const show = (elem, display = 'flex') => {
+  elem.style.opacity = ''
+  elem.style.display = display
+}
+
+const hide = (elem) => {
+  elem.style.opacity = ''
+  elem.style.display = 'none'
+}
+
+const toggle = (elem, condition, display) => {
+  condition ? show(elem, display) : hide(elem)
+}
+
+// borrowed from jquery $(elem).is(':visible') implementation
+const isVisible = (elem) => !!(elem && (elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length))
+
+const isScrollable = (elem) => !!(elem.scrollHeight > elem.clientHeight)
+
+// borrowed from https://stackoverflow.com/a/46352119
+const hasCssAnimation = (elem) => {
+  const style = window.getComputedStyle(elem)
+
+  const animDuration = parseFloat(style.getPropertyValue('animation-duration') || '0')
+  const transDuration = parseFloat(style.getPropertyValue('transition-duration') || '0')
+
+  return animDuration > 0 || transDuration > 0
+}
+
+const contains = (haystack, needle) => {
+  if (typeof haystack.contains === 'function') {
+    return haystack.contains(needle)
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/getters.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/getters.js ***!
+  \***********************************************************/
+/*! exports provided: getContainer, elementBySelector, getPopup, getIcons, getIcon, getTitle, getContent, getImage, getProgressSteps, getValidationMessage, getConfirmButton, getCancelButton, getActions, getHeader, getFooter, getCloseButton, getFocusableElements, isModal, isToast, isLoading */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getContainer", function() { return getContainer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "elementBySelector", function() { return elementBySelector; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getPopup", function() { return getPopup; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getIcons", function() { return getIcons; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getIcon", function() { return getIcon; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getTitle", function() { return getTitle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getContent", function() { return getContent; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getImage", function() { return getImage; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getProgressSteps", function() { return getProgressSteps; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getValidationMessage", function() { return getValidationMessage; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getConfirmButton", function() { return getConfirmButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCancelButton", function() { return getCancelButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getActions", function() { return getActions; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getHeader", function() { return getHeader; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFooter", function() { return getFooter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCloseButton", function() { return getCloseButton; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFocusableElements", function() { return getFocusableElements; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isModal", function() { return isModal; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isToast", function() { return isToast; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isLoading", function() { return isLoading; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _domUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./domUtils.js */ "./node_modules/sweetalert2/src/utils/dom/domUtils.js");
+
+
+
+
+const getContainer = () => document.body.querySelector('.' + _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].container)
+
+const elementBySelector = (selectorString) => {
+  const container = getContainer()
+  return container ? container.querySelector(selectorString) : null
+}
+
+const elementByClass = (className) => {
+  return elementBySelector('.' + className)
+}
+
+const getPopup = () => elementByClass(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].popup)
+
+const getIcons = () => {
+  const popup = getPopup()
+  return Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["toArray"])(popup.querySelectorAll('.' + _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].icon))
+}
+
+const getIcon = () => {
+  const visibleIcon = getIcons().filter(icon => Object(_domUtils_js__WEBPACK_IMPORTED_MODULE_2__["isVisible"])(icon))
+  return visibleIcon.length ? visibleIcon[0] : null
+}
+
+const getTitle = () => elementByClass(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].title)
+
+const getContent = () => elementByClass(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].content)
+
+const getImage = () => elementByClass(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].image)
+
+const getProgressSteps = () => elementByClass(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['progress-steps'])
+
+const getValidationMessage = () => elementByClass(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['validation-message'])
+
+const getConfirmButton = () => elementBySelector('.' + _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].actions + ' .' + _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].confirm)
+
+const getCancelButton = () => elementBySelector('.' + _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].actions + ' .' + _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].cancel)
+
+const getActions = () => elementByClass(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].actions)
+
+const getHeader = () => elementByClass(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].header)
+
+const getFooter = () => elementByClass(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].footer)
+
+const getCloseButton = () => elementByClass(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].close)
+
+// https://github.com/jkup/focusable/blob/master/index.js
+const focusable = `
+  a[href],
+  area[href],
+  input:not([disabled]),
+  select:not([disabled]),
+  textarea:not([disabled]),
+  button:not([disabled]),
+  iframe,
+  object,
+  embed,
+  [tabindex="0"],
+  [contenteditable],
+  audio[controls],
+  video[controls],
+  summary
+`
+
+const getFocusableElements = () => {
+  const focusableElementsWithTabindex = Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["toArray"])(
+    getPopup().querySelectorAll('[tabindex]:not([tabindex="-1"]):not([tabindex="0"])')
+  )
+  // sort according to tabindex
+    .sort((a, b) => {
+      a = parseInt(a.getAttribute('tabindex'))
+      b = parseInt(b.getAttribute('tabindex'))
+      if (a > b) {
+        return 1
+      } else if (a < b) {
+        return -1
+      }
+      return 0
+    })
+
+  const otherFocusableElements = Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["toArray"])(
+    getPopup().querySelectorAll(focusable)
+  ).filter(el => el.getAttribute('tabindex') !== '-1')
+
+  return Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["uniqueArray"])(focusableElementsWithTabindex.concat(otherFocusableElements)).filter(el => Object(_domUtils_js__WEBPACK_IMPORTED_MODULE_2__["isVisible"])(el))
+}
+
+const isModal = () => {
+  return !isToast() && !document.body.classList.contains(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['no-backdrop'])
+}
+
+const isToast = () => {
+  return document.body.classList.contains(_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['toast-shown'])
+}
+
+const isLoading = () => {
+  return getPopup().hasAttribute('data-loading')
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/index.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/index.js ***!
+  \*********************************************************/
+/*! exports provided: states, hasClass, applyCustomClass, getInput, focusInput, toggleClass, addClass, removeClass, getChildByClass, applyNumericalStyle, show, hide, toggle, isVisible, isScrollable, hasCssAnimation, contains, init, getContainer, elementBySelector, getPopup, getIcons, getIcon, getTitle, getContent, getImage, getProgressSteps, getValidationMessage, getConfirmButton, getCancelButton, getActions, getHeader, getFooter, getCloseButton, getFocusableElements, isModal, isToast, isLoading, parseHtmlToContainer, animationEndEvent, measureScrollbar, render */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _domUtils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./domUtils.js */ "./node_modules/sweetalert2/src/utils/dom/domUtils.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "states", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["states"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "hasClass", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["hasClass"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "applyCustomClass", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["applyCustomClass"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getInput", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["getInput"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "focusInput", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["focusInput"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "toggleClass", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["toggleClass"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "addClass", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["addClass"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "removeClass", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["removeClass"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getChildByClass", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["getChildByClass"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "applyNumericalStyle", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["applyNumericalStyle"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "show", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["show"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "hide", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["hide"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "toggle", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["toggle"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isVisible", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["isVisible"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isScrollable", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["isScrollable"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "hasCssAnimation", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["hasCssAnimation"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "contains", function() { return _domUtils_js__WEBPACK_IMPORTED_MODULE_0__["contains"]; });
+
+/* harmony import */ var _init_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./init.js */ "./node_modules/sweetalert2/src/utils/dom/init.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "init", function() { return _init_js__WEBPACK_IMPORTED_MODULE_1__["init"]; });
+
+/* harmony import */ var _getters_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./getters.js */ "./node_modules/sweetalert2/src/utils/dom/getters.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getContainer", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getContainer"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "elementBySelector", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["elementBySelector"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getPopup", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getPopup"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getIcons", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getIcons"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getIcon", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getIcon"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getTitle", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getTitle"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getContent", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getContent"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getImage", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getImage"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getProgressSteps", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getProgressSteps"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getValidationMessage", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getValidationMessage"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getConfirmButton", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getConfirmButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getCancelButton", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getCancelButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getActions", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getActions"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getHeader", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getHeader"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getFooter", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getFooter"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getCloseButton", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getCloseButton"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "getFocusableElements", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["getFocusableElements"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isModal", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["isModal"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isToast", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["isToast"]; });
+
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "isLoading", function() { return _getters_js__WEBPACK_IMPORTED_MODULE_2__["isLoading"]; });
+
+/* harmony import */ var _parseHtmlToContainer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./parseHtmlToContainer.js */ "./node_modules/sweetalert2/src/utils/dom/parseHtmlToContainer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "parseHtmlToContainer", function() { return _parseHtmlToContainer_js__WEBPACK_IMPORTED_MODULE_3__["parseHtmlToContainer"]; });
+
+/* harmony import */ var _animationEndEvent_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./animationEndEvent.js */ "./node_modules/sweetalert2/src/utils/dom/animationEndEvent.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "animationEndEvent", function() { return _animationEndEvent_js__WEBPACK_IMPORTED_MODULE_4__["animationEndEvent"]; });
+
+/* harmony import */ var _measureScrollbar_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./measureScrollbar.js */ "./node_modules/sweetalert2/src/utils/dom/measureScrollbar.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "measureScrollbar", function() { return _measureScrollbar_js__WEBPACK_IMPORTED_MODULE_5__["measureScrollbar"]; });
+
+/* harmony import */ var _renderers_render_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./renderers/render.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/render.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _renderers_render_js__WEBPACK_IMPORTED_MODULE_6__["render"]; });
+
+
+
+
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/init.js":
+/*!********************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/init.js ***!
+  \********************************************************/
+/*! exports provided: init */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _getters_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./getters.js */ "./node_modules/sweetalert2/src/utils/dom/getters.js");
+/* harmony import */ var _domUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./domUtils.js */ "./node_modules/sweetalert2/src/utils/dom/domUtils.js");
+/* harmony import */ var _isNodeEnv_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../isNodeEnv.js */ "./node_modules/sweetalert2/src/utils/isNodeEnv.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _sweetalert2_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../sweetalert2.js */ "./node_modules/sweetalert2/src/sweetalert2.js");
+
+
+
+
+
+
+
+const sweetHTML = `
+ <div aria-labelledby="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].title}" aria-describedby="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].content}" class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].popup}" tabindex="-1">
+   <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].header}">
+     <ul class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['progress-steps']}"></ul>
+     <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].icon} ${_classes_js__WEBPACK_IMPORTED_MODULE_0__["iconTypes"].error}">
+       <span class="swal2-x-mark"><span class="swal2-x-mark-line-left"></span><span class="swal2-x-mark-line-right"></span></span>
+     </div>
+     <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].icon} ${_classes_js__WEBPACK_IMPORTED_MODULE_0__["iconTypes"].question}"></div>
+     <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].icon} ${_classes_js__WEBPACK_IMPORTED_MODULE_0__["iconTypes"].warning}"></div>
+     <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].icon} ${_classes_js__WEBPACK_IMPORTED_MODULE_0__["iconTypes"].info}"></div>
+     <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].icon} ${_classes_js__WEBPACK_IMPORTED_MODULE_0__["iconTypes"].success}">
+       <div class="swal2-success-circular-line-left"></div>
+       <span class="swal2-success-line-tip"></span> <span class="swal2-success-line-long"></span>
+       <div class="swal2-success-ring"></div> <div class="swal2-success-fix"></div>
+       <div class="swal2-success-circular-line-right"></div>
+     </div>
+     <img class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].image}" />
+     <h2 class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].title}" id="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].title}"></h2>
+     <button type="button" class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].close}"></button>
+   </div>
+   <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].content}">
+     <div id="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].content}"></div>
+     <input class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].input}" />
+     <input type="file" class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].file}" />
+     <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].range}">
+       <input type="range" />
+       <output></output>
+     </div>
+     <select class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].select}"></select>
+     <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].radio}"></div>
+     <label for="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].checkbox}" class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].checkbox}">
+       <input type="checkbox" />
+       <span class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].label}"></span>
+     </label>
+     <textarea class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].textarea}"></textarea>
+     <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['validation-message']}" id="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['validation-message']}"></div>
+   </div>
+   <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].actions}">
+     <button type="button" class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].confirm}">OK</button>
+     <button type="button" class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].cancel}">Cancel</button>
+   </div>
+   <div class="${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].footer}">
+   </div>
+ </div>
+`.replace(/(^|\n)\s*/g, '')
+
+const resetOldContainer = () => {
+  const oldContainer = Object(_getters_js__WEBPACK_IMPORTED_MODULE_1__["getContainer"])()
+  if (!oldContainer) {
+    return
+  }
+
+  oldContainer.parentNode.removeChild(oldContainer)
+  Object(_domUtils_js__WEBPACK_IMPORTED_MODULE_2__["removeClass"])(
+    [document.documentElement, document.body],
+    [
+      _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['no-backdrop'],
+      _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['toast-shown'],
+      _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['has-column']
+    ]
+  )
+}
+
+let oldInputVal // IE11 workaround, see #1109 for details
+const resetValidationMessage = (e) => {
+  if (_sweetalert2_js__WEBPACK_IMPORTED_MODULE_5__["default"].isVisible() && oldInputVal !== e.target.value) {
+    _sweetalert2_js__WEBPACK_IMPORTED_MODULE_5__["default"].resetValidationMessage()
+  }
+  oldInputVal = e.target.value
+}
+
+const addInputChangeListeners = () => {
+  const content = Object(_getters_js__WEBPACK_IMPORTED_MODULE_1__["getContent"])()
+
+  const input = Object(_domUtils_js__WEBPACK_IMPORTED_MODULE_2__["getChildByClass"])(content, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].input)
+  const file = Object(_domUtils_js__WEBPACK_IMPORTED_MODULE_2__["getChildByClass"])(content, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].file)
+  const range = content.querySelector(`.${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].range} input`)
+  const rangeOutput = content.querySelector(`.${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].range} output`)
+  const select = Object(_domUtils_js__WEBPACK_IMPORTED_MODULE_2__["getChildByClass"])(content, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].select)
+  const checkbox = content.querySelector(`.${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].checkbox} input`)
+  const textarea = Object(_domUtils_js__WEBPACK_IMPORTED_MODULE_2__["getChildByClass"])(content, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].textarea)
+
+  input.oninput = resetValidationMessage
+  file.onchange = resetValidationMessage
+  select.onchange = resetValidationMessage
+  checkbox.onchange = resetValidationMessage
+  textarea.oninput = resetValidationMessage
+
+  range.oninput = (e) => {
+    resetValidationMessage(e)
+    rangeOutput.value = range.value
+  }
+
+  range.onchange = (e) => {
+    resetValidationMessage(e)
+    range.nextSibling.value = range.value
+  }
+}
+
+const getTarget = (target) => typeof target === 'string' ? document.querySelector(target) : target
+
+const setupAccessibility = (params) => {
+  const popup = Object(_getters_js__WEBPACK_IMPORTED_MODULE_1__["getPopup"])()
+
+  popup.setAttribute('role', params.toast ? 'alert' : 'dialog')
+  popup.setAttribute('aria-live', params.toast ? 'polite' : 'assertive')
+  if (!params.toast) {
+    popup.setAttribute('aria-modal', 'true')
+  }
+}
+
+const setupRTL = (targetElement) => {
+  if (window.getComputedStyle(targetElement).direction === 'rtl') {
+    Object(_domUtils_js__WEBPACK_IMPORTED_MODULE_2__["addClass"])(Object(_getters_js__WEBPACK_IMPORTED_MODULE_1__["getContainer"])(), _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].rtl)
+  }
+}
+
+/*
+ * Add modal + backdrop to DOM
+ */
+const init = (params) => {
+  // Clean up the old popup container if it exists
+  resetOldContainer()
+
+  /* istanbul ignore if */
+  if (Object(_isNodeEnv_js__WEBPACK_IMPORTED_MODULE_3__["isNodeEnv"])()) {
+    Object(_utils_js__WEBPACK_IMPORTED_MODULE_4__["error"])('SweetAlert2 requires document to initialize')
+    return
+  }
+
+  const container = document.createElement('div')
+  container.className = _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].container
+  container.innerHTML = sweetHTML
+
+  const targetElement = getTarget(params.target)
+  targetElement.appendChild(container)
+
+  setupAccessibility(params)
+  setupRTL(targetElement)
+  addInputChangeListeners()
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/inputUtils.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/inputUtils.js ***!
+  \**************************************************************/
+/*! exports provided: handleInputOptionsAndValue, getInputValue */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "handleInputOptionsAndValue", function() { return handleInputOptionsAndValue; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getInputValue", function() { return getInputValue; });
+/* harmony import */ var _index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _domUtils_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./domUtils.js */ "./node_modules/sweetalert2/src/utils/dom/domUtils.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _staticMethods_showLoading_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../staticMethods/showLoading.js */ "./node_modules/sweetalert2/src/staticMethods/showLoading.js");
+
+
+
+
+
+
+const handleInputOptionsAndValue = (instance, params) => {
+  if (params.input === 'select' || params.input === 'radio') {
+    handleInputOptions(instance, params)
+  } else if (['text', 'email', 'number', 'tel', 'textarea'].includes(params.input) && Object(_utils_js__WEBPACK_IMPORTED_MODULE_3__["isPromise"])(params.inputValue)) {
+    handleInputValue(instance, params)
+  }
+}
+
+const getInputValue = (instance, innerParams) => {
+  const input = instance.getInput()
+  if (!input) {
+    return null
+  }
+  switch (innerParams.input) {
+    case 'checkbox':
+      return getCheckboxValue(input)
+    case 'radio':
+      return getRadioValue(input)
+    case 'file':
+      return getFileValue(input)
+    default:
+      return innerParams.inputAutoTrim ? input.value.trim() : input.value
+  }
+}
+
+const getCheckboxValue = (input) => input.checked ? 1 : 0
+
+const getRadioValue = (input) => input.checked ? input.value : null
+
+const getFileValue = (input) => input.files.length ? (input.getAttribute('multiple') !== null ? input.files : input.files[0]) : null
+
+const handleInputOptions = (instance, params) => {
+  const content = _index_js__WEBPACK_IMPORTED_MODULE_0__["getContent"]()
+  const processInputOptions = (inputOptions) => populateInputOptions[params.input](content, formatInputOptions(inputOptions), params)
+  if (Object(_utils_js__WEBPACK_IMPORTED_MODULE_3__["isPromise"])(params.inputOptions)) {
+    Object(_staticMethods_showLoading_js__WEBPACK_IMPORTED_MODULE_4__["showLoading"])()
+    params.inputOptions.then((inputOptions) => {
+      instance.hideLoading()
+      processInputOptions(inputOptions)
+    })
+  } else if (typeof params.inputOptions === 'object') {
+    processInputOptions(params.inputOptions)
+  } else {
+    Object(_utils_js__WEBPACK_IMPORTED_MODULE_3__["error"])(`Unexpected type of inputOptions! Expected object, Map or Promise, got ${typeof params.inputOptions}`)
+  }
+}
+
+const handleInputValue = (instance, params) => {
+  const input = instance.getInput()
+  _index_js__WEBPACK_IMPORTED_MODULE_0__["hide"](input)
+  params.inputValue.then((inputValue) => {
+    input.value = params.input === 'number' ? parseFloat(inputValue) || 0 : inputValue + ''
+    _index_js__WEBPACK_IMPORTED_MODULE_0__["show"](input)
+    input.focus()
+    instance.hideLoading()
+  })
+    .catch((err) => {
+      Object(_utils_js__WEBPACK_IMPORTED_MODULE_3__["error"])('Error in inputValue promise: ' + err)
+      input.value = ''
+      _index_js__WEBPACK_IMPORTED_MODULE_0__["show"](input)
+      input.focus()
+      instance.hideLoading()
+    })
+}
+
+const populateInputOptions = {
+  select: (content, inputOptions, params) => {
+    const select = Object(_domUtils_js__WEBPACK_IMPORTED_MODULE_2__["getChildByClass"])(content, _classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].select)
+    inputOptions.forEach(inputOption => {
+      const optionValue = inputOption[0]
+      const optionLabel = inputOption[1]
+      const option = document.createElement('option')
+      option.value = optionValue
+      option.innerHTML = optionLabel
+      if (params.inputValue.toString() === optionValue.toString()) {
+        option.selected = true
+      }
+      select.appendChild(option)
+    })
+    select.focus()
+  },
+
+  radio: (content, inputOptions, params) => {
+    const radio = Object(_domUtils_js__WEBPACK_IMPORTED_MODULE_2__["getChildByClass"])(content, _classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].radio)
+    inputOptions.forEach(inputOption => {
+      const radioValue = inputOption[0]
+      const radioLabel = inputOption[1]
+      const radioInput = document.createElement('input')
+      const radioLabelElement = document.createElement('label')
+      radioInput.type = 'radio'
+      radioInput.name = _classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].radio
+      radioInput.value = radioValue
+      if (params.inputValue.toString() === radioValue.toString()) {
+        radioInput.checked = true
+      }
+      const label = document.createElement('span')
+      label.innerHTML = radioLabel
+      label.className = _classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].label
+      radioLabelElement.appendChild(radioInput)
+      radioLabelElement.appendChild(label)
+      radio.appendChild(radioLabelElement)
+    })
+    const radios = radio.querySelectorAll('input')
+    if (radios.length) {
+      radios[0].focus()
+    }
+  }
+}
+
+/**
+ * Converts `inputOptions` into an array of `[value, label]`s
+ * @param inputOptions
+ */
+const formatInputOptions = (inputOptions) => {
+  const result = []
+  if (typeof Map !== 'undefined' && inputOptions instanceof Map) {
+    inputOptions.forEach((value, key) => {
+      result.push([key, value])
+    })
+  } else {
+    Object.keys(inputOptions).forEach(key => {
+      result.push([key, inputOptions[key]])
+    })
+  }
+  return result
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/measureScrollbar.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/measureScrollbar.js ***!
+  \********************************************************************/
+/*! exports provided: measureScrollbar */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "measureScrollbar", function() { return measureScrollbar; });
+// Measure width of scrollbar
+// https://github.com/twbs/bootstrap/blob/master/js/modal.js#L279-L286
+const measureScrollbar = () => {
+  const supportsTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints
+  if (supportsTouch) {
+    return 0
+  }
+  const scrollDiv = document.createElement('div')
+  scrollDiv.style.width = '50px'
+  scrollDiv.style.height = '50px'
+  scrollDiv.style.overflow = 'scroll'
+  document.body.appendChild(scrollDiv)
+  const scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth
+  document.body.removeChild(scrollDiv)
+  return scrollbarWidth
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/parseHtmlToContainer.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/parseHtmlToContainer.js ***!
+  \************************************************************************/
+/*! exports provided: parseHtmlToContainer */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "parseHtmlToContainer", function() { return parseHtmlToContainer; });
+const parseHtmlToContainer = (param, target) => {
+  // DOM element
+  if (param instanceof HTMLElement) {
+    target.appendChild(param)
+
+  // JQuery element(s)
+  } else if (typeof param === 'object') {
+    handleJqueryElem(target, param)
+
+  // Plain string
+  } else if (param) {
+    target.innerHTML = param
+  }
+}
+
+const handleJqueryElem = (target, elem) => {
+  target.innerHTML = ''
+  if (0 in elem) {
+    for (let i = 0; i in elem; i++) {
+      target.appendChild(elem[i].cloneNode(true))
+    }
+  } else {
+    target.appendChild(elem.cloneNode(true))
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/render.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/render.js ***!
+  \********************************************************************/
+/*! exports provided: render */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony import */ var _getters_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../getters.js */ "./node_modules/sweetalert2/src/utils/dom/getters.js");
+/* harmony import */ var _renderActions_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./renderActions.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderActions.js");
+/* harmony import */ var _renderContainer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./renderContainer.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderContainer.js");
+/* harmony import */ var _renderContent_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./renderContent.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderContent.js");
+/* harmony import */ var _renderFooter_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./renderFooter.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderFooter.js");
+/* harmony import */ var _renderHeader_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./renderHeader.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderHeader.js");
+/* harmony import */ var _renderPopup_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./renderPopup.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderPopup.js");
+
+
+
+
+
+
+
+
+const render = (instance, params) => {
+  Object(_renderPopup_js__WEBPACK_IMPORTED_MODULE_6__["renderPopup"])(instance, params)
+  Object(_renderContainer_js__WEBPACK_IMPORTED_MODULE_2__["renderContainer"])(instance, params)
+
+  Object(_renderHeader_js__WEBPACK_IMPORTED_MODULE_5__["renderHeader"])(instance, params)
+  Object(_renderContent_js__WEBPACK_IMPORTED_MODULE_3__["renderContent"])(instance, params)
+  Object(_renderActions_js__WEBPACK_IMPORTED_MODULE_1__["renderActions"])(instance, params)
+  Object(_renderFooter_js__WEBPACK_IMPORTED_MODULE_4__["renderFooter"])(instance, params)
+
+  if (typeof params.onRender === 'function') {
+    params.onRender(Object(_getters_js__WEBPACK_IMPORTED_MODULE_0__["getPopup"])())
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderActions.js":
+/*!***************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderActions.js ***!
+  \***************************************************************************/
+/*! exports provided: renderActions */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderActions", function() { return renderActions; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+
+
+
+const renderActions = (instance, params) => {
+  const actions = _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getActions"]()
+  const confirmButton = _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getConfirmButton"]()
+  const cancelButton = _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getCancelButton"]()
+
+  // Actions (buttons) wrapper
+  if (!params.showConfirmButton && !params.showCancelButton) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["hide"](actions)
+  }
+
+  // Custom class
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["applyCustomClass"](actions, params.customClass, 'actions')
+
+  // Render confirm button
+  renderButton(confirmButton, 'confirm', params)
+  // render Cancel Button
+  renderButton(cancelButton, 'cancel', params)
+
+  if (params.buttonsStyling) {
+    handleButtonsStyling(confirmButton, cancelButton, params)
+  } else {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["removeClass"]([confirmButton, cancelButton], _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].styled)
+    confirmButton.style.backgroundColor = confirmButton.style.borderLeftColor = confirmButton.style.borderRightColor = ''
+    cancelButton.style.backgroundColor = cancelButton.style.borderLeftColor = cancelButton.style.borderRightColor = ''
+  }
+
+  if (params.reverseButtons) {
+    confirmButton.parentNode.insertBefore(cancelButton, confirmButton)
+  }
+}
+
+function handleButtonsStyling (confirmButton, cancelButton, params) {
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["addClass"]([confirmButton, cancelButton], _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].styled)
+
+  // Buttons background colors
+  if (params.confirmButtonColor) {
+    confirmButton.style.backgroundColor = params.confirmButtonColor
+  }
+  if (params.cancelButtonColor) {
+    cancelButton.style.backgroundColor = params.cancelButtonColor
+  }
+
+  // Loading state
+  const confirmButtonBackgroundColor = window.getComputedStyle(confirmButton).getPropertyValue('background-color')
+  confirmButton.style.borderLeftColor = confirmButtonBackgroundColor
+  confirmButton.style.borderRightColor = confirmButtonBackgroundColor
+}
+
+function renderButton (button, buttonType, params) {
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["toggle"](button, params['showC' + buttonType.substring(1) + 'Button'], 'inline-block')
+  button.innerHTML = params[buttonType + 'ButtonText'] // Set caption text
+  button.setAttribute('aria-label', params[buttonType + 'ButtonAriaLabel']) // ARIA label
+
+  // Add buttons custom classes
+  button.className = _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"][buttonType]
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["applyCustomClass"](button, params.customClass, buttonType + 'Button')
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["addClass"](button, params[buttonType + 'ButtonClass'])
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderCloseButton.js":
+/*!*******************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderCloseButton.js ***!
+  \*******************************************************************************/
+/*! exports provided: renderCloseButton */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderCloseButton", function() { return renderCloseButton; });
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+
+
+const renderCloseButton = (instance, params) => {
+  const closeButton = _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getCloseButton"]()
+
+  closeButton.innerHTML = params.closeButtonHtml
+
+  // Custom class
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["applyCustomClass"](closeButton, params.customClass, 'closeButton')
+
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["toggle"](closeButton, params.showCloseButton)
+  closeButton.setAttribute('aria-label', params.closeButtonAriaLabel)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderContainer.js":
+/*!*****************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderContainer.js ***!
+  \*****************************************************************************/
+/*! exports provided: renderContainer */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderContainer", function() { return renderContainer; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+
+
+
+
+function handleBackdropParam (container, backdrop) {
+  if (typeof backdrop === 'string') {
+    container.style.background = backdrop
+  } else if (!backdrop) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["addClass"]([document.documentElement, document.body], _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['no-backdrop'])
+  }
+}
+
+function handlePositionParam (container, position) {
+  if (position in _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["addClass"](container, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"][position])
+  } else {
+    Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["warn"])('The "position" parameter is not valid, defaulting to "center"')
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["addClass"](container, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].center)
+  }
+}
+
+function handleGrowParam (container, grow) {
+  if (grow && typeof grow === 'string') {
+    const growClass = 'grow-' + grow
+    if (growClass in _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]) {
+      _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["addClass"](container, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"][growClass])
+    }
+  }
+}
+
+const renderContainer = (instance, params) => {
+  const container = _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getContainer"]()
+
+  if (!container) {
+    return
+  }
+
+  handleBackdropParam(container, params.backdrop)
+
+  if (!params.backdrop && params.allowOutsideClick) {
+    Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["warn"])('"allowOutsideClick" parameter requires `backdrop` parameter to be set to `true`')
+  }
+
+  handlePositionParam(container, params.position)
+  handleGrowParam(container, params.grow)
+
+  // Custom class
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["applyCustomClass"](container, params.customClass, 'container')
+  if (params.customContainerClass) { // @deprecated
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["addClass"](container, params.customContainerClass)
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderContent.js":
+/*!***************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderContent.js ***!
+  \***************************************************************************/
+/*! exports provided: renderContent */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderContent", function() { return renderContent; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _renderInput_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./renderInput.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderInput.js");
+
+
+
+
+const renderContent = (instance, params) => {
+  const content = _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getContent"]().querySelector('#' + _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].content)
+
+  // Content as HTML
+  if (params.html) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["parseHtmlToContainer"](params.html, content)
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["show"](content, 'block')
+
+  // Content as plain text
+  } else if (params.text) {
+    content.textContent = params.text
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["show"](content, 'block')
+
+  // No content
+  } else {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["hide"](content)
+  }
+
+  Object(_renderInput_js__WEBPACK_IMPORTED_MODULE_2__["renderInput"])(instance, params)
+
+  // Custom class
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["applyCustomClass"](_dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getContent"](), params.customClass, 'content')
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderFooter.js":
+/*!**************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderFooter.js ***!
+  \**************************************************************************/
+/*! exports provided: renderFooter */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderFooter", function() { return renderFooter; });
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+
+
+const renderFooter = (instance, params) => {
+  const footer = _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getFooter"]()
+
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["toggle"](footer, params.footer)
+
+  if (params.footer) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["parseHtmlToContainer"](params.footer, footer)
+  }
+
+  // Custom class
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["applyCustomClass"](footer, params.customClass, 'footer')
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderHeader.js":
+/*!**************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderHeader.js ***!
+  \**************************************************************************/
+/*! exports provided: renderHeader */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderHeader", function() { return renderHeader; });
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _renderCloseButton_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./renderCloseButton.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderCloseButton.js");
+/* harmony import */ var _renderIcon_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./renderIcon.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderIcon.js");
+/* harmony import */ var _renderImage_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./renderImage.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderImage.js");
+/* harmony import */ var _renderProgressSteps_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./renderProgressSteps.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderProgressSteps.js");
+/* harmony import */ var _renderTitle_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./renderTitle.js */ "./node_modules/sweetalert2/src/utils/dom/renderers/renderTitle.js");
+
+
+
+
+
+
+
+const renderHeader = (instance, params) => {
+  const header = _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getHeader"]()
+
+  // Custom class
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["applyCustomClass"](header, params.customClass, 'header')
+
+  // Progress steps
+  Object(_renderProgressSteps_js__WEBPACK_IMPORTED_MODULE_4__["renderProgressSteps"])(instance, params)
+
+  // Icon
+  Object(_renderIcon_js__WEBPACK_IMPORTED_MODULE_2__["renderIcon"])(instance, params)
+
+  // Image
+  Object(_renderImage_js__WEBPACK_IMPORTED_MODULE_3__["renderImage"])(instance, params)
+
+  // Title
+  Object(_renderTitle_js__WEBPACK_IMPORTED_MODULE_5__["renderTitle"])(instance, params)
+
+  // Close button
+  Object(_renderCloseButton_js__WEBPACK_IMPORTED_MODULE_1__["renderCloseButton"])(instance, params)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderIcon.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderIcon.js ***!
+  \************************************************************************/
+/*! exports provided: renderIcon */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderIcon", function() { return renderIcon; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+
+
+
+
+
+const renderIcon = (instance, params) => {
+  const innerParams = _privateProps_js__WEBPACK_IMPORTED_MODULE_3__["default"].innerParams.get(instance)
+
+  // if the icon with the given type already rendered,
+  // apply the custom class without re-rendering the icon
+  if (innerParams && params.type === innerParams.type && _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getIcon"]()) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["applyCustomClass"](_dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getIcon"](), params.customClass, 'icon')
+    return
+  }
+
+  hideAllIcons()
+
+  if (!params.type) {
+    return
+  }
+
+  adjustSuccessIconBackgoundColor()
+
+  if (Object.keys(_classes_js__WEBPACK_IMPORTED_MODULE_0__["iconTypes"]).indexOf(params.type) !== -1) {
+    const icon = _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["elementBySelector"](`.${_classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].icon}.${_classes_js__WEBPACK_IMPORTED_MODULE_0__["iconTypes"][params.type]}`)
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["show"](icon)
+
+    // Custom class
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["applyCustomClass"](icon, params.customClass, 'icon')
+
+    // Animate icon
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["toggleClass"](icon, `swal2-animate-${params.type}-icon`, params.animation)
+  } else {
+    Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["error"])(`Unknown type! Expected "success", "error", "warning", "info" or "question", got "${params.type}"`)
+  }
+}
+
+const hideAllIcons = () => {
+  const icons = _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getIcons"]()
+  for (let i = 0; i < icons.length; i++) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["hide"](icons[i])
+  }
+}
+
+// Adjust success icon background color to match the popup background color
+const adjustSuccessIconBackgoundColor = () => {
+  const popup = _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getPopup"]()
+  const popupBackgroundColor = window.getComputedStyle(popup).getPropertyValue('background-color')
+  const successIconParts = popup.querySelectorAll('[class^=swal2-success-circular-line], .swal2-success-fix')
+  for (let i = 0; i < successIconParts.length; i++) {
+    successIconParts[i].style.backgroundColor = popupBackgroundColor
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderImage.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderImage.js ***!
+  \*************************************************************************/
+/*! exports provided: renderImage */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderImage", function() { return renderImage; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+
+
+
+const renderImage = (instance, params) => {
+  const image = _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getImage"]()
+
+  if (!params.imageUrl) {
+    return _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["hide"](image)
+  }
+
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["show"](image)
+
+  // Src, alt
+  image.setAttribute('src', params.imageUrl)
+  image.setAttribute('alt', params.imageAlt)
+
+  // Width, height
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["applyNumericalStyle"](image, 'width', params.imageWidth)
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["applyNumericalStyle"](image, 'height', params.imageHeight)
+
+  // Class
+  image.className = _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].image
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["applyCustomClass"](image, params.customClass, 'image')
+  if (params.imageClass) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["addClass"](image, params.imageClass)
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderInput.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderInput.js ***!
+  \*************************************************************************/
+/*! exports provided: renderInput */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderInput", function() { return renderInput; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _privateProps_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../privateProps.js */ "./node_modules/sweetalert2/src/privateProps.js");
+
+
+
+
+
+const inputTypes = ['input', 'file', 'range', 'select', 'radio', 'checkbox', 'textarea']
+
+const renderInput = (instance, params) => {
+  const content = _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getContent"]()
+  const innerParams = _privateProps_js__WEBPACK_IMPORTED_MODULE_3__["default"].innerParams.get(instance)
+  const rerender = !innerParams || params.input !== innerParams.input
+
+  inputTypes.forEach((inputType) => {
+    const inputClass = _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"][inputType]
+    const inputContainer = _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getChildByClass"](content, inputClass)
+
+    // set attributes
+    setAttributes(inputType, params.inputAttributes)
+
+    // set class
+    inputContainer.className = inputClass
+
+    if (rerender) {
+      _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["hide"](inputContainer)
+    }
+  })
+
+  if (params.input) {
+    if (rerender) {
+      showInput(params)
+    }
+    // set custom class
+    setCustomClass(params)
+  }
+}
+
+const showInput = (params) => {
+  if (!renderInputType[params.input]) {
+    return Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["error"])(`Unexpected type of input! Expected "text", "email", "password", "number", "tel", "select", "radio", "checkbox", "textarea", "file" or "url", got "${params.input}"`)
+  }
+
+  const inputContainer = getInputContainer(params.input)
+  const input = renderInputType[params.input](inputContainer, params)
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["show"](input)
+
+  // input autofocus
+  setTimeout(() => {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["focusInput"](input)
+  })
+}
+
+const removeAttributes = (input) => {
+  for (let i = 0; i < input.attributes.length; i++) {
+    const attrName = input.attributes[i].name
+    if (!['type', 'value', 'style'].includes(attrName)) {
+      input.removeAttribute(attrName)
+    }
+  }
+}
+
+const setAttributes = (inputType, inputAttributes) => {
+  const input = _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getInput"](_dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getContent"](), inputType)
+  if (!input) {
+    return
+  }
+
+  removeAttributes(input)
+
+  for (const attr in inputAttributes) {
+    // Do not set a placeholder for <input type="range">
+    // it'll crash Edge, #1298
+    if (inputType === 'range' && attr === 'placeholder') {
+      continue
+    }
+
+    input.setAttribute(attr, inputAttributes[attr])
+  }
+}
+
+const setCustomClass = (params) => {
+  const inputContainer = getInputContainer(params.input)
+  if (params.inputClass) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["addClass"](inputContainer, params.inputClass)
+  }
+  if (params.customClass) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["addClass"](inputContainer, params.customClass.input)
+  }
+}
+
+const setInputPlaceholder = (input, params) => {
+  if (!input.placeholder || params.inputPlaceholder) {
+    input.placeholder = params.inputPlaceholder
+  }
+}
+
+const getInputContainer = (inputType) => {
+  const inputClass = _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"][inputType] ? _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"][inputType] : _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].input
+  return _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getChildByClass"](_dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getContent"](), inputClass)
+}
+
+const renderInputType = {}
+
+renderInputType.text =
+renderInputType.email =
+renderInputType.password =
+renderInputType.number =
+renderInputType.tel =
+renderInputType.url = (input, params) => {
+  if (typeof params.inputValue === 'string' || typeof params.inputValue === 'number') {
+    input.value = params.inputValue
+  } else if (!Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["isPromise"])(params.inputValue)) {
+    Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["warn"])(`Unexpected type of inputValue! Expected "string", "number" or "Promise", got "${typeof params.inputValue}"`)
+  }
+  setInputPlaceholder(input, params)
+  input.type = params.input
+  return input
+}
+
+renderInputType.file = (input, params) => {
+  setInputPlaceholder(input, params)
+  return input
+}
+
+renderInputType.range = (range, params) => {
+  const rangeInput = range.querySelector('input')
+  const rangeOutput = range.querySelector('output')
+  rangeInput.value = params.inputValue
+  rangeInput.type = params.input
+  rangeOutput.value = params.inputValue
+  return range
+}
+
+renderInputType.select = (select, params) => {
+  select.innerHTML = ''
+  if (params.inputPlaceholder) {
+    const placeholder = document.createElement('option')
+    placeholder.innerHTML = params.inputPlaceholder
+    placeholder.value = ''
+    placeholder.disabled = true
+    placeholder.selected = true
+    select.appendChild(placeholder)
+  }
+  return select
+}
+
+renderInputType.radio = (radio) => {
+  radio.innerHTML = ''
+  return radio
+}
+
+renderInputType.checkbox = (checkboxContainer, params) => {
+  const checkbox = _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getInput"](_dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getContent"](), 'checkbox')
+  checkbox.value = 1
+  checkbox.id = _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].checkbox
+  checkbox.checked = Boolean(params.inputValue)
+  const label = checkboxContainer.querySelector('span')
+  label.innerHTML = params.inputPlaceholder
+  return checkboxContainer
+}
+
+renderInputType.textarea = (textarea, params) => {
+  textarea.value = params.inputValue
+  setInputPlaceholder(textarea, params)
+
+  if ('MutationObserver' in window) { // #1699
+    const initialPopupWidth = parseInt(window.getComputedStyle(_dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getPopup"]()).width)
+    const popupPadding = parseInt(window.getComputedStyle(_dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getPopup"]()).paddingLeft) + parseInt(window.getComputedStyle(_dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getPopup"]()).paddingRight)
+    const outputsize = () => {
+      const contentWidth = textarea.offsetWidth + popupPadding
+      if (contentWidth > initialPopupWidth) {
+        _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getPopup"]().style.width = contentWidth + 'px'
+      } else {
+        _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getPopup"]().style.width = null
+      }
+    }
+    new MutationObserver(outputsize).observe(textarea, {
+      attributes: true, attributeFilter: ['style']
+    })
+  }
+
+  return textarea
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderPopup.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderPopup.js ***!
+  \*************************************************************************/
+/*! exports provided: renderPopup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderPopup", function() { return renderPopup; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+
+
+
+const renderPopup = (instance, params) => {
+  const popup = _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["getPopup"]()
+
+  // Width
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["applyNumericalStyle"](popup, 'width', params.width)
+
+  // Padding
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["applyNumericalStyle"](popup, 'padding', params.padding)
+
+  // Background
+  if (params.background) {
+    popup.style.background = params.background
+  }
+
+  // Default Class
+  popup.className = _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].popup
+  if (params.toast) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["addClass"]([document.documentElement, document.body], _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['toast-shown'])
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["addClass"](popup, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].toast)
+  } else {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["addClass"](popup, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].modal)
+  }
+
+  // Custom class
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["applyCustomClass"](popup, params.customClass, 'popup')
+  if (typeof params.customClass === 'string') {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["addClass"](popup, params.customClass)
+  }
+
+  // CSS animation
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["toggleClass"](popup, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"].noanimation, !params.animation)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderProgressSteps.js":
+/*!*********************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderProgressSteps.js ***!
+  \*********************************************************************************/
+/*! exports provided: renderProgressSteps */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderProgressSteps", function() { return renderProgressSteps; });
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _sweetalert2_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../sweetalert2.js */ "./node_modules/sweetalert2/src/sweetalert2.js");
+
+
+
+
+
+const createStepElement = (step) => {
+  const stepEl = document.createElement('li')
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["addClass"](stepEl, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['progress-step'])
+  stepEl.innerHTML = step
+  return stepEl
+}
+
+const createLineElement = (params) => {
+  const lineEl = document.createElement('li')
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["addClass"](lineEl, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['progress-step-line'])
+  if (params.progressStepsDistance) {
+    lineEl.style.width = params.progressStepsDistance
+  }
+  return lineEl
+}
+
+const renderProgressSteps = (instance, params) => {
+  const progressStepsContainer = _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["getProgressSteps"]()
+  if (!params.progressSteps || params.progressSteps.length === 0) {
+    return _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["hide"](progressStepsContainer)
+  }
+
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["show"](progressStepsContainer)
+  progressStepsContainer.innerHTML = ''
+  const currentProgressStep = parseInt(params.currentProgressStep === null ? _sweetalert2_js__WEBPACK_IMPORTED_MODULE_3__["default"].getQueueStep() : params.currentProgressStep)
+  if (currentProgressStep >= params.progressSteps.length) {
+    Object(_utils_js__WEBPACK_IMPORTED_MODULE_1__["warn"])(
+      'Invalid currentProgressStep parameter, it should be less than progressSteps.length ' +
+      '(currentProgressStep like JS arrays starts from 0)'
+    )
+  }
+
+  params.progressSteps.forEach((step, index) => {
+    const stepEl = createStepElement(step)
+    progressStepsContainer.appendChild(stepEl)
+    if (index === currentProgressStep) {
+      _dom_index_js__WEBPACK_IMPORTED_MODULE_2__["addClass"](stepEl, _classes_js__WEBPACK_IMPORTED_MODULE_0__["swalClasses"]['active-progress-step'])
+    }
+
+    if (index !== params.progressSteps.length - 1) {
+      const lineEl = createLineElement(step)
+      progressStepsContainer.appendChild(lineEl)
+    }
+  })
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/dom/renderers/renderTitle.js":
+/*!*************************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/dom/renderers/renderTitle.js ***!
+  \*************************************************************************/
+/*! exports provided: renderTitle */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderTitle", function() { return renderTitle; });
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+
+
+const renderTitle = (instance, params) => {
+  const title = _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getTitle"]()
+
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["toggle"](title, params.title || params.titleText)
+
+  if (params.title) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["parseHtmlToContainer"](params.title, title)
+  }
+
+  if (params.titleText) {
+    title.innerText = params.titleText
+  }
+
+  // Custom class
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["applyCustomClass"](title, params.customClass, 'title')
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/ieFix.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/ieFix.js ***!
+  \*****************************************************/
+/*! exports provided: IEfix, undoIEfix */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "IEfix", function() { return IEfix; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "undoIEfix", function() { return undoIEfix; });
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+
+
+// https://stackoverflow.com/a/21825207
+const isIE11 = () => !!window.MSInputMethodContext && !!document.documentMode
+
+// Fix IE11 centering sweetalert2/issues/933
+/* istanbul ignore next */
+const fixVerticalPositionIE = () => {
+  const container = _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getContainer"]()
+  const popup = _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getPopup"]()
+
+  container.style.removeProperty('align-items')
+  if (popup.offsetTop < 0) {
+    container.style.alignItems = 'flex-start'
+  }
+}
+
+/* istanbul ignore next */
+const IEfix = () => {
+  if (typeof window !== 'undefined' && isIE11()) {
+    fixVerticalPositionIE()
+    window.addEventListener('resize', fixVerticalPositionIE)
+  }
+}
+
+/* istanbul ignore next */
+const undoIEfix = () => {
+  if (typeof window !== 'undefined' && isIE11()) {
+    window.removeEventListener('resize', fixVerticalPositionIE)
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/iosFix.js":
+/*!******************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/iosFix.js ***!
+  \******************************************************/
+/*! exports provided: iOSfix, undoIOSfix */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "iOSfix", function() { return iOSfix; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "undoIOSfix", function() { return undoIOSfix; });
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+
+
+
+// Fix iOS scrolling http://stackoverflow.com/q/39626302
+
+/* istanbul ignore next */
+const iOSfix = () => {
+  const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+  if (iOS && !_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["hasClass"](document.body, _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].iosfix)) {
+    const offset = document.body.scrollTop
+    document.body.style.top = (offset * -1) + 'px'
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["addClass"](document.body, _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].iosfix)
+    lockBodyScroll()
+  }
+}
+
+const lockBodyScroll = () => { // #1246
+  const container = _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getContainer"]()
+  let preventTouchMove
+  container.ontouchstart = (e) => {
+    preventTouchMove =
+      e.target === container ||
+      (
+        !_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["isScrollable"](container) &&
+        e.target.tagName !== 'INPUT' // #1603
+      )
+  }
+  container.ontouchmove = (e) => {
+    if (preventTouchMove) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
+}
+
+/* istanbul ignore next */
+const undoIOSfix = () => {
+  if (_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["hasClass"](document.body, _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].iosfix)) {
+    const offset = parseInt(document.body.style.top, 10)
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["removeClass"](document.body, _utils_classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].iosfix)
+    document.body.style.top = ''
+    document.body.scrollTop = (offset * -1)
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/isNodeEnv.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/isNodeEnv.js ***!
+  \*********************************************************/
+/*! exports provided: isNodeEnv */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isNodeEnv", function() { return isNodeEnv; });
+// Detect Node env
+const isNodeEnv = () => typeof window === 'undefined' || typeof document === 'undefined'
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/openPopup.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/openPopup.js ***!
+  \*********************************************************/
+/*! exports provided: openPopup */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "openPopup", function() { return openPopup; });
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _classes_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./classes.js */ "./node_modules/sweetalert2/src/utils/classes.js");
+/* harmony import */ var _scrollbarFix_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./scrollbarFix.js */ "./node_modules/sweetalert2/src/utils/scrollbarFix.js");
+/* harmony import */ var _iosFix_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./iosFix.js */ "./node_modules/sweetalert2/src/utils/iosFix.js");
+/* harmony import */ var _ieFix_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./ieFix.js */ "./node_modules/sweetalert2/src/utils/ieFix.js");
+/* harmony import */ var _aria_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./aria.js */ "./node_modules/sweetalert2/src/utils/aria.js");
+/* harmony import */ var _globalState_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../globalState.js */ "./node_modules/sweetalert2/src/globalState.js");
+
+
+
+
+
+
+
+
+function swalOpenAnimationFinished (popup, container) {
+  popup.removeEventListener(_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["animationEndEvent"], swalOpenAnimationFinished)
+  container.style.overflowY = 'auto'
+}
+
+/**
+ * Open popup, add necessary classes and styles, fix scrollbar
+ *
+ * @param {Array} params
+ */
+const openPopup = (params) => {
+  const container = _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getContainer"]()
+  const popup = _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["getPopup"]()
+
+  if (typeof params.onBeforeOpen === 'function') {
+    params.onBeforeOpen(popup)
+  }
+
+  addClasses(container, popup, params)
+
+  // scrolling is 'hidden' until animation is done, after that 'auto'
+  setScrollingVisibility(container, popup)
+
+  if (_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["isModal"]()) {
+    fixScrollContainer(container, params.scrollbarPadding)
+  }
+
+  if (!_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["isToast"]() && !_globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].previousActiveElement) {
+    _globalState_js__WEBPACK_IMPORTED_MODULE_6__["default"].previousActiveElement = document.activeElement
+  }
+  if (typeof params.onOpen === 'function') {
+    setTimeout(() => params.onOpen(popup))
+  }
+}
+
+const setScrollingVisibility = (container, popup) => {
+  if (_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["animationEndEvent"] && _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["hasCssAnimation"](popup)) {
+    container.style.overflowY = 'hidden'
+    popup.addEventListener(_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["animationEndEvent"], swalOpenAnimationFinished.bind(null, popup, container))
+  } else {
+    container.style.overflowY = 'auto'
+  }
+}
+
+const fixScrollContainer = (container, scrollbarPadding) => {
+  Object(_iosFix_js__WEBPACK_IMPORTED_MODULE_3__["iOSfix"])()
+  Object(_ieFix_js__WEBPACK_IMPORTED_MODULE_4__["IEfix"])()
+  Object(_aria_js__WEBPACK_IMPORTED_MODULE_5__["setAriaHidden"])()
+
+  if (scrollbarPadding) {
+    Object(_scrollbarFix_js__WEBPACK_IMPORTED_MODULE_2__["fixScrollbar"])()
+  }
+
+  // sweetalert2/issues/1247
+  setTimeout(() => {
+    container.scrollTop = 0
+  })
+}
+
+const addClasses = (container, popup, params) => {
+  if (params.animation) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["addClass"](popup, _classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].show)
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["addClass"](container, _classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].fade)
+  }
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["show"](popup)
+
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["addClass"]([document.documentElement, document.body, container], _classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"].shown)
+  if (params.heightAuto && params.backdrop && !params.toast) {
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["addClass"]([document.documentElement, document.body], _classes_js__WEBPACK_IMPORTED_MODULE_1__["swalClasses"]['height-auto'])
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/params.js":
+/*!******************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/params.js ***!
+  \******************************************************/
+/*! exports provided: deprecatedParams, isValidParameter, isUpdatableParameter, isDeprecatedParameter, showWarningsForParams, default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "deprecatedParams", function() { return deprecatedParams; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isValidParameter", function() { return isValidParameter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isUpdatableParameter", function() { return isUpdatableParameter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isDeprecatedParameter", function() { return isDeprecatedParameter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "showWarningsForParams", function() { return showWarningsForParams; });
+/* harmony import */ var _utils_utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+
+
+const defaultParams = {
+  title: '',
+  titleText: '',
+  text: '',
+  html: '',
+  footer: '',
+  type: null,
+  toast: false,
+  customClass: '',
+  customContainerClass: '',
+  target: 'body',
+  backdrop: true,
+  animation: true,
+  heightAuto: true,
+  allowOutsideClick: true,
+  allowEscapeKey: true,
+  allowEnterKey: true,
+  stopKeydownPropagation: true,
+  keydownListenerCapture: false,
+  showConfirmButton: true,
+  showCancelButton: false,
+  preConfirm: null,
+  confirmButtonText: 'OK',
+  confirmButtonAriaLabel: '',
+  confirmButtonColor: null,
+  confirmButtonClass: '',
+  cancelButtonText: 'Cancel',
+  cancelButtonAriaLabel: '',
+  cancelButtonColor: null,
+  cancelButtonClass: '',
+  buttonsStyling: true,
+  reverseButtons: false,
+  focusConfirm: true,
+  focusCancel: false,
+  showCloseButton: false,
+  closeButtonHtml: '&times;',
+  closeButtonAriaLabel: 'Close this dialog',
+  showLoaderOnConfirm: false,
+  imageUrl: null,
+  imageWidth: null,
+  imageHeight: null,
+  imageAlt: '',
+  imageClass: '',
+  timer: null,
+  width: null,
+  padding: null,
+  background: null,
+  input: null,
+  inputPlaceholder: '',
+  inputValue: '',
+  inputOptions: {},
+  inputAutoTrim: true,
+  inputClass: '',
+  inputAttributes: {},
+  inputValidator: null,
+  validationMessage: null,
+  grow: false,
+  position: 'center',
+  progressSteps: [],
+  currentProgressStep: null,
+  progressStepsDistance: null,
+  onBeforeOpen: null,
+  onOpen: null,
+  onRender: null,
+  onClose: null,
+  onAfterClose: null,
+  scrollbarPadding: true
+}
+
+const updatableParams = [
+  'title',
+  'titleText',
+  'text',
+  'html',
+  'type',
+  'customClass',
+  'showConfirmButton',
+  'showCancelButton',
+  'confirmButtonText',
+  'confirmButtonAriaLabel',
+  'confirmButtonColor',
+  'confirmButtonClass',
+  'cancelButtonText',
+  'cancelButtonAriaLabel',
+  'cancelButtonColor',
+  'cancelButtonClass',
+  'buttonsStyling',
+  'reverseButtons',
+  'imageUrl',
+  'imageWidth',
+  'imageHeigth',
+  'imageAlt',
+  'imageClass',
+  'progressSteps',
+  'currentProgressStep'
+]
+
+const deprecatedParams = {
+  customContainerClass: 'customClass',
+  confirmButtonClass: 'customClass',
+  cancelButtonClass: 'customClass',
+  imageClass: 'customClass',
+  inputClass: 'customClass'
+}
+
+const toastIncompatibleParams = [
+  'allowOutsideClick',
+  'allowEnterKey',
+  'backdrop',
+  'focusConfirm',
+  'focusCancel',
+  'heightAuto',
+  'keydownListenerCapture'
+]
+
+/**
+ * Is valid parameter
+ * @param {String} paramName
+ */
+const isValidParameter = (paramName) => {
+  return Object.prototype.hasOwnProperty.call(defaultParams, paramName)
+}
+
+/**
+ * Is valid parameter for Swal.update() method
+ * @param {String} paramName
+ */
+const isUpdatableParameter = (paramName) => {
+  return updatableParams.indexOf(paramName) !== -1
+}
+
+/**
+ * Is deprecated parameter
+ * @param {String} paramName
+ */
+const isDeprecatedParameter = (paramName) => {
+  return deprecatedParams[paramName]
+}
+
+const checkIfParamIsValid = (param) => {
+  if (!isValidParameter(param)) {
+    Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_0__["warn"])(`Unknown parameter "${param}"`)
+  }
+}
+
+const checkIfToastParamIsValid = (param) => {
+  if (toastIncompatibleParams.includes(param)) {
+    Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_0__["warn"])(`The parameter "${param}" is incompatible with toasts`)
+  }
+}
+
+const checkIfParamIsDeprecated = (param) => {
+  if (isDeprecatedParameter(param)) {
+    Object(_utils_utils_js__WEBPACK_IMPORTED_MODULE_0__["warnAboutDepreation"])(param, isDeprecatedParameter(param))
+  }
+}
+
+/**
+ * Show relevant warnings for given params
+ *
+ * @param params
+ */
+const showWarningsForParams = (params) => {
+  for (const param in params) {
+    checkIfParamIsValid(param)
+
+    if (params.toast) {
+      checkIfToastParamIsValid(param)
+    }
+
+    checkIfParamIsDeprecated()
+  }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (defaultParams);
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/scrollbarFix.js":
+/*!************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/scrollbarFix.js ***!
+  \************************************************************/
+/*! exports provided: fixScrollbar, undoScrollbar */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "fixScrollbar", function() { return fixScrollbar; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "undoScrollbar", function() { return undoScrollbar; });
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+
+
+const fixScrollbar = () => {
+  // for queues, do not do this more than once
+  if (_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["states"].previousBodyPadding !== null) {
+    return
+  }
+  // if the body has overflow
+  if (document.body.scrollHeight > window.innerHeight) {
+    // add padding so the content doesn't shift after removal of scrollbar
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["states"].previousBodyPadding = parseInt(window.getComputedStyle(document.body).getPropertyValue('padding-right'))
+    document.body.style.paddingRight = (_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["states"].previousBodyPadding + _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["measureScrollbar"]()) + 'px'
+  }
+}
+
+const undoScrollbar = () => {
+  if (_dom_index_js__WEBPACK_IMPORTED_MODULE_0__["states"].previousBodyPadding !== null) {
+    document.body.style.paddingRight = _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["states"].previousBodyPadding + 'px'
+    _dom_index_js__WEBPACK_IMPORTED_MODULE_0__["states"].previousBodyPadding = null
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/setParameters.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/setParameters.js ***!
+  \*************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return setParameters; });
+/* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "./node_modules/sweetalert2/src/utils/utils.js");
+/* harmony import */ var _dom_index_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dom/index.js */ "./node_modules/sweetalert2/src/utils/dom/index.js");
+/* harmony import */ var _defaultInputValidators_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./defaultInputValidators.js */ "./node_modules/sweetalert2/src/utils/defaultInputValidators.js");
+
+
+
+
+function setDefaultInputValidators (params) {
+  // Use default `inputValidator` for supported input types if not provided
+  if (!params.inputValidator) {
+    Object.keys(_defaultInputValidators_js__WEBPACK_IMPORTED_MODULE_2__["default"]).forEach((key) => {
+      if (params.input === key) {
+        params.inputValidator = _defaultInputValidators_js__WEBPACK_IMPORTED_MODULE_2__["default"][key]
+      }
+    })
+  }
+}
+
+function validateCustomTargetElement (params) {
+  // Determine if the custom target element is valid
+  if (
+    !params.target ||
+    (typeof params.target === 'string' && !document.querySelector(params.target)) ||
+    (typeof params.target !== 'string' && !params.target.appendChild)
+  ) {
+    Object(_utils_js__WEBPACK_IMPORTED_MODULE_0__["warn"])('Target parameter is not valid, defaulting to "body"')
+    params.target = 'body'
+  }
+}
+
+/**
+ * Set type, text and actions on popup
+ *
+ * @param params
+ * @returns {boolean}
+ */
+function setParameters (params) {
+  setDefaultInputValidators(params)
+
+  // showLoaderOnConfirm && preConfirm
+  if (params.showLoaderOnConfirm && !params.preConfirm) {
+    Object(_utils_js__WEBPACK_IMPORTED_MODULE_0__["warn"])(
+      'showLoaderOnConfirm is set to true, but preConfirm is not defined.\n' +
+      'showLoaderOnConfirm should be used together with preConfirm, see usage example:\n' +
+      'https://sweetalert2.github.io/#ajax-request'
+    )
+  }
+
+  // params.animation will be actually used in renderPopup.js
+  // but in case when params.animation is a function, we need to call that function
+  // before popup (re)initialization, so it'll be possible to check Swal.isVisible()
+  // inside the params.animation function
+  params.animation = Object(_utils_js__WEBPACK_IMPORTED_MODULE_0__["callIfFunction"])(params.animation)
+
+  validateCustomTargetElement(params)
+
+  // Replace newlines with <br> in title
+  if (typeof params.title === 'string') {
+    params.title = params.title.split('\n').join('<br />')
+  }
+
+  _dom_index_js__WEBPACK_IMPORTED_MODULE_1__["init"](params)
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/sweetalert2/src/utils/utils.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/sweetalert2/src/utils/utils.js ***!
+  \*****************************************************/
+/*! exports provided: consolePrefix, uniqueArray, objectValues, toArray, warn, error, warnOnce, warnAboutDepreation, callIfFunction, isPromise */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "consolePrefix", function() { return consolePrefix; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "uniqueArray", function() { return uniqueArray; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "objectValues", function() { return objectValues; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toArray", function() { return toArray; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "warn", function() { return warn; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "error", function() { return error; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "warnOnce", function() { return warnOnce; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "warnAboutDepreation", function() { return warnAboutDepreation; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "callIfFunction", function() { return callIfFunction; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isPromise", function() { return isPromise; });
+const consolePrefix = 'SweetAlert2:'
+
+/**
+ * Filter the unique values into a new array
+ * @param arr
+ */
+const uniqueArray = (arr) => {
+  const result = []
+  for (let i = 0; i < arr.length; i++) {
+    if (result.indexOf(arr[i]) === -1) {
+      result.push(arr[i])
+    }
+  }
+  return result
+}
+
+/**
+ * Returns the array ob object values (Object.values isn't supported in IE11)
+ * @param obj
+ */
+const objectValues = (obj) => Object.keys(obj).map(key => obj[key])
+
+/**
+ * Convert NodeList to Array
+ * @param nodeList
+ */
+const toArray = (nodeList) => Array.prototype.slice.call(nodeList)
+
+/**
+ * Standardise console warnings
+ * @param message
+ */
+const warn = (message) => {
+  console.warn(`${consolePrefix} ${message}`)
+}
+
+/**
+ * Standardise console errors
+ * @param message
+ */
+const error = (message) => {
+  console.error(`${consolePrefix} ${message}`)
+}
+
+/**
+ * Private global state for `warnOnce`
+ * @type {Array}
+ * @private
+ */
+const previousWarnOnceMessages = []
+
+/**
+ * Show a console warning, but only if it hasn't already been shown
+ * @param message
+ */
+const warnOnce = (message) => {
+  if (!previousWarnOnceMessages.includes(message)) {
+    previousWarnOnceMessages.push(message)
+    warn(message)
+  }
+}
+
+/**
+ * Show a one-time console warning about deprecated params/methods
+ */
+const warnAboutDepreation = (deprecatedParam, useInstead) => {
+  warnOnce(`"${deprecatedParam}" is deprecated and will be removed in the next major release. Please use "${useInstead}" instead.`)
+}
+
+/**
+ * If `arg` is a function, call it (with no arguments or context) and return the result.
+ * Otherwise, just pass the value through
+ * @param arg
+ */
+const callIfFunction = (arg) => typeof arg === 'function' ? arg() : arg
+
+const isPromise = (arg) => arg && Promise.resolve(arg) === arg
+
+
+/***/ }),
+
 /***/ "./node_modules/timers-browserify/main.js":
 /*!************************************************!*\
   !*** ./node_modules/timers-browserify/main.js ***!
@@ -80180,7 +87585,11 @@ var render = function() {
                             _c("li", { staticClass: "list-group-item" }, [
                               _c("h4", [
                                 _c("strong", [_vm._v("Peso: ")]),
-                                _vm._v(" " + _vm._s(caja.peso))
+                                _vm._v(" " + _vm._s(caja.peso) + " | "),
+                                _c("strong", [_vm._v(" Tara: ")]),
+                                _vm._v(
+                                  " " + _vm._s(parseFloat(caja.tara).toFixed(2))
+                                )
                               ])
                             ]),
                             _vm._v(" "),
@@ -80375,40 +87784,251 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _vm._m(0)
+  return _c(
+    "table",
+    {
+      staticClass: "table table-bordered table-hover",
+      attrs: { id: "despacho-items" }
+    },
+    [
+      _vm._m(0),
+      _vm._v(" "),
+      _c(
+        "tbody",
+        { attrs: { id: "detalle" } },
+        _vm._l(_vm.despachos, function(egreso, index) {
+          return _c("tr", { staticClass: "table-sm" }, [
+            _c(
+              "td",
+              { staticClass: "text-center", staticStyle: { width: "10%" } },
+              [
+                _vm.statusForm &&
+                _vm.despacho.idmaterial == egreso.idmaterial &&
+                _vm.despacho.fecha == egreso.fecha
+                  ? _c("span", [
+                      _c(
+                        "button",
+                        {
+                          staticClass: "btn btn-success btn-sm",
+                          on: {
+                            click: function($event) {
+                              return _vm.saveForm(index)
+                            }
+                          }
+                        },
+                        [
+                          _c("i", { staticClass: "fas fa-save" }),
+                          _vm._v(" Guardar\n                    ")
+                        ]
+                      )
+                    ])
+                  : _c("span", [
+                      _c(
+                        "button",
+                        {
+                          staticClass: "btn btn-primary btn-sm",
+                          on: {
+                            click: function($event) {
+                              return _vm.editForm(index)
+                            }
+                          }
+                        },
+                        [_c("i", { staticClass: "fas fa-edit" })]
+                      ),
+                      _vm._v(" "),
+                      _c(
+                        "button",
+                        {
+                          staticClass: "btn btn-danger btn-sm",
+                          on: {
+                            click: function($event) {
+                              return _vm.deleteDespacho(index)
+                            }
+                          }
+                        },
+                        [_c("i", { staticClass: "fas fa-minus" })]
+                      )
+                    ])
+              ]
+            ),
+            _vm._v(" "),
+            _c(
+              "td",
+              {
+                staticClass: "text-center",
+                staticStyle: { "font-size": "16px" }
+              },
+              [_vm._v(_vm._s(egreso.fecha))]
+            ),
+            _vm._v(" "),
+            _c("td", { staticStyle: { "font-size": "16px" } }, [
+              _vm._v(_vm._s(egreso.desmaterial))
+            ]),
+            _vm._v(" "),
+            _c(
+              "td",
+              {
+                staticClass: "text-center",
+                staticStyle: { "font-size": "16px" }
+              },
+              [
+                egreso.presente
+                  ? _c("span", [
+                      _vm.statusForm &&
+                      _vm.despacho.idmaterial == egreso.idmaterial
+                        ? _c("span", [
+                            _c("input", {
+                              directives: [
+                                {
+                                  name: "model",
+                                  rawName: "v-model",
+                                  value: _vm.despacho.cantidad,
+                                  expression: "despacho.cantidad"
+                                }
+                              ],
+                              ref: "cant",
+                              refInFor: true,
+                              staticClass:
+                                "form-control text-center cantidad-despacho",
+                              staticStyle: { "font-size": "16px" },
+                              attrs: { type: "number" },
+                              domProps: { value: _vm.despacho.cantidad },
+                              on: {
+                                focusout: function($event) {},
+                                input: function($event) {
+                                  if ($event.target.composing) {
+                                    return
+                                  }
+                                  _vm.$set(
+                                    _vm.despacho,
+                                    "cantidad",
+                                    $event.target.value
+                                  )
+                                }
+                              }
+                            })
+                          ])
+                        : _c("span", [
+                            _vm._v(
+                              "\n                        " +
+                                _vm._s(egreso.cantidad) +
+                                "\n                    "
+                            )
+                          ])
+                    ])
+                  : _c("span")
+              ]
+            ),
+            _vm._v(" "),
+            _c(
+              "td",
+              {
+                staticClass: "text-center",
+                staticStyle: { "font-size": "16px" }
+              },
+              [
+                egreso.futuro
+                  ? _c("span", [
+                      _vm.statusForm &&
+                      _vm.despacho.idmaterial == egreso.idmaterial
+                        ? _c("span", [
+                            _c("input", {
+                              directives: [
+                                {
+                                  name: "model",
+                                  rawName: "v-model",
+                                  value: _vm.despacho.cantidad,
+                                  expression: "despacho.cantidad"
+                                }
+                              ],
+                              ref: "cant",
+                              refInFor: true,
+                              staticClass:
+                                "form-control text-center cantidad-despacho",
+                              staticStyle: { "font-size": "16px" },
+                              attrs: { type: "number" },
+                              domProps: { value: _vm.despacho.cantidad },
+                              on: {
+                                focusout: function($event) {},
+                                input: function($event) {
+                                  if ($event.target.composing) {
+                                    return
+                                  }
+                                  _vm.$set(
+                                    _vm.despacho,
+                                    "cantidad",
+                                    $event.target.value
+                                  )
+                                }
+                              }
+                            })
+                          ])
+                        : _c("span", [
+                            _vm._v(
+                              "\n                        " +
+                                _vm._s(egreso.cantidad) +
+                                "\n                    "
+                            )
+                          ])
+                    ])
+                  : _c("span")
+              ]
+            )
+          ])
+        }),
+        0
+      )
+    ]
+  )
 }
 var staticRenderFns = [
   function() {
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "container-fluid p-0" }, [
-      _c("table", { staticClass: "table table-bordered table-hover" }, [
-        _c("thead", [
-          _c("tr", { staticClass: "text-center" }, [
-            _c(
-              "th",
-              { staticStyle: { width: "15%" }, attrs: { scope: "col" } },
-              [_vm._v("Fecha")]
-            ),
-            _vm._v(" "),
-            _c("th", { attrs: { scope: "col" } }, [_vm._v("Detalle")]),
-            _vm._v(" "),
-            _c(
-              "th",
-              { staticStyle: { width: "15%" }, attrs: { scope: "col" } },
-              [_vm._v("Cantidad")]
-            ),
-            _vm._v(" "),
-            _c(
-              "th",
-              { staticStyle: { width: "15%" }, attrs: { scope: "col" } },
-              [_vm._v("Accion")]
-            )
-          ])
-        ]),
+    return _c("thead", [
+      _c("tr", { staticClass: "text-center" }, [
+        _c(
+          "th",
+          {
+            staticStyle: { width: "5%", "font-size": "18px" },
+            attrs: { scope: "col" }
+          },
+          [_vm._v("Accion")]
+        ),
         _vm._v(" "),
-        _c("tbody")
+        _c(
+          "th",
+          {
+            staticStyle: { width: "10%", "font-size": "18px" },
+            attrs: { scope: "col" }
+          },
+          [_vm._v("Fecha")]
+        ),
+        _vm._v(" "),
+        _c(
+          "th",
+          { staticStyle: { "font-size": "18px" }, attrs: { scope: "col" } },
+          [_vm._v("Detalle")]
+        ),
+        _vm._v(" "),
+        _c(
+          "th",
+          {
+            staticStyle: { width: "15%", "font-size": "18px" },
+            attrs: { scope: "col" }
+          },
+          [_vm._v("Presente")]
+        ),
+        _vm._v(" "),
+        _c(
+          "th",
+          {
+            staticStyle: { width: "15%", "font-size": "18px" },
+            attrs: { scope: "col" }
+          },
+          [_vm._v("Futuro")]
+        )
       ])
     ])
   }
@@ -92580,6 +100200,8 @@ __webpack_require__(/*! moment */ "./node_modules/moment/moment.js");
 __webpack_require__(/*! chart.js */ "./node_modules/chart.js/dist/Chart.js");
 
 __webpack_require__(/*! easy-autocomplete */ "./node_modules/easy-autocomplete/dist/jquery.easy-autocomplete.js");
+
+__webpack_require__(/*! sweetalert2 */ "./node_modules/sweetalert2/dist/sweetalert2.all.js");
 
 window.Vue = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.js"); // const files = require.context('./', true, /\.vue$/i);
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default));
