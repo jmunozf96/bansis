@@ -11,6 +11,7 @@ require('moment');
 require('chart.js');
 require('easy-autocomplete');
 require('sweetalert2');
+require('axios');
 
 window.Vue = require('vue');
 

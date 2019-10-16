@@ -14,7 +14,7 @@ class CreateEgresosTable extends Migration
     public function up()
     {
         Schema::create('ENF_EGRESOS', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->increments('id');
             $table->string('codigo')->nullable();
             $table->date('fecha');
             $table->string('semana');

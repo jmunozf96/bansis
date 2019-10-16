@@ -14,7 +14,7 @@ class CreateDetegresosTable extends Migration
     public function up()
     {
         Schema::create('ENF_DET_EGRESOS', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->increments('id');
             $table->string('codigo')->nullable();
             $table->integer('id_egreso');
             $table->date('fecha');

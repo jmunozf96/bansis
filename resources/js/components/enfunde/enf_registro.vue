@@ -67,6 +67,7 @@
     import 'bootstrap-daterangepicker/daterangepicker.css';
     import moment from 'moment/moment';
     import SweetAlert from 'sweetalert2/src/sweetalert2';
+    import axios from'axios';
 
     const Swal = SweetAlert;
     export default{
@@ -236,6 +237,7 @@
                 this.despacho.idmaterial = '';
                 this.despacho.cantidad = 0;
                 this.statusForm = false;
+                $('#detalle-total').val(this.totalizaDespacho());
             },
             getAutocompleteEmpleado: function () {
                 var object = this;
