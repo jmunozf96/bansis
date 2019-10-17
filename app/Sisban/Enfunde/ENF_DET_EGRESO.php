@@ -13,7 +13,7 @@ class ENF_DET_EGRESO extends Model
 
     public function get_egreso()
     {
-        return $this->belongsTo('App\Sisban\Enfunde\ENF_EGRESO');
+        return $this->belongsTo('App\Sisban\Enfunde\ENF_EGRESO', 'id', 'id_egreso');
     }
 
     public function get_material()

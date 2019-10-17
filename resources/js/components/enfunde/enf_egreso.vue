@@ -150,7 +150,7 @@
                         cantidad: cantidad.val(),
                         presente: presente,
                         futuro: futuro,
-                        estado: 0
+                        estado: 1
                     };
 
                     self.addDespacho(egreso);
@@ -220,14 +220,25 @@
                 return false;
             },
             deleteDespacho: function (index) {
+                let self = this;
                 let alerta = 'Eliminado!';
                 let mensaje = 'Registro eliminado con éxito!';
                 Swal.fire(this.datasweetalert()).then((result) => {
                     if (result.value) {
-                        Swal.fire(alerta, mensaje, 'success');
-                        this.despachos.splice(index, 1);
-                        $('#detalle-total').val(this.totalizaDespacho());
-                        return true;
+                        if ('id' in self.despachos[index]) {
+                            axios.delete(`/sistema/enfunde/despacho/delete/${self.empleado}/${$('#semana').val()}/${self.hacienda}/${self.despachos[index].id}`)
+                                .then(response => {
+                                    if (response.data.code == 200) {
+                                        this.despachos.splice(index, 1);
+                                    }
+                                    Swal.fire(alerta, response.data.message, response.data.status);
+                                });
+                        } else {
+                            Swal.fire(alerta, mensaje, 'success');
+                            this.despachos.splice(index, 1);
+                            $('#detalle-total').val(this.totalizaDespacho());
+                            return true;
+                        }
                     }
                 });
                 return false;
@@ -273,6 +284,7 @@
             },
             getAutocompleteEmpleado: function () {
                 var object = this;
+                var semana = $('#semana').val();
                 var options = {
                     url: function (criterio) {
                         return `/api/empleados/${criterio}`;
@@ -294,6 +306,10 @@
                             object.empleado = data.codigo;
                             $('#nombre-producto').attr('disabled', false);
                             $('#nombre-producto').focus();
+
+                            if (object.empleado != '') {
+                                object.getDataEmpleado(object.empleado, semana, object.hacienda);
+                            }
                         },
                         onKeyEnterEvent: function () {
                             var data = $('#nombre-empleado').getSelectedItemData();
@@ -301,6 +317,10 @@
                             object.empleado = data.codigo;
                             $('#nombre-producto').attr('disabled', false);
                             $('#nombre-producto').focus();
+
+                            if (object.empleado != '') {
+                                object.getDataEmpleado(object.empleado, semana, object.hacienda);
+                            }
                         },
                     }
                 };
@@ -364,6 +384,27 @@
                         }
                     }
                 });
+            },
+            getDataEmpleado: function (empleado, semana, hacienda) {
+                let self = this;
+                axios.get(`/sistema/enfunde/despacho/${empleado}/${semana}/${hacienda}/1`)
+                    .then(response => {
+                        if (response.data) {
+                            for (var x in response.data.egresos) {
+                                let egreso = {
+                                    id: response.data.egresos[x].id,
+                                    fecha: response.data.egresos[x].fecha,
+                                    idmaterial: response.data.egresos[x].idmaterial,
+                                    desmaterial: response.data.egresos[x].get_material.nombre,
+                                    cantidad: response.data.egresos[x].cantidad,
+                                    presente: +response.data.egresos[x].presente,
+                                    futuro: +response.data.egresos[x].futuro,
+                                    estado: response.data.egresos[x].status
+                                };
+                                self.despachos.push(egreso);
+                            }
+                        }
+                    })
             },
             resetData: function () {
                 this.despacho.fecha = $('#fecha').val();

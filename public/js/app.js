@@ -2427,7 +2427,7 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
           cantidad: cantidad.val(),
           presente: presente,
           futuro: futuro,
-          estado: 0
+          estado: 1
         };
         self.addDespacho(egreso);
         $('#detalle-total').val(self.totalizaDespacho());
@@ -2494,16 +2494,27 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
     deleteDespacho: function deleteDespacho(index) {
       var _this = this;
 
+      var self = this;
       var alerta = 'Eliminado!';
       var mensaje = 'Registro eliminado con éxito!';
       Swal.fire(this.datasweetalert()).then(function (result) {
         if (result.value) {
-          Swal.fire(alerta, mensaje, 'success');
+          if ('id' in self.despachos[index]) {
+            axios["delete"]("/sistema/enfunde/despacho/delete/".concat(self.empleado, "/").concat($('#semana').val(), "/").concat(self.hacienda, "/").concat(self.despachos[index].id)).then(function (response) {
+              if (response.data.code == 200) {
+                _this.despachos.splice(index, 1);
+              }
 
-          _this.despachos.splice(index, 1);
+              Swal.fire(alerta, response.data.message, response.data.status);
+            });
+          } else {
+            Swal.fire(alerta, mensaje, 'success');
 
-          $('#detalle-total').val(_this.totalizaDespacho());
-          return true;
+            _this.despachos.splice(index, 1);
+
+            $('#detalle-total').val(_this.totalizaDespacho());
+            return true;
+          }
         }
       });
       return false;
@@ -2554,6 +2565,7 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
     },
     getAutocompleteEmpleado: function getAutocompleteEmpleado() {
       var object = this;
+      var semana = $('#semana').val();
       var options = {
         url: function url(criterio) {
           return "/api/empleados/".concat(criterio);
@@ -2575,6 +2587,10 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
             object.empleado = data.codigo;
             $('#nombre-producto').attr('disabled', false);
             $('#nombre-producto').focus();
+
+            if (object.empleado != '') {
+              object.getDataEmpleado(object.empleado, semana, object.hacienda);
+            }
           },
           onKeyEnterEvent: function onKeyEnterEvent() {
             var data = $('#nombre-empleado').getSelectedItemData();
@@ -2582,6 +2598,10 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
             object.empleado = data.codigo;
             $('#nombre-producto').attr('disabled', false);
             $('#nombre-producto').focus();
+
+            if (object.empleado != '') {
+              object.getDataEmpleado(object.empleado, semana, object.hacienda);
+            }
           }
         }
       };
@@ -2640,6 +2660,26 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
         change: function change() {
           if ($(this).val() == '') {
             $('#codigo-producto').val('');
+          }
+        }
+      });
+    },
+    getDataEmpleado: function getDataEmpleado(empleado, semana, hacienda) {
+      var self = this;
+      axios.get("/sistema/enfunde/despacho/".concat(empleado, "/").concat(semana, "/").concat(hacienda, "/1")).then(function (response) {
+        if (response.data) {
+          for (var x in response.data.egresos) {
+            var egreso = {
+              id: response.data.egresos[x].id,
+              fecha: response.data.egresos[x].fecha,
+              idmaterial: response.data.egresos[x].idmaterial,
+              desmaterial: response.data.egresos[x].get_material.nombre,
+              cantidad: response.data.egresos[x].cantidad,
+              presente: +response.data.egresos[x].presente,
+              futuro: +response.data.egresos[x].futuro,
+              estado: response.data.egresos[x].status
+            };
+            self.despachos.push(egreso);
           }
         }
       });

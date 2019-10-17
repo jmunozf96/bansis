@@ -11,12 +11,12 @@ class ENF_EGRESO extends Model
     protected $primaryKey = 'id';
     protected $dateFormat = 'M j Y h:i:s';
 
-    public function get_det_egresos()
+    public function egresos()
     {
-        return $this->belongsToMany('App\Sisban\Enfunde\ENF_DET_EGRESO');
+        return $this->hasMany('App\Sisban\Enfunde\ENF_DET_EGRESO', 'id_egreso', 'id');
     }
 
-    public function get_empleado()
+    public function empleado()
     {
         return $this->hasOne('App\Empleado', 'COD_TRABAJ', 'idempleado');
     }

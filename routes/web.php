@@ -34,6 +34,8 @@ Route::get('/sistema/{modulo}/{objeto}/{idRecurso}', 'Perfil\AccessbyUrlControll
 
 //URL Enfunde
 Route::post('/sistema/enfunde/save', 'EgresoController@save');
+Route::get('/sistema/enfunde/despacho/{empleado}/{semana}/{hacienda}/{axios}', 'EgresoController@getdespacho');
+Route::delete('/sistema/enfunde/despacho/delete/{empleado}/{semana}/{hacienda}/{id}', 'EgresoController@deleteDetalle');
 
 Route::get('/api/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');
 Route::get('/api/calendario/{fecha?}', 'Sistema\UtilidadesController@getSemana')->name('calendario');
