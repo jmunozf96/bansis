@@ -403,6 +403,7 @@
                                 };
                                 self.despachos.push(egreso);
                             }
+                            $('#detalle-total').val(self.totalizaDespacho());
                         }
                     })
             },

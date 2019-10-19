@@ -2681,6 +2681,8 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
             };
             self.despachos.push(egreso);
           }
+
+          $('#detalle-total').val(self.totalizaDespacho());
         }
       });
     },
