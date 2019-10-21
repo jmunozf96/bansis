@@ -9,9 +9,20 @@ use Illuminate\Support\Facades\Validator;
 
 class EgresoController extends Controller
 {
+
+    function __construct()
+    {
+        date_default_timezone_set('America/Guayaquil');
+    }
+
     public function save(Request $request)
     {
         $resp = false;
+
+        //En caso de que se vaya aññadir un nuevo item, solo se añadera el detalle
+        $totalizar = 0;
+        $edit = false;
+
         $despacho = new ENF_EGRESO();
 
         $despacho->fecha = $request->fecha;
@@ -22,37 +33,60 @@ class EgresoController extends Controller
         $despacho->saldo = $request->saldo;
         $despacho->status = 1;
 
-        $resp = $despacho->save();
+        $despacho_existe = $this->getdespacho($request->idempleado, $request->semana, $request->hacienda);
+
+        //Pregunta si este empleado ya tiene un despacho abierto en esta semana
+        $resp = $despacho_existe ? true : false;
+        if ($resp) {
+            $despacho->id = $despacho_existe->id;
+            $edit = true;
+        } else {
+            $resp = $despacho->save();
+        }
 
         if ($resp) {
             foreach ($request->despachos as $key => $item):
                 $item = (object)$item;
-                $detalle = new ENF_DET_EGRESO();
-                $detalle->id_egreso = $despacho->id;
-                $detalle->fecha = $item->fecha;
-                $detalle->idbodega = 0;
-                $detalle->idmaterial = $item->idmaterial;
-                $detalle->cantidad = $item->cantidad;
-                $detalle->presente = $item->presente;
-                $detalle->futuro = $item->futuro;
-                $detalle->status = 1;
+                if (!isset($item->id)) {
+                    $detalle = new ENF_DET_EGRESO();
+                    $detalle->id_egreso = $despacho->id;
+                    $detalle->fecha = $item->fecha;
+                    $detalle->idbodega = 0;
+                    $detalle->idmaterial = $item->idmaterial;
+                    $detalle->cantidad = $item->cantidad;
+                    $detalle->presente = $item->presente;
+                    $detalle->futuro = $item->futuro;
+                    $detalle->status = 1;
 
-                $resp = $detalle->save();
+                    $resp = $detalle->save();
+                } else {
+                    $detalle = ENF_DET_EGRESO::select('id', 'cantidad')->find($item->id);
+                    $detalle->cantidad = $item->cantidad;
+                    $detalle->save();
+                }
+
+                $totalizar += $edit ? +$item->cantidad : 0;
             endforeach;
+
+            if ($edit) {
+                $despacho_cabecera = ENF_EGRESO::select('id', 'total')->find($despacho->id);
+                $despacho_cabecera->total = $totalizar;
+                $despacho_cabecera->save();
+            }
         }
 
         if ($resp) {
-            $resp = $this->response(200, 'success', 'Guardo con exito!');
+            $resp = ['success', 'Guardo con exito!'];
         } else {
-            $resp = $this->response(500, 'danger', 'Error en el proceso de registro!');
+            $resp = ['danger', 'Error en el proceso de registro!'];
         }
 
-        return response($resp);
+        return $this->respuesta($resp[0], $resp[1]);
     }
 
     public function getdespacho($empleado, $semana, $hacienda, $axios = 0)
     {
-        $despacho = ENF_EGRESO::select('id', 'fecha', 'idempleado')
+        $despacho = ENF_EGRESO::select('id', 'fecha', 'idempleado', 'semana', 'idhacienda')
             ->where('idempleado', $empleado)
             ->where('semana', $semana)
             ->where('idhacienda', $hacienda == '343' ? 1 : 2)
@@ -87,21 +121,54 @@ class EgresoController extends Controller
             return $this->response(500, 'danger', 'No se pudo eliminar');
         } else {
             $despacho = $this->getdespacho($empleado, $semana, $hacienda);
+
             if ($despacho->egresos->isEmpty()) {
                 $cabecera = ENF_EGRESO::find($despacho->id);
                 $cabecera->delete();
+            } else {
+                //Totaliza detalle
+                $totaliza = 0;
+                foreach ($despacho->egresos as $egreso):
+                    $totaliza += intval($egreso->cantidad);
+                endforeach;
+
+                $despacho_cabecera = ENF_EGRESO::select('id', 'total')->find($despacho->id);
+                $despacho_cabecera->total = $totaliza;
+                $despacho_cabecera->save();
             }
         }
 
-        return $this->response(200, 'success', 'Registro eliminado de la BD');
+        return $this->respuesta('success', 'Registro eliminado de la BD');
     }
 
-    public function response($code, $status, $message)
+    public function editDetalle(Request $request)
     {
-        return [
-            'code' => $code,
+        $detalle = ENF_DET_EGRESO::select('id', 'cantidad')->find($request->id);
+        $detalle->cantidad = $request->cantidad;
+        $detalle->save();
+
+        $despacho = $this->getdespacho($request->empleado, $request->semana, $request->hacienda);
+
+        //Totaliza detalle
+        $totaliza = 0;
+        foreach ($despacho->egresos as $egreso):
+            $totaliza += intval($egreso->cantidad);
+        endforeach;
+
+        $despacho_cabecera = ENF_EGRESO::select('id', 'total')->find($despacho->id);
+        $despacho_cabecera->total = $totaliza;
+        $despacho_cabecera->save();
+
+        return $this->respuesta('success', 'Editado con exito');
+    }
+
+    public function respuesta($status, $messagge)
+    {
+        $data = [
             'status' => $status,
-            'message' => $message
+            'message' => $messagge
         ];
+
+        return response()->json($data, 200);
     }
 }

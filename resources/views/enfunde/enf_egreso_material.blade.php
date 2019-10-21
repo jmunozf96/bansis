@@ -96,7 +96,7 @@
                             </div>
                             <div class="form-row mb-2">
                                 <div class="form-group col-md-12 mb-0 d-none d-md-block d-lg-block">
-                                    <input type="text" class="form-control form-control-lg bg-dark marquee"
+                                    <input type="text" class="form-control form-control-lg bg-dark"
                                            placeholder="Detalle"
                                            value="Semana actual: {{$semana[0]->semana}} / Saldo pendiente: 0"
                                            id="detalle" style="color: #41DB00; font-size: 35px"

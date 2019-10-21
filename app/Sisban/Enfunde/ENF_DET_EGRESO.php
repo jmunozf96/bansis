@@ -11,6 +11,8 @@ class ENF_DET_EGRESO extends Model
     protected $primaryKey = 'id';
     protected $dateFormat = 'M j Y h:i:s';
 
+    //public $timestamps = false;
+
     public function get_egreso()
     {
         return $this->belongsTo('App\Sisban\Enfunde\ENF_EGRESO', 'id', 'id_egreso');

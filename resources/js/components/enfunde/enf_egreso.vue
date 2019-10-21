@@ -122,6 +122,12 @@
                 }
             });
 
+            $('#id-hacienda').on({
+                change: function (e) {
+                    self.hacienda = $(this).val();
+                }
+            })
+
             $('#add-despacho').on({
                 click: function (e) {
                     var fecha, des_material, idmaterial, cantidad, presente = 0, futuro = 0;
@@ -209,10 +215,12 @@
                 return false;
             },
             editDespacho: function (data) {
-                for (var i in this.despachos) {
-                    if (data.idmaterial == this.despachos[i].idmaterial) {
-                        if (data.fecha == this.despachos[i].fecha) {
-                            this.despachos[i].cantidad = +this.despachos[i].cantidad + +data.cantidad;
+                let self = this;
+                for (var i in self.despachos) {
+                    if (data.idmaterial == self.despachos[i].idmaterial) {
+                        if (data.fecha == self.despachos[i].fecha) {
+                            self.despachos[i].cantidad = +self.despachos[i].cantidad + +data.cantidad;
+                            $('#detalle-total').val(this.totalizaDespacho());
                             return true;
                         }
                     }
@@ -228,7 +236,7 @@
                         if ('id' in self.despachos[index]) {
                             axios.delete(`/sistema/enfunde/despacho/delete/${self.empleado}/${$('#semana').val()}/${self.hacienda}/${self.despachos[index].id}`)
                                 .then(response => {
-                                    if (response.data.code == 200) {
+                                    if (response.data.status == 'success') {
                                         this.despachos.splice(index, 1);
                                     }
                                     Swal.fire(alerta, response.data.message, response.data.status);
@@ -277,6 +285,7 @@
                 } else {
                     this.despacho.cantidad = this.despachos[index].cantidad;
                 }
+
                 this.despacho.idmaterial = '';
                 this.despacho.cantidad = 0;
                 this.statusForm = false;
@@ -396,7 +405,7 @@
                                     fecha: response.data.egresos[x].fecha,
                                     idmaterial: response.data.egresos[x].idmaterial,
                                     desmaterial: response.data.egresos[x].get_material.nombre,
-                                    cantidad: response.data.egresos[x].cantidad,
+                                    cantidad: +response.data.egresos[x].cantidad,
                                     presente: +response.data.egresos[x].presente,
                                     futuro: +response.data.egresos[x].futuro,
                                     estado: response.data.egresos[x].status
