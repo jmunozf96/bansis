@@ -81,7 +81,11 @@ class EgresoController extends Controller
             $resp = ['danger', 'Error en el proceso de registro!'];
         }
 
-        return $this->respuesta($resp[0], $resp[1]);
+        return response()->json([
+            'code' => $resp ? 200 : 500,
+            'status' => $resp ? 'success' : 'danger',
+            'reg' => $this->getdespacho($despacho->idempleado, $despacho->semana, $request->hacienda)
+        ], 200);
     }
 
     public function getdespacho($empleado, $semana, $hacienda, $axios = 0)
@@ -90,6 +94,7 @@ class EgresoController extends Controller
             ->where('idempleado', $empleado)
             ->where('semana', $semana)
             ->where('idhacienda', $hacienda == '343' ? 1 : 2)
+            ->where('status', 1)
             ->with(['empleado' => function ($query) {
                 $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
             }])
@@ -138,7 +143,7 @@ class EgresoController extends Controller
             }
         }
 
-        return $this->respuesta('success', 'Registro eliminado de la BD');
+        return $this->respuesta('success', 'Registro eliminado con éxito!');
     }
 
     public function editDetalle(Request $request)
@@ -161,6 +166,7 @@ class EgresoController extends Controller
 
         return $this->respuesta('success', 'Editado con exito');
     }
+
 
     public function respuesta($status, $messagge)
     {

@@ -2455,9 +2455,40 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
           status: 0,
           despachos: self.despachos
         };
-        console.log(object_data);
         axios.post('/sistema/enfunde/save', object_data).then(function (response) {
-          console.log(response);
+          var respuesta = response.data;
+          var tipo = 'danger',
+              title = 'Error al intentar guardar el registro';
+
+          if (respuesta.code == 200) {
+            tipo = 'success';
+            title = 'Registro guardado con éxito';
+            self.despachos = [];
+
+            for (var x in respuesta.reg.egresos) {
+              var egreso = {
+                id: respuesta.reg.egresos[x].id,
+                fecha: respuesta.reg.egresos[x].fecha,
+                idmaterial: respuesta.reg.egresos[x].idmaterial,
+                desmaterial: respuesta.reg.egresos[x].get_material.nombre,
+                cantidad: +respuesta.reg.egresos[x].cantidad,
+                presente: +respuesta.reg.egresos[x].presente,
+                futuro: +respuesta.reg.egresos[x].futuro,
+                estado: respuesta.reg.egresos[x].status
+              };
+              self.despachos.push(egreso);
+            }
+
+            $('#detalle-total').val(self.totalizaDespacho());
+          }
+
+          Swal.fire({
+            position: 'top-end',
+            type: tipo,
+            title: title,
+            showConfirmButton: false,
+            timer: 1500
+          });
         })["catch"](function (error) {
           console.log(error.response);
         });
@@ -2475,9 +2506,13 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
     },
     existeDespacho: function existeDespacho(data) {
       for (var i in this.despachos) {
-        if (data.idmaterial == this.despachos[i].idmaterial) {
-          if (data.fecha == this.despachos[i].fecha) {
-            return true;
+        var self = this.despachos[i];
+
+        if (data.idmaterial == self.idmaterial) {
+          if (data.fecha == self.fecha) {
+            if (data.presente == self.presente && data.futuro == self.futuro) {
+              return true;
+            }
           }
         }
       }
@@ -2485,14 +2520,16 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
       return false;
     },
     editDespacho: function editDespacho(data) {
-      var self = this;
+      for (var i in this.despachos) {
+        var self = this.despachos[i];
 
-      for (var i in self.despachos) {
-        if (data.idmaterial == self.despachos[i].idmaterial) {
-          if (data.fecha == self.despachos[i].fecha) {
-            self.despachos[i].cantidad = +self.despachos[i].cantidad + +data.cantidad;
-            $('#detalle-total').val(this.totalizaDespacho());
-            return true;
+        if (data.idmaterial == self.idmaterial) {
+          if (data.fecha == self.fecha) {
+            if (data.presente == self.presente && data.futuro == self.futuro) {
+              self.cantidad = +self.cantidad + +data.cantidad;
+              $('#detalle-total').val(this.totalizaDespacho());
+              return true;
+            }
           }
         }
       }
@@ -2514,6 +2551,7 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
               }
 
               Swal.fire(alerta, response.data.message, response.data.status);
+              $('#detalle-total').val(_this.totalizaDespacho());
             });
           } else {
             Swal.fire(alerta, mensaje, 'success');
@@ -2674,6 +2712,7 @@ var Swal = sweetalert2_src_sweetalert2__WEBPACK_IMPORTED_MODULE_2__["default"];
     },
     getDataEmpleado: function getDataEmpleado(empleado, semana, hacienda) {
       var self = this;
+      self.despachos = [];
       axios.get("/sistema/enfunde/despacho/".concat(empleado, "/").concat(semana, "/").concat(hacienda, "/1")).then(function (response) {
         if (response.data) {
           for (var x in response.data.egresos) {

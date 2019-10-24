@@ -99,8 +99,7 @@ return [
             'username' => 'Sa',
             'password' => '123456',
             'charset' => 'utf8',
-            'prefix' => '',
-            'prefix_indexes' => true,
+            'prefix' => ''
         ],
 
     ],

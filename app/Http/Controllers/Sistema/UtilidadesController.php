@@ -27,6 +27,7 @@ class UtilidadesController extends Controller
     {
         $productos = XASS_InvProductos::selectRaw('id_fila as codigo, RTRIM(nombre) as nombre, unidad, stock, bodegacompra')
             ->where('bodegacompra', '=', $bodega)
+            ->where('grupo', '4001')
             ->whereRaw("CHARINDEX('" . $criterio . "', nombre) > 0")
             ->with(['bodega' => function ($query) {
                 $query->select('Id_Fila', 'Nombre', 'Direccion');

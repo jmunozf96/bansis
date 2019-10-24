@@ -184,10 +184,40 @@
                         despachos: self.despachos
                     };
 
-                    console.log(object_data);
                     axios.post('/sistema/enfunde/save', object_data)
                         .then(response => {
-                            console.log(response)
+                            let respuesta = response.data;
+                            let tipo = 'danger', title = 'Error al intentar guardar el registro';
+
+                            if (respuesta.code == 200) {
+                                tipo = 'success';
+                                title = 'Registro guardado con éxito';
+                                self.despachos = [];
+                                for (var x in respuesta.reg.egresos) {
+                                    let egreso = {
+                                        id: respuesta.reg.egresos[x].id,
+                                        fecha: respuesta.reg.egresos[x].fecha,
+                                        idmaterial: respuesta.reg.egresos[x].idmaterial,
+                                        desmaterial: respuesta.reg.egresos[x].get_material.nombre,
+                                        cantidad: +respuesta.reg.egresos[x].cantidad,
+                                        presente: +respuesta.reg.egresos[x].presente,
+                                        futuro: +respuesta.reg.egresos[x].futuro,
+                                        estado: respuesta.reg.egresos[x].status
+                                    };
+                                    self.despachos.push(egreso);
+                                }
+
+                                $('#detalle-total').val(self.totalizaDespacho());
+
+                            }
+
+                            Swal.fire({
+                                position: 'top-end',
+                                type: tipo,
+                                title: title,
+                                showConfirmButton: false,
+                                timer: 1500
+                            })
                         })
                         .catch(error => {
                             console.log(error.response)
@@ -206,22 +236,27 @@
             },
             existeDespacho: function (data) {
                 for (var i in this.despachos) {
-                    if (data.idmaterial == this.despachos[i].idmaterial) {
-                        if (data.fecha == this.despachos[i].fecha) {
-                            return true;
+                    let self = this.despachos[i];
+                    if (data.idmaterial == self.idmaterial) {
+                        if (data.fecha == self.fecha) {
+                            if (data.presente == self.presente && data.futuro == self.futuro) {
+                                return true;
+                            }
                         }
                     }
                 }
                 return false;
             },
             editDespacho: function (data) {
-                let self = this;
-                for (var i in self.despachos) {
-                    if (data.idmaterial == self.despachos[i].idmaterial) {
-                        if (data.fecha == self.despachos[i].fecha) {
-                            self.despachos[i].cantidad = +self.despachos[i].cantidad + +data.cantidad;
-                            $('#detalle-total').val(this.totalizaDespacho());
-                            return true;
+                for (var i in this.despachos) {
+                    let self = this.despachos[i];
+                    if (data.idmaterial == self.idmaterial) {
+                        if (data.fecha == self.fecha) {
+                            if (data.presente == self.presente && data.futuro == self.futuro) {
+                                self.cantidad = +self.cantidad + +data.cantidad;
+                                $('#detalle-total').val(this.totalizaDespacho());
+                                return true;
+                            }
                         }
                     }
                 }
@@ -240,6 +275,7 @@
                                         this.despachos.splice(index, 1);
                                     }
                                     Swal.fire(alerta, response.data.message, response.data.status);
+                                    $('#detalle-total').val(this.totalizaDespacho());
                                 });
                         } else {
                             Swal.fire(alerta, mensaje, 'success');
@@ -396,6 +432,7 @@
             },
             getDataEmpleado: function (empleado, semana, hacienda) {
                 let self = this;
+                self.despachos = [];
                 axios.get(`/sistema/enfunde/despacho/${empleado}/${semana}/${hacienda}/1`)
                     .then(response => {
                         if (response.data) {
