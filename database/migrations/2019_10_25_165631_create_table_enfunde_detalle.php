@@ -14,7 +14,20 @@ class CreateTableEnfundeDetalle extends Migration
     public function up()
     {
         Schema::create('ENF_DET_ENFUNDE', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->increments('id');
+            $table->string('codigo')->nullable();
+            $table->date('fecha');
+            $table->integer('semana');
+            $table->integer('periodo');
+            $table->integer('cinta_pre');
+            $table->integer('cinta_fut');
+            $table->integer('idlotero');
+            $table->integer('total_pre');
+            $table->integer('total_fut');
+            $table->integer('count')->default(0);
+            $table->boolean('status');
+            $table->string('user')->nullable();
+            $table->string('pcID')->nullable();
             $table->timestamps();
         });
     }

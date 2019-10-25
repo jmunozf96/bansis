@@ -49,12 +49,14 @@
                         @foreach($egresos as $egreso)
                             <div class="">
                                 <div class="card m-1" style="width: 18rem;">
+                                    <div class="card-header text-center mb-0">
+                                        <h5 class="card-title mb-0" style="font-size: 16px">
+                                            {{$egreso->empleado->nombre}}
+                                        </h5>
+                                    </div>
                                     <div class="card-body text-center">
                                     <!--img class="card-img-top" src="{{URL::asset('/img/lotero.png')}}" style="width: 40%"-->
-                                        <h5 class="card-title mt-2" style="font-size: 18px">
-                                            <b>{{$egreso->empleado->nombre}}</b>
-                                        </h5>
-                                        <p class="card-text mb-0">Se le ha despachado un total de:
+                                        <p class="card-text mb-0">Despacho total:
                                             <b>{{intval($egreso->total)}}</b>
                                             fundas.</p>
                                         <p class="card-text mt-0 mb-3">
