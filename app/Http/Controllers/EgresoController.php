@@ -160,7 +160,7 @@ class EgresoController extends Controller
                 $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
             }])
             ->with(['egresos' => function ($query) {
-                $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'reemplazo', 'idempleado','cantidad', 'presente', 'futuro', 'status');
+                $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'reemplazo', 'idempleado', 'cantidad', 'presente', 'futuro', 'status');
                 $query->with(['get_material' => function ($query1) {
                     $query1->selectRaw('id_fila,rtrim(codigo) codigo,nombre,bodegacompra');
                 }]);
@@ -240,5 +240,15 @@ class EgresoController extends Controller
         ];
 
         return response()->json($data, 200);
+    }
+
+    public function saldopendiente(Request $request)
+    {
+        //Aqui debemos consultar el saldo que tenga pendiente
+        $idmaterial = $request->get('idmaterial');
+        $semana = $request->get('semana');
+        $idhacienda = $request->get('hacienda');
+        $idempleado = $request->get('idempleado');
+
     }
 }
