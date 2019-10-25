@@ -167,6 +167,7 @@ class EgresoController extends Controller
                 $query->with(['nom_reemplazo' => function ($query2) {
                     $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
                 }]);
+                $query->orderBy('fecha');
             }])
             ->first();
 

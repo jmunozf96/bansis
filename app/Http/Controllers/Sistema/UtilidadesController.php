@@ -25,14 +25,17 @@ class UtilidadesController extends Controller
 
     public function getProductos($bodega, $criterio)
     {
-        $productos = XASS_InvProductos::selectRaw('id_fila as codigo, RTRIM(nombre) as nombre, unidad, stock, bodegacompra')
+        $productos = XASS_InvProductos::selectRaw("id_fila as codigo, RTRIM(nombre) as nombre, unidad, 'Stock: ' + convert(varchar,convert(integer,stock)) as stock_det, stock, bodegacompra")
             ->where('bodegacompra', '=', $bodega)
             ->where('grupo', '4001')
+            ->where('stock', '>', 0)
+            ->whereRaw("nombre like '%funda%'")
             ->whereRaw("CHARINDEX('" . $criterio . "', nombre) > 0")
             ->with(['bodega' => function ($query) {
                 $query->select('Id_Fila', 'Nombre', 'Direccion');
                 $query->where('Estado', '=', 1);
-            }])->get();
+            }])
+            ->orderBy('stock', 'DESC')->get();
         return $productos;
     }
 

@@ -16,6 +16,7 @@ class EmpleadoController extends Controller
     {
         $empleado = Empleado::selectRaw('trim(NOMBRE_CORTO) as nombre, COD_TRABAJ as codigo')
             ->whereRaw("locate('" . $criterio . "',NOMBRE_CORTO) > 0")
+            ->where('ESTADO','A')
             ->get();
         return $empleado;
     }

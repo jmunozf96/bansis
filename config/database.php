@@ -93,13 +93,14 @@ return [
 
         'xass' => [
             'driver' => 'sqlsrv',
-            'host' => '192.168.191.1',
-            'port' => '1433',
-            'database' => 'PRIMOBANANO',
-            'username' => 'Sa',
-            'password' => '123456',
+            'url' => env('DATABASE_URL'),
+            'host' => env('xass_HOST', 'localhost'),
+            'database' => env('xass_DATABASE', 'forge'),
+            'username' => env('xass_USERNAME', 'forge'),
+            'password' => env('xass_PASSWORD', ''),
             'charset' => 'utf8',
-            'prefix' => ''
+            'prefix' => '',
+            'prefix_indexes' => true,
         ],
 
     ],

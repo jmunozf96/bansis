@@ -504,6 +504,12 @@
                         return `/api/productos/${bodega}/${criterio}`;
                     },
                     getValue: "nombre",
+                    template: {
+                        type: "description",
+                        fields: {
+                            description: "stock_det"
+                        }
+                    },
                     ajaxSettings: {
                         method: 'GET',
                         dataType: "json"
