@@ -30,13 +30,16 @@ Route::post('/logout', 'Auth\LoginController@logout')->name('logout');
 
 Route::get('/', 'HomeController@index')->name('home');
 
-Route::get('/sistema/{modulo}/{objeto}/{idRecurso}', 'Perfil\AccessbyUrlController@url')->name('url');
+//Acceder a modulos del sistema
+
 
 //URL Enfunde
-Route::post('/sistema/enfunde/save', 'EgresoController@save');
-Route::get('/sistema/enfunde/despacho/{empleado}/{semana}/{hacienda}/{axios}', 'EgresoController@getdespacho');
-Route::delete('/sistema/enfunde/despacho/delete/{empleado}/{semana}/{hacienda}/{id}', 'EgresoController@deleteDetalle');
+Route::get('/sistema/{modulo}/{objeto}/{idRecurso}', 'EgresoController@index')->name('url');
+Route::get('/sistema/enfunde/{objeto}/{idRecurso}/registro', 'EgresoController@form')->name('despacho');
+Route::post('/sistema/enfunde/despacho/save', 'EgresoController@save');
 Route::put('/sistema/enfunde/despacho/edit', 'EgresoController@editDetalle');
+Route::delete('/sistema/enfunde/despacho/delete/{empleado}/{semana}/{hacienda}/{id}', 'EgresoController@deleteDetalle');
+Route::get('/sistema/enfunde/despacho/{empleado}/{semana}/{hacienda}/{axios}', 'EgresoController@getdespacho');
 
 Route::get('/api/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');
 Route::get('/api/calendario/{fecha?}', 'Sistema\UtilidadesController@getSemana')->name('calendario');

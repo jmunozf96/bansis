@@ -12,6 +12,8 @@ require('chart.js');
 require('easy-autocomplete');
 require('sweetalert2');
 require('axios');
+require('portal-vue');
+require('bootstrap-vue');
 
 window.Vue = require('vue');
 

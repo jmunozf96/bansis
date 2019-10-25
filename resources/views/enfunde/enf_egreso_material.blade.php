@@ -12,6 +12,9 @@
         <div class="row justify-content-center">
             <div class="container-fluid col-md-12">
                 <div class="card">
+                    <div class="card-header text-center">
+                        <h3 class="mb-0 mt-0"><i class="fas fa-clipboard-list"></i> Egreso de bodega</h3>
+                    </div>
                     <div class="card-body">
                         <div class="form-row mt-0">
                             <div class="form-group col-md-2 col-12">
@@ -94,7 +97,7 @@
                                     <small>Buscar empleado por nombre o apellido</small>
                                 </div>
                             </div>
-                            <div class="form-row mb-2">
+                            <div class="form-row mb-2 d-none">
                                 <div class="form-group col-md-12 mb-0 d-none d-md-block d-lg-block">
                                     <input type="text" class="form-control form-control-lg bg-dark"
                                            placeholder="Detalle"
@@ -132,6 +135,12 @@
                                        placeholder="Buscar producto"
                                        id="nombre-producto" style="font-size: 16px"
                                        oninput="this.value = this.value.toUpperCase()">
+                                <div class="my-1">
+                                    <div class="custom-control custom-checkbox mr-sm-2">
+                                        <input type="checkbox" class="custom-control-input" id="id-reemplazo">
+                                        <label class="custom-control-label" for="id-reemplazo">Reemplazo</label>
+                                    </div>
+                                </div>
                             </div>
                             <div class="form-group col-md-3 col-8  mb-0">
                                 <input type="number" class="form-control bg-white form-control-lg" id="cantidad"
@@ -159,19 +168,55 @@
                     <div class="card-footer">
                         <div class="form-row float-right">
                             <div class="btn-group" role="group" aria-label="Basic example">
+                                <button type="button" class="btn btn-primary btn-lg" id="btn-nuevo">
+                                    <i class="fa fa-file"></i> Nuevo
+                                </button>
                                 <button type="button" class="btn btn-success btn-lg" id="btn-save">
                                     <i class="fas fa-save"></i> Guardar
                                 </button>
-                                <button type="button" class="btn btn-primary btn-lg" onclick="window.location.reload()">
-                                    <i class="fa fa-sync"></i> Refrescar
-                                </button>
-                                <button type="button" class="btn btn-danger btn-lg"
-                                        onclick="window.location = '/'">
+                                <a class="btn btn-danger btn-lg"
+                                   href="{{route('url', [
+                                'modulo' => 'enfunde',
+                                'objeto' => Auth::user()->objeto,
+                                'idRecurso' => Auth::user()->recursoId])}}">
                                     <i class="fas fa-sign-out-alt"></i> Salir
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="emp-reemplazo" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Buscar lotero reemplazo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <label>Nombre | Apellido - Empleado</label>
+                                <input type="hidden" id="id-empleado-reemplazo" value="0"/>
+                                <input type="text" class="form-control  form-control-lg text-dark"
+                                       placeholder="Empleado"
+                                       id="nombre-empleado-reemplazo"
+                                       oninput="this.value = this.value.toUpperCase()">
+                                <small>Buscar empleado por nombre o apellido</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="btn-save-reemplazo">Guardar</button>
                 </div>
             </div>
         </div>

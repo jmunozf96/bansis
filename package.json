@@ -20,13 +20,14 @@
         "resolve-url-loader": "^2.3.1",
         "sass": "^1.15.2",
         "sass-loader": "^7.1.0",
-        "vue": "^2.5.17",
+        "vue": "^2.6.10",
         "vue-template-compiler": "^2.6.10"
     },
     "dependencies": {
         "@fortawesome/fontawesome-free": "^5.11.2",
         "bootstrap-daterangepicker": "^3.0.5",
         "bootstrap-select": "^1.13.11",
+        "bootstrap-vue": "^2.0.4",
         "bootstrap4-chosen": "^1.0.0-alpha.1",
         "bootstrap4c-chosen": "^1.1.1",
         "chart.js": "^2.8.0",
@@ -35,6 +36,7 @@
         "get-google-fonts": "^1.2.0",
         "jsrender": "^1.0.5",
         "moment": "^2.24.0",
+        "portal-vue": "^2.1.6",
         "react-bootstrap-daterangepicker": "^4.1.0",
         "sweetalert2": "^8.18.3",
         "vue2-daterange-picker": "^0.3.1"

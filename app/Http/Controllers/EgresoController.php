@@ -2,17 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Perfil\PerfilController;
+use App\Http\Controllers\Sistema\UtilidadesController;
 use App\Sisban\Enfunde\ENF_DET_EGRESO;
 use App\Sisban\Enfunde\ENF_EGRESO;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 
 class EgresoController extends Controller
 {
+    protected $perfil;
+    protected $utilidades;
+    protected $recursos;
 
     function __construct()
     {
+        $this->middleware('auth');
+        $this->middleware('AccesoURL',
+            ['except' => ['save', 'getdespacho', 'deleteDetalle', 'editDetalle', 'respuesta']]);
         date_default_timezone_set('America/Guayaquil');
+        $this->perfil = new PerfilController();
+        $this->utilidades = new UtilidadesController();
+    }
+
+    public function index($modulo, $objeto, $idRecurso)
+    {
+        $this->recursos = $this->perfil->getRecursos(Auth::user()->ID);
+        Auth::user()->recursoId = $idRecurso;
+        Auth::user()->objeto = $objeto;
+
+        //Caso de ser 0 la hacienda
+
+        $egresos = ENF_EGRESO::select('id', 'idempleado', 'total', 'status')
+            ->where('semana', $this->utilidades->getSemana()[0]->semana)
+            ->where('idhacienda', Auth::user()->idhacienda == 0 ? 1 : Auth::user()->idhacienda)
+            ->with(['empleado' => function ($query) {
+                $query->selectRaw('COD_TRABAJ, CONCAT(trim(APELLIDO_1)," ",trim(NOMBRE_1)) as nombre');
+            }])
+            ->with(['egresos' => function ($query) {
+                $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'cantidad', 'presente', 'futuro', 'status');
+                $query->with(['get_material' => function ($query1) {
+                    $query1->selectRaw('id_fila,rtrim(codigo) codigo,nombre,bodegacompra');
+                }]);
+            }])
+            ->paginate(6);
+
+        if (view()->exists($modulo . '.' . $objeto)) {
+            return view($modulo . '.' . $objeto, [
+                'recursos' => $this->recursos,
+                'semana' => $this->utilidades->getSemana(),
+                'egresos' => $egresos
+            ]);
+        }
+    }
+
+    public function form(Request $request)
+    {
+        $current_params = Route::current()->parameters();
+
+        $this->recursos = $this->perfil->getRecursos(Auth::user()->ID);
+        Auth::user()->objeto = $current_params['objeto'];
+        Auth::user()->recursoId = $current_params['idRecurso'];
+
+        $data = [
+            'recursos' => $this->recursos,
+            'semana' => $this->utilidades->getSemana(),
+            'bodegas' => $this->utilidades->Bodegas()
+        ];
+        return view('enfunde.enf_egreso_material', $data);
     }
 
     public function save(Request $request)
@@ -53,6 +112,8 @@ class EgresoController extends Controller
                     $detalle->fecha = $item->fecha;
                     $detalle->idbodega = 0;
                     $detalle->idmaterial = $item->idmaterial;
+                    $detalle->reemplazo = $item->reemplazo;
+                    $detalle->idempleado = $item->idempleado;
                     $detalle->cantidad = $item->cantidad;
                     $detalle->presente = $item->presente;
                     $detalle->futuro = $item->futuro;
@@ -99,9 +160,12 @@ class EgresoController extends Controller
                 $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
             }])
             ->with(['egresos' => function ($query) {
-                $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'cantidad', 'presente', 'futuro', 'status');
+                $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'reemplazo', 'idempleado','cantidad', 'presente', 'futuro', 'status');
                 $query->with(['get_material' => function ($query1) {
                     $query1->selectRaw('id_fila,rtrim(codigo) codigo,nombre,bodegacompra');
+                }]);
+                $query->with(['nom_reemplazo' => function ($query2) {
+                    $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
                 }]);
             }])
             ->first();

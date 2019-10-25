@@ -27,4 +27,9 @@ class ENF_DET_EGRESO extends Model
     {
         return $this->hasOne('App\XASS_InvBodegas', 'Id_Fila', 'idbodega');
     }
+
+    public function nom_reemplazo()
+    {
+        return $this->hasOne('App\Empleado', 'COD_TRABAJ', 'idempleado');
+    }
 }

@@ -13,7 +13,7 @@ class PerfilController extends Controller
         $this->middleware('auth');
     }
 
-    public function getRecursos($IDusuario)
+    public static function getRecursos($IDusuario)
     {
         $recursos = DB::table('SEG_PERFILES')
             ->join('SEG_RECURSOS as rec', 'rec.ID', '=', 'SEG_PERFILES.RecursoID')

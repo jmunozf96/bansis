@@ -23,12 +23,14 @@ class AccessbyUrlController extends Controller
         $this->utilidades = new UtilidadesController();
     }
 
-    public function url($modulo, $idRecurso, $objeto)
+    public function url($modulo, $objeto, $idRecurso)
     {
         $recursos = $this->perfil->getRecursos(Auth::user()->ID);
+        Auth::user()->recursoId = $idRecurso;
+        Auth::user()->objeto = $objeto;
 
-        if (view()->exists($modulo . '.' . $idRecurso)) {
-            return view($modulo . '.' . $idRecurso, [
+        if (view()->exists($modulo . '.' . $objeto)) {
+            return view($modulo . '.' . $objeto, [
                 'recursos' => $recursos,
                 'semana' => $this->utilidades->getSemana(),
                 'bodegas' => $this->utilidades->Bodegas()

@@ -52,7 +52,6 @@
                         @php
                             $padre_id = array(1,2)
                         @endphp
-
                         @foreach($padre_id as $data)
                             @php $padre = $data @endphp
                             @foreach($recursos as $recurso)

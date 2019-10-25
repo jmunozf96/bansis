@@ -5,6 +5,7 @@
             <th scope="col" style="width: 5%; font-size: 18px">Accion</th>
             <th scope="col" style="width: 10%; font-size: 18px">Fecha</th>
             <th scope="col" style="font-size: 18px">Detalle</th>
+            <th style="font-size: 18px">Reemp.</th>
             <th scope="col" style="width: 15%; font-size: 18px">Presente</th>
             <th scope="col" style="width: 15%; font-size: 18px">Futuro</th>
         </tr>
@@ -12,7 +13,9 @@
         <tbody id="detalle">
         <tr v-for="(egreso, index) in despachos" class="table-sm">
             <td style="width: 10%" class="text-center">
-                    <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha">
+                    <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha
+                        && despacho.presente == egreso.presente && despacho.futuro == egreso.futuro
+                        && despacho.reemplazo == egreso.reemplazo && despacho.idempleado == egreso.idempleado">
                         <button class="btn btn-success btn-sm"
                                 v-on:click="saveForm(index)">
                             <i class="fas fa-save"></i> Guardar
@@ -30,9 +33,18 @@
             </td>
             <td class="text-center" style="font-size: 16px">{{egreso.fecha}}</td>
             <td style="font-size: 16px">{{egreso.desmaterial}}</td>
+            <td class="text-center">
+                <b-button variant="primary"
+                          v-b-popover.hover.top="egreso.reemplazo ? egreso.empleado : 'No hace relevo'"
+                          title="Nombre lotero">
+                    {{egreso.reemplazo ? "Si" : "No"}}
+                </b-button>
+            </td>
             <td class="text-center" style="font-size: 16px">
                     <span v-if="egreso.presente">
-                        <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha">
+                        <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha
+                        && despacho.presente == egreso.presente && despacho.futuro == egreso.futuro
+                        && despacho.reemplazo == egreso.reemplazo && despacho.idempleado == egreso.idempleado">
                             <input class="form-control text-center cantidad-despacho" ref="cant" style="font-size: 16px"
                                    v-model="despacho.cantidad"
                                    v-on:focusout=""
@@ -46,7 +58,9 @@
             </td>
             <td class="text-center" style="font-size: 16px">
                     <span v-if="egreso.futuro">
-                        <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha">
+                        <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha
+                            && despacho.presente == egreso.presente && despacho.futuro == egreso.futuro
+                            && despacho.reemplazo == egreso.reemplazo && despacho.idempleado == egreso.idempleado">
                             <input class="form-control text-center cantidad-despacho" ref="cant" style="font-size: 16px"
                                    v-model="despacho.cantidad"
                                    v-on:focusout=""
@@ -67,6 +81,8 @@
     import 'bootstrap-daterangepicker/daterangepicker.css';
     import moment from 'moment/moment';
     import SweetAlert from 'sweetalert2/src/sweetalert2';
+    import BootstrapVue from 'bootstrap-vue';
+    Vue.use(BootstrapVue);
 
     const Swal = SweetAlert;
     export default{
@@ -80,6 +96,8 @@
                     fecha: '',
                     idmaterial: 0,
                     desmaterial: '',
+                    reemplazo: 0,
+                    idempleado: 0,
                     cantidad: 0,
                     presente: 1,
                     futuro: 0,
@@ -96,9 +114,11 @@
             $('#cantidad').attr('disabled', true);
             $('#add-despacho').attr('disabled', true);
 
-            this.getAutocompleteEmpleado();
-            this.getAutocompleteProducto();
-            $('#detalle-total').val(this.totalizaDespacho());
+            self.getAutocompleteEmpleado();
+            self.getAutocompleteEmpleadoReemplazo();
+            self.getAutocompleteProducto();
+
+            $('#detalle-total').val(self.totalizaDespacho());
 
             $("div.easy-autocomplete").removeAttr('style');
 
@@ -126,7 +146,20 @@
                 change: function (e) {
                     self.hacienda = $(this).val();
                 }
-            })
+            });
+
+            $('#btn-nuevo').on({
+                click: function (e) {
+                    self.resetForm();
+                    $('#nombre-empleado').attr('disabled', false);
+                    $('#nombre-empleado').focus();
+                    $('#nombre-producto').attr('disabled', true);
+                    $('#cantidad').attr('disabled', true);
+                    $('#add-despacho').attr('disabled', true);
+
+                    $('#detalle-total').val(self.totalizaDespacho());
+                }
+            });
 
             $('#add-despacho').on({
                 click: function (e) {
@@ -153,21 +186,51 @@
                         fecha: fecha.val(),
                         idmaterial: idmaterial.val(),
                         desmaterial: des_material.val(),
+                        reemplazo: 0,
+                        idempleado: 0,
+                        empleado: '',
                         cantidad: cantidad.val(),
                         presente: presente,
                         futuro: futuro,
                         estado: 1
                     };
 
-                    self.addDespacho(egreso);
-                    $('#detalle-total').val(self.totalizaDespacho());
+                    if ($('#id-reemplazo').prop('checked')) {
+                        $('#emp-reemplazo').modal('show');
+                        guardaRelevo(egreso);
 
-                    idmaterial.val('');
-                    des_material.val('');
-                    cantidad.val('');
-                    des_material.focus();
+                        idmaterial.val('');
+                        des_material.val('');
+                        cantidad.val('');
+                        des_material.focus();
+
+                        $('#id-empleado-reemplazo').val('');
+                        $('#nombre-empleado-reemplazo').val('');
+                    } else {
+                        self.addDespacho(egreso);
+                        $('#detalle-total').val(self.totalizaDespacho());
+                        idmaterial.val('');
+                        des_material.val('');
+                        cantidad.val('');
+                        des_material.focus();
+
+                        $('#id-empleado-reemplazo').val('');
+                        $('#nombre-empleado-reemplazo').val('');
+                    }
+
                 }
             });
+
+            function guardaRelevo(egreso) {
+                $('#btn-save-reemplazo').one("click", function () {
+                    egreso.reemplazo = 1;
+                    egreso.idempleado = +$('#id-empleado-reemplazo').val();
+                    egreso.empleado = $('#nombre-empleado-reemplazo').val();
+                    self.addDespacho(egreso);
+                    $('#detalle-total').val(self.totalizaDespacho());
+                    $('#emp-reemplazo').modal('hide');
+                });
+            }
 
             $('#btn-save').on({
                 click: function (e) {
@@ -184,7 +247,7 @@
                         despachos: self.despachos
                     };
 
-                    axios.post('/sistema/enfunde/save', object_data)
+                    axios.post('/sistema/enfunde/despacho/save', object_data)
                         .then(response => {
                             let respuesta = response.data;
                             let tipo = 'danger', title = 'Error al intentar guardar el registro';
@@ -196,9 +259,12 @@
                                 for (var x in respuesta.reg.egresos) {
                                     let egreso = {
                                         id: respuesta.reg.egresos[x].id,
-                                        fecha: respuesta.reg.egresos[x].fecha,
+                                        fecha: (respuesta.reg.egresos[x].fecha).toString("dd/MM/yyyy"),
                                         idmaterial: respuesta.reg.egresos[x].idmaterial,
                                         desmaterial: respuesta.reg.egresos[x].get_material.nombre,
+                                        reemplazo: +respuesta.reg.egresos[x].reemplazo,
+                                        idempleado: +respuesta.reg.egresos[x].idempleado,
+                                        empleado: respuesta.reg.egresos[x].nom_reemplazo != null ? respuesta.reg.egresos[x].nom_reemplazo.nombre : '',
                                         cantidad: +respuesta.reg.egresos[x].cantidad,
                                         presente: +respuesta.reg.egresos[x].presente,
                                         futuro: +respuesta.reg.egresos[x].futuro,
@@ -240,7 +306,9 @@
                     if (data.idmaterial == self.idmaterial) {
                         if (data.fecha == self.fecha) {
                             if (data.presente == self.presente && data.futuro == self.futuro) {
-                                return true;
+                                if (data.reemplazo == self.reemplazo && data.idempleado == self.idempleado) {
+                                    return true;
+                                }
                             }
                         }
                     }
@@ -253,9 +321,11 @@
                     if (data.idmaterial == self.idmaterial) {
                         if (data.fecha == self.fecha) {
                             if (data.presente == self.presente && data.futuro == self.futuro) {
-                                self.cantidad = +self.cantidad + +data.cantidad;
-                                $('#detalle-total').val(this.totalizaDespacho());
-                                return true;
+                                if (data.reemplazo == self.reemplazo && data.idempleado == self.idempleado) {
+                                    self.cantidad = +self.cantidad + +data.cantidad;
+                                    $('#detalle-total').val(this.totalizaDespacho());
+                                    return true;
+                                }
                             }
                         }
                     }
@@ -312,7 +382,11 @@
             editForm: function (index) {
                 this.despacho.fecha = this.despachos[index].fecha;
                 this.despacho.idmaterial = this.despachos[index].idmaterial;
+                this.despacho.reemplazo = this.despachos[index].reemplazo;
+                this.despacho.idempleado = this.despachos[index].idempleado;
                 this.despacho.cantidad = this.despachos[index].cantidad;
+                this.despacho.presente = this.despachos[index].presente;
+                this.despacho.futuro = this.despachos[index].futuro;
                 this.statusForm = true;
             },
             saveForm: function (index) {
@@ -379,6 +453,44 @@
                     }
                 });
             },
+            getAutocompleteEmpleadoReemplazo: function () {
+                var object = this;
+                var semana = $('#semana').val();
+                var options = {
+                    url: function (criterio) {
+                        return `/api/empleados/${criterio}`;
+                    },
+                    getValue: "nombre",
+                    ajaxSettings: {
+                        method: 'GET',
+                        dataType: "json"
+                    },
+                    theme: "green-light",
+                    list: {
+                        maxNumberOfElements: 5,
+                        match: {
+                            enabled: true
+                        },
+                        onClickEvent: function () {
+                            var data = $('#nombre-empleado-reemplazo').getSelectedItemData();
+                            $('#id-empleado-reemplazo').val(data.codigo);
+                        },
+                        onKeyEnterEvent: function () {
+                            var data = $('#nombre-empleado-reemplazo').getSelectedItemData();
+                            $('#id-empleado-reemplazo').val(data.codigo);
+                        },
+                    }
+                };
+
+                $("#nombre-empleado-reemplazo").easyAutocomplete(options);
+                $("#nombre-empleado-reemplazo").on({
+                    change: function () {
+                        if ($(this).val() == '') {
+                            $('#id-empleado-reemplazo').val('');
+                        }
+                    }
+                });
+            },
             getAutocompleteProducto: function () {
                 var options = {
                     url: function (criterio) {
@@ -439,9 +551,12 @@
                             for (var x in response.data.egresos) {
                                 let egreso = {
                                     id: response.data.egresos[x].id,
-                                    fecha: response.data.egresos[x].fecha,
+                                    fecha: (response.data.egresos[x].fecha).toString("dd/MM/yyyy"),
                                     idmaterial: response.data.egresos[x].idmaterial,
                                     desmaterial: response.data.egresos[x].get_material.nombre,
+                                    reemplazo: +response.data.egresos[x].reemplazo,
+                                    idempleado: +response.data.egresos[x].idempleado,
+                                    empleado: response.data.egresos[x].nom_reemplazo != null ? response.data.egresos[x].nom_reemplazo.nombre : '',
                                     cantidad: +response.data.egresos[x].cantidad,
                                     presente: +response.data.egresos[x].presente,
                                     futuro: +response.data.egresos[x].futuro,
@@ -458,6 +573,24 @@
                 this.despacho.idmaterial = '';
                 this.despacho.des_material = '';
                 this.despacho.cantidad = 0;
+            },
+            resetForm: function () {
+                this.empleado = '';
+                this.statusForm = false;
+                this.despacho.fecha = $('#fecha').val();
+                this.despacho.idmaterial = '';
+                this.despacho.des_material = '';
+                this.despacho.cantidad = 0;
+                this.despacho.presente = 1;
+                this.despacho.futuro = 0;
+                this.despacho.estado = 1;
+                this.despachos = [];
+
+                $('#codigo-empleado').val('');
+                $('#nombre-empleado').val('');
+                $('#codigo-producto').val('');
+                $('#nombre-producto').val('');
+                $('#cantidad').val('');
             },
             datasweetalert(){
                 var data = {
