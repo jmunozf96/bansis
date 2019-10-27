@@ -37,8 +37,9 @@
                     <div class="form-row col-4 justify-content-end">
                         <div class="form-group">
                             <a class="btn btn-success btn-lg" href="{{route('despacho',
-                            ['objeto' =>  Auth::user()->objeto,
-                            'idRecurso' => Auth::user()->recursoId]
+                            ['modulo' => Auth::user()->modulo,
+                            'objeto' =>  Auth::user()->objeto,
+                            'idRecurso' => Auth::user()->recursoId,]
                             )}}"> <i class="fas fa-plus"></i> Nuevo despacho </a>
                         </div>
                     </div>

@@ -176,7 +176,7 @@
                                 </button>
                                 <a class="btn btn-danger btn-lg"
                                    href="{{route('url', [
-                                'modulo' => 'enfunde',
+                                'modulo' => Auth::user()->modulo,
                                 'objeto' => Auth::user()->objeto,
                                 'idRecurso' => Auth::user()->recursoId])}}">
                                     <i class="fas fa-sign-out-alt"></i> Salir

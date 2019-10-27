@@ -18,6 +18,6 @@ class ENF_SEC_LOTERO extends Model
 
     public function lote()
     {
-        return $this->hasOne('App\Sisban\Hacienda\SIS_LOTE', 'idlote', 'id');
+        return $this->hasOne('App\Sisban\Hacienda\SIS_LOTE', 'id', 'idlote');
     }
 }

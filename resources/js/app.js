@@ -25,6 +25,8 @@ window.Vue = require('vue');
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('empacadora-cajas', require('./components/empacadora/cajas.vue').default);
 Vue.component('enfunde-egreso', require('./components/enfunde/enf_egreso.vue').default);
+Vue.component('enfunde-registro', require('./components/enfunde/enf_enfunde.vue').default);
+
 /**
  * Next, we will create a fresh Vue application instance and attach it to
  * the page. Then, you may begin adding components to this application

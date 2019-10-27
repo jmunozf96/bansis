@@ -26,6 +26,6 @@ class ENF_LOTERO extends Model
     }
 
     public function fundas_reemplazo(){
-        return $this->hasOne('App\Sisban\Enfunde\ENF_DET_EGRESO','idempleado','idempleado');
+        return $this->hasMany('App\Sisban\Enfunde\ENF_DET_EGRESO','idempleado','idempleado');
     }
 }

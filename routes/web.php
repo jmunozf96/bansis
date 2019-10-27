@@ -34,14 +34,19 @@ Route::get('/', 'HomeController@index')->name('home');
 
 
 //URL Enfunde
-Route::get('/sistema/{modulo}/{objeto}/{idRecurso}', 'EgresoController@index')->name('url');
-Route::get('/sistema/enfunde/{objeto}/{idRecurso}/registro', 'EgresoController@form')->name('despacho');
+Route::get('/sistema/{modulo}/{objeto}/{idRecurso}', 'Perfil\AccessbyUrlController@url')->name('url');
+
+Route::get('/sistema/{modulo}/{objeto}/{idRecurso}/registro_despacho', 'EgresoController@form')->name('despacho');
 Route::post('/sistema/enfunde/despacho/save', 'EgresoController@save');
 Route::put('/sistema/enfunde/despacho/edit', 'EgresoController@editDetalle');
 Route::delete('/sistema/enfunde/despacho/delete/{empleado}/{semana}/{hacienda}/{id}', 'EgresoController@deleteDetalle');
 Route::get('/sistema/enfunde/despacho/{empleado}/{semana}/{hacienda}/{axios}', 'EgresoController@getdespacho');
 
+Route::get('/sistema/{modulo}/{objeto}/{idRecurso}/registro_enfunde', 'EnfundeController@form')->name('enfunde');
+Route::get('/sistema/axios/enfunde/lotero/{idlotero}/{semana}', 'EnfundeController@getLotero')->name('lotero');
+
 Route::get('/api/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');
+Route::get('/api/loteros/{criterio}', 'EnfundeController@Loteros')->name('loteros');
 Route::get('/api/calendario/{fecha?}', 'Sistema\UtilidadesController@getSemana')->name('calendario');
 Route::get('/api/productos/{bodega}/{criterio}', 'Sistema\UtilidadesController@getProductos')->name('productos');
 

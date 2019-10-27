@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Perfil;
 
 use App\Empleado;
+use App\Http\Controllers\EgresoController;
 use App\Http\Controllers\Sistema\UtilidadesController;
 use App\XASS_InvBodegas;
 use Illuminate\Http\Request;
@@ -26,18 +27,18 @@ class AccessbyUrlController extends Controller
     public function url($modulo, $objeto, $idRecurso)
     {
         $recursos = $this->perfil->getRecursos(Auth::user()->ID);
+        Auth::user()->modulo = $modulo;
         Auth::user()->recursoId = $idRecurso;
         Auth::user()->objeto = $objeto;
 
-        if (view()->exists($modulo . '.' . $objeto)) {
-            return view($modulo . '.' . $objeto, [
-                'recursos' => $recursos,
-                'semana' => $this->utilidades->getSemana(),
-                'bodegas' => $this->utilidades->Bodegas()
-            ]);
-        }
 
-        return redirect('/');
+        foreach ($recursos as $recurso) {
+            if ($recurso->Controlador &&
+                trim(strtolower($recurso->objeto)) == trim(strtolower($objeto)) &&
+                trim(strtolower($recurso->modulo)) == trim(strtolower($modulo))
+            )
+                return app('App\Http\Controllers\\' . $recurso->Controlador)->index($objeto, $recursos);
+        }
 
     }
 }

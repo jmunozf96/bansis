@@ -554,6 +554,7 @@
                 axios.get(`/sistema/enfunde/despacho/${empleado}/${semana}/${hacienda}/1`)
                     .then(response => {
                         if (response.data) {
+                            console.log(response.data);
                             for (var x in response.data.egresos) {
                                 let egreso = {
                                     id: response.data.egresos[x].id,

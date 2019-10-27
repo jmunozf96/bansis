@@ -27,11 +27,9 @@ class EgresoController extends Controller
         $this->utilidades = new UtilidadesController();
     }
 
-    public function index($modulo, $objeto, $idRecurso)
+    public function index($objeto, $recursos)
     {
-        $this->recursos = $this->perfil->getRecursos(Auth::user()->ID);
-        Auth::user()->recursoId = $idRecurso;
-        Auth::user()->objeto = $objeto;
+        $this->recursos = $recursos;
 
         //Caso de ser 0 la hacienda
 
@@ -49,8 +47,8 @@ class EgresoController extends Controller
             }])
             ->paginate(6);
 
-        if (view()->exists($modulo . '.' . $objeto)) {
-            return view($modulo . '.' . $objeto, [
+        if (view()->exists('enfunde' . '.' . $objeto)) {
+            return view('enfunde' . '.' . $objeto, [
                 'recursos' => $this->recursos,
                 'semana' => $this->utilidades->getSemana(),
                 'egresos' => $egresos
@@ -63,6 +61,7 @@ class EgresoController extends Controller
         $current_params = Route::current()->parameters();
 
         $this->recursos = $this->perfil->getRecursos(Auth::user()->ID);
+        Auth::user()->modulo = $current_params['modulo'];
         Auth::user()->objeto = $current_params['objeto'];
         Auth::user()->recursoId = $current_params['idRecurso'];
 
