@@ -28,4 +28,8 @@ class ENF_LOTERO extends Model
     public function fundas_reemplazo(){
         return $this->hasMany('App\Sisban\Enfunde\ENF_DET_EGRESO','idempleado','idempleado');
     }
+
+    public function enfunde(){
+        return $this->hasOne('App\Sisban\Enfunde\ENF_ENFUNDE','idlotero','id');
+    }
 }

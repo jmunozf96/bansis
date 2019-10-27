@@ -43,6 +43,7 @@ Route::delete('/sistema/enfunde/despacho/delete/{empleado}/{semana}/{hacienda}/{
 Route::get('/sistema/enfunde/despacho/{empleado}/{semana}/{hacienda}/{axios}', 'EgresoController@getdespacho');
 
 Route::get('/sistema/{modulo}/{objeto}/{idRecurso}/registro_enfunde', 'EnfundeController@form')->name('enfunde');
+Route::post('/sistema/enfunde/registro/save', 'EnfundeController@save');
 Route::get('/sistema/axios/enfunde/lotero/{idlotero}/{semana}', 'EnfundeController@getLotero')->name('lotero');
 
 Route::get('/api/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');

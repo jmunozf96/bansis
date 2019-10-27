@@ -12,7 +12,7 @@ class ENF_ENFUNDE extends Model
     protected $dateFormat = 'M j Y h:i:s';
 
     public function detalle(){
-        return $this->hasMany('App\Sisban\Enfunde\ENF_DET_EGRESO', 'idenfunde','id');
+        return $this->hasMany('App\Sisban\Enfunde\ENF_DET_ENFUNDE', 'idenfunde','id');
     }
 
     public function lotero(){
