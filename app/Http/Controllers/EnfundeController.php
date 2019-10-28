@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Perfil\PerfilController;
 use App\Http\Controllers\Sistema\UtilidadesController;
+use App\Sisban\Enfunde\ENF_DET_EGRESO;
 use App\Sisban\Enfunde\ENF_DET_ENFUNDE;
 use App\Sisban\Enfunde\ENF_ENFUNDE;
 use App\Sisban\Enfunde\ENF_LOTERO;
@@ -140,6 +141,7 @@ class EnfundeController extends Controller
             $enfunde->status = 1;
 
             $resp = $enfunde->save();
+
         } else {
             $enfunde = ENF_ENFUNDE::select('id')
                 ->where('idlotero', $request->lotero)
@@ -163,11 +165,10 @@ class EnfundeController extends Controller
                     $detalle->idenfunde = $enfunde->id;
                     $detalle->idseccion = $det_enf->seccion;
                 } else {
-                    if (isset($det_enf->iddetalle))
-                        $detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'presente', 'futuro')
-                            ->where('idenfunde', $enfunde->id)
-                            ->where('id', $det_enf->iddetalle)
-                            ->where('idseccion', $det_enf->seccion)->first();
+                    $detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'presente', 'futuro')
+                        ->where('idenfunde', $enfunde->id)
+                        ->where('id', $det_enf->iddetalle)
+                        ->where('idseccion', $det_enf->seccion)->first();
                 }
 
                 if ($request->presente) {
@@ -201,8 +202,21 @@ class EnfundeController extends Controller
         }
 
 
-        if ($resp)
+        if ($resp) {
+            //Pasar status de egresos a 0
+            /*$egresos = $request->egresos;
+            foreach ($egresos->fundas as $egreso_local) :
+                $egreso_detalle = ENF_DET_EGRESO::find($egreso_local->id);
+                $egreso_detalle->status = 0;
+                $egreso_detalle->save();
+            endforeach;
+            foreach ($egresos->fundas as $egreso_reemplazo) :
+                $egreso_detalle = ENF_DET_EGRESO::find($egreso_reemplazo->id);
+                $egreso_detalle->status = 0;
+                $egreso_detalle->save();
+            endforeach;*/
             return $this->respuesta('success', 'Enfunde reportado correctamente');
+        }
 
         return $this->respuesta('error', 'Error al intentar guardar los datos');
     }

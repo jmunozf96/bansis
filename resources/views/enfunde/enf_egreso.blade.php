@@ -67,7 +67,12 @@
                                                 <span class="badge badge-pill badge-danger">ENFUNDE PENDIENTE</span>
                                             @endif
                                         </p>
-                                        <a href="#" class="btn btn-primary"><i class="fas fa-eye"></i> Mostrar detalles</a>
+                                        <a href="{{route('despacho',
+                                                ['modulo' => Auth::user()->modulo,
+                                                'objeto' =>  Auth::user()->objeto,
+                                                'idRecurso' => Auth::user()->recursoId,
+                                                'lotero' => $egreso->idempleado]
+                                                )}}" class="btn btn-primary"><i class="fas fa-eye"></i> Mostrar detalles</a>
 
                                     </div>
                                     <ul class="list-group list-group-flush">

@@ -102,7 +102,7 @@
                                             @foreach($loteros as $lotero)
                                                 @if($lotero->fundas)
                                                     <option data-subtext="Tiene fundas despachada"
-                                                            value="{{$lotero->idempleado}}">{{$lotero->empleado->nombre}}</option>
+                                                            value="{{$lotero->idempleado}}" {{isset($_GET['lotero']) ? $lotero->idempleado == $_GET['lotero'] ? 'selected' : '' : ''}}>{{$lotero->empleado->nombre}}</option>
                                                 @endif
                                             @endforeach
                                         </optgroup>

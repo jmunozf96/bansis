@@ -134,6 +134,17 @@
                     self.fecha = $(this).val();
                 }
             });
+            alert($('#nombre-empleado').val());
+            if ($('#nombre-empleado').val() != undefined) {
+                alert("entro");
+                self.empleado = $(this).val();
+                $('#nombre-producto').attr('disabled', false);
+                $('#nombre-producto').focus();
+
+                if (self.empleado != '') {
+                    self.getDataEmpleado(self.empleado, $('#semana').val(), self.hacienda);
+                }
+            }
 
             $('#nombre-empleado').on('change', function () {
                 if ($(this).val() == '') {

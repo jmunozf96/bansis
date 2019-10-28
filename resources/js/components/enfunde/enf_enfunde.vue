@@ -257,7 +257,6 @@
                                 let datos = response.data[0].seccion;
                                 for (var i in datos) {
                                     var seccion = {
-                                        iddetalle: 0,
                                         seccion: datos[i].id,
                                         idlote: datos[i].idlote,
                                         lote: datos[i].lote.lote,
@@ -310,6 +309,7 @@
                                     for (var i in datos3.egresos) {
                                         if (datos3.egresos[i].reemplazo == 0) {
                                             var despacho = {
+                                                id: datos3.egresos[i].id,
                                                 fecha: (datos3.egresos[i].fecha).toString("dd/MM/yyyy"),
                                                 cantidad: parseInt(datos3.egresos[i].cantidad),
                                                 status: datos3.egresos[i].presente == 1 ? 'Presente' : 'Futuro'
@@ -317,6 +317,7 @@
                                             self.fundas.push(despacho);
                                         } else {
                                             var reemplazo = {
+                                                id: datos3.egresos[i].id,
                                                 fecha: (datos3.egresos[i].fecha).toString("dd/MM/yyyy"),
                                                 nombre: datos3.egresos[i].nom_reemplazo.nombre,
                                                 cantidad: parseInt(datos3.egresos[i].cantidad),
@@ -402,6 +403,10 @@
                         presente: self.presente,
                         futuro: self.futuro,
                         detalle_enfunde: self.seccion,
+                        egresos: {
+                            fundas: self.fundas,
+                            reemplazos: self.reemplazos
+                        },
                         edicion: self.edicion
                     };
 
