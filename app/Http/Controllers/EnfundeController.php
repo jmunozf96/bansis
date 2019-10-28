@@ -160,14 +160,15 @@ class EnfundeController extends Controller
                 $detalle = null;
                 if (!$edit) {
                     $detalle = new ENF_DET_ENFUNDE();
+                    $detalle->idenfunde = $enfunde->id;
+                    $detalle->idseccion = $det_enf->seccion;
                 } else {
-                    $detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion')
-                        ->where('idenfunde', $enfunde->id)
-                        ->where('idseccion', $det_enf->seccion)->first();
+                    if (isset($det_enf->iddetalle))
+                        $detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'presente', 'futuro')
+                            ->where('idenfunde', $enfunde->id)
+                            ->where('id', $det_enf->iddetalle)
+                            ->where('idseccion', $det_enf->seccion)->first();
                 }
-
-                $detalle->idenfunde = $enfunde->id;
-                $detalle->idseccion = $det_enf->seccion;
 
                 if ($request->presente) {
                     $totaliza_presente += +intval($det_enf->presente);

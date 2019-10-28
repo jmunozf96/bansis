@@ -251,12 +251,13 @@
 
                                 let datos4 = response.data[0].enfunde;
 
-                                let presente = false;
-                                let futuro = false;
+                                let presente = [];
+                                let futuro = [];
 
                                 let datos = response.data[0].seccion;
                                 for (var i in datos) {
                                     var seccion = {
+                                        iddetalle: 0,
                                         seccion: datos[i].id,
                                         idlote: datos[i].idlote,
                                         lote: datos[i].lote.lote,
@@ -285,16 +286,15 @@
                                         }
 
                                         for (var y in datos4.detalle) {
-
-                                            presente = datos4.detalle[y].presente == 1 ? true : false;
-                                            futuro = datos4.detalle[y].futuro == 1 ? true : false;
-
+                                            seccion.iddetalle = datos4.detalle[y].id;
                                             if (datos4.detalle[y].presente == 1 && datos4.detalle[y].idseccion == seccion.seccion) {
                                                 seccion.presente = datos4.detalle[y].cantidad;
+                                                presente.push(true);
                                             }
                                             if (datos4.detalle[y].futuro == 1 && datos4.detalle[y].idseccion == seccion.seccion) {
                                                 seccion.futuro = datos4.detalle[y].cantidad;
                                                 seccion.desbunche = datos4.detalle[y].desbunchado;
+                                                futuro.push(true);
                                             }
                                         }
                                     }
@@ -327,7 +327,7 @@
 
                                         self.totalfundas += parseInt(datos3.egresos[i].cantidad);
 
-                                        if (datos3.egresos[i].futuro == 1 && presente) {
+                                        if (datos3.egresos[i].futuro == 1 && presente.length > 0) {
                                             self.presente = 0;
                                             self.futuro = 1;
                                         }
@@ -336,17 +336,17 @@
                                     let mensaje;
                                     if (self.presente) {
                                         mensaje = 'Lotero listo para reportar enfunde presente';
-                                        if (!presente) {
+                                        if (presente.length == 0) {
                                             self.edicion = false;
-                                        }else{
+                                        } else {
                                             self.edicion = true;
                                             mensaje = 'Edicion para enfunde presente activa';
                                         }
                                     } else {
                                         mensaje = 'Lotero listo para reportar enfunde futuro';
-                                        if (!futuro) {
+                                        if (futuro.length == 0) {
                                             self.edicion = false;
-                                        }else{
+                                        } else {
                                             self.edicion = true;
                                             mensaje = 'Edicion para enfunde futuro activa';
                                         }
