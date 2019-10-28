@@ -90,10 +90,18 @@
                                 </div>
                                 <div class="form-group col-md-10">
                                     <label>Nombre | Apellido - Empleado</label>
-                                    <input type="text" class="form-control  form-control-lg text-dark"
+                                    {{--<input type="text" class="form-control  form-control-lg text-dark"
                                            placeholder="Empleado"
                                            id="nombre-empleado"
-                                           oninput="this.value = this.value.toUpperCase()">
+                                           oninput="this.value = this.value.toUpperCase()">--}}
+                                    <select class="selectpicker show-tick form-control"
+                                            data-live-search="true"
+                                            title="Seleccionar lotero ..."
+                                            id="nombre-empleado">
+                                        @foreach($loteros as $lotero)
+                                            <option value="{{$lotero->idempleado}}">{{$lotero->empleado->nombre}}</option>
+                                        @endforeach
+                                    </select>
                                     <small>Buscar empleado por nombre o apellido</small>
                                 </div>
                             </div>

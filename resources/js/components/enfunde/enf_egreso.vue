@@ -114,7 +114,7 @@
             $('#cantidad').attr('disabled', true);
             $('#add-despacho').attr('disabled', true);
 
-            self.getAutocompleteEmpleado();
+            /*self.getAutocompleteEmpleado();*/
             self.getAutocompleteEmpleadoReemplazo();
             self.getAutocompleteProducto();
 
@@ -132,6 +132,19 @@
             $('input[name="fecha"]').on({
                 change: function () {
                     self.fecha = $(this).val();
+                }
+            });
+
+            $('#nombre-empleado').on('change', function () {
+                if ($(this).val() == '') {
+                    return;
+                }
+                self.empleado = $(this).val();
+                $('#nombre-producto').attr('disabled', false);
+                $('#nombre-producto').focus();
+
+                if (self.empleado != '') {
+                    self.getDataEmpleado(self.empleado, $('#semana').val(), self.hacienda);
                 }
             });
 
@@ -283,14 +296,14 @@
                                         showConfirmButton: false,
                                         timer: 1500
                                     })
-                                }else{
+                                } else {
                                     Swal.fire({
                                         position: 'top-end',
                                         type: 'info',
                                         title: 'Despacho de la semana cerrado',
                                         showConfirmButton: false,
                                         timer: 1500
-                                    }) 
+                                    })
                                 }
                             }
 
@@ -412,58 +425,58 @@
                 this.statusForm = false;
                 $('#detalle-total').val(this.totalizaDespacho());
             },
-            getAutocompleteEmpleado: function () {
-                var object = this;
-                var semana = $('#semana').val();
-                var options = {
-                    url: function (criterio) {
-                        return `/api/empleados/${criterio}`;
-                    },
-                    getValue: "nombre",
-                    ajaxSettings: {
-                        method: 'GET',
-                        dataType: "json"
-                    },
-                    theme: "green-light",
-                    list: {
-                        maxNumberOfElements: 5,
-                        match: {
-                            enabled: true
-                        },
-                        onClickEvent: function () {
-                            var data = $('#nombre-empleado').getSelectedItemData();
-                            $('#codigo-empleado').val(data.codigo);
-                            object.empleado = data.codigo;
-                            $('#nombre-producto').attr('disabled', false);
-                            $('#nombre-producto').focus();
+            /*getAutocompleteEmpleado: function () {
+             var object = this;
+             var semana = $('#semana').val();
+             var options = {
+             url: function (criterio) {
+             return `/api/empleados/${criterio}`;
+             },
+             getValue: "nombre",
+             ajaxSettings: {
+             method: 'GET',
+             dataType: "json"
+             },
+             theme: "green-light",
+             list: {
+             maxNumberOfElements: 5,
+             match: {
+             enabled: true
+             },
+             onClickEvent: function () {
+             var data = $('#nombre-empleado').getSelectedItemData();
+             $('#codigo-empleado').val(data.codigo);
+             object.empleado = data.codigo;
+             $('#nombre-producto').attr('disabled', false);
+             $('#nombre-producto').focus();
 
-                            if (object.empleado != '') {
-                                object.getDataEmpleado(object.empleado, semana, object.hacienda);
-                            }
-                        },
-                        onKeyEnterEvent: function () {
-                            var data = $('#nombre-empleado').getSelectedItemData();
-                            $('#codigo-empleado').val(data.codigo);
-                            object.empleado = data.codigo;
-                            $('#nombre-producto').attr('disabled', false);
-                            $('#nombre-producto').focus();
+             if (object.empleado != '') {
+             object.getDataEmpleado(object.empleado, semana, object.hacienda);
+             }
+             },
+             onKeyEnterEvent: function () {
+             var data = $('#nombre-empleado').getSelectedItemData();
+             $('#codigo-empleado').val(data.codigo);
+             object.empleado = data.codigo;
+             $('#nombre-producto').attr('disabled', false);
+             $('#nombre-producto').focus();
 
-                            if (object.empleado != '') {
-                                object.getDataEmpleado(object.empleado, semana, object.hacienda);
-                            }
-                        },
-                    }
-                };
+             if (object.empleado != '') {
+             object.getDataEmpleado(object.empleado, semana, object.hacienda);
+             }
+             },
+             }
+             };
 
-                $("#nombre-empleado").easyAutocomplete(options);
-                $("#nombre-empleado").on({
-                    change: function () {
-                        if ($(this).val() == '') {
-                            $('#codigo-empleado').val('');
-                        }
-                    }
-                });
-            },
+             $("#nombre-empleado").easyAutocomplete(options);
+             $("#nombre-empleado").on({
+             change: function () {
+             if ($(this).val() == '') {
+             $('#codigo-empleado').val('');
+             }
+             }
+             });
+             },*/
             getAutocompleteEmpleadoReemplazo: function () {
                 var object = this;
                 var semana = $('#semana').val();
@@ -605,7 +618,6 @@
                 this.despachos = [];
 
                 $('#codigo-empleado').val('');
-                $('#nombre-empleado').val('');
                 $('#codigo-producto').val('');
                 $('#nombre-producto').val('');
                 $('#cantidad').val('');

@@ -276,21 +276,6 @@
 
                                 }
 
-                                let datos2 = response.data[0].fundas_reemplazo;
-
-                                if (datos2.length > 0) {
-                                    for (var i in datos2) {
-                                        var reemplazo = {
-                                            fecha: (datos2[i].fecha).toString("dd/MM/yyyy"),
-                                            nombre: datos2[i].get_egreso.empleado.nombre,
-                                            cantidad: parseInt(datos2[i].cantidad),
-                                        }
-
-                                        self.totalfundas += parseInt(datos2[i].cantidad);
-                                        self.reemplazos.push(reemplazo);
-                                    }
-                                }
-
                                 let datos3 = response.data[0].fundas;
 
                                 if (datos3) {
@@ -314,12 +299,22 @@
                                     }
 
                                     for (var i in datos3.egresos) {
-                                        var despacho = {
-                                            fecha: (datos3.egresos[i].fecha).toString("dd/MM/yyyy"),
-                                            cantidad: parseInt(datos3.egresos[i].cantidad)
+                                        if (datos3.egresos[i].reemplazo == 0) {
+                                            var despacho = {
+                                                fecha: (datos3.egresos[i].fecha).toString("dd/MM/yyyy"),
+                                                cantidad: parseInt(datos3.egresos[i].cantidad)
+                                            };
+                                            self.fundas.push(despacho);
+                                        } else {
+                                            var reemplazo = {
+                                                fecha: (datos3.egresos[i].fecha).toString("dd/MM/yyyy"),
+                                                nombre: datos3.egresos[i].nom_reemplazo.nombre,
+                                                cantidad: parseInt(datos3.egresos[i].cantidad)
+                                            };
+                                            self.reemplazos.push(reemplazo);
                                         }
+
                                         self.totalfundas += parseInt(datos3.egresos[i].cantidad);
-                                        self.fundas.push(despacho);
                                     }
                                 }
 

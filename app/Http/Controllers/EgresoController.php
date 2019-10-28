@@ -16,6 +16,7 @@ class EgresoController extends Controller
     protected $perfil;
     protected $utilidades;
     protected $recursos;
+    protected $enfunde;
 
     function __construct()
     {
@@ -25,6 +26,7 @@ class EgresoController extends Controller
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
+        $this->enfunde = new EnfundeController();
     }
 
     public function index($objeto, $recursos)
@@ -65,10 +67,12 @@ class EgresoController extends Controller
         Auth::user()->objeto = $current_params['objeto'];
         Auth::user()->recursoId = $current_params['idRecurso'];
 
+        $hacienda = Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda;
         $data = [
             'recursos' => $this->recursos,
             'semana' => $this->utilidades->getSemana(),
-            'bodegas' => $this->utilidades->Bodegas()
+            'bodegas' => $this->utilidades->Bodegas(),
+            'loteros' => $this->enfunde->Loteros($hacienda)
         ];
         return view('enfunde.enf_egreso_material', $data);
     }
@@ -116,11 +120,6 @@ class EgresoController extends Controller
                     $detalle->cantidad = $item->cantidad;
                     $detalle->presente = $item->presente;
                     $detalle->futuro = $item->futuro;
-
-                    if ($item->futuro) {
-                        $despacho->status = 0;
-                    }
-
                     $detalle->status = 1;
                     $resp = $detalle->save();
                 } else {
@@ -131,12 +130,6 @@ class EgresoController extends Controller
 
                 $totalizar += $edit ? +$item->cantidad : 0;
             endforeach;
-
-            if (!$despacho->status) {
-                $despacho_cab = ENF_EGRESO::select('id', 'total')->find($despacho->id);
-                $despacho_cab->status = 0;
-                $despacho_cab->save();
-            }
 
             if ($edit) {
                 $despacho_cabecera = ENF_EGRESO::select('id', 'total')->find($despacho->id);

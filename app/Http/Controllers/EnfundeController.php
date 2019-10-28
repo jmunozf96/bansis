@@ -48,11 +48,11 @@ class EnfundeController extends Controller
         Auth::user()->objeto = $current_params['objeto'];
         Auth::user()->recursoId = $current_params['idRecurso'];
 
-        $hacienda = Auth::user()->idHacienda = 0 ? 1 : Auth::user()->idHacienda;
+        $hacienda = Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda;
         $data = [
             'recursos' => $this->recursos,
             'semana' => $this->utilidades->getSemana(),
-            'loteros' => $this->Loteros(1),
+            'loteros' => $this->Loteros($hacienda),
         ];
 
 
@@ -76,17 +76,10 @@ class EnfundeController extends Controller
                 $query3->select('id', 'semana', 'idempleado', 'total', 'status');
                 $query3->where('semana', $semana);
                 $query3->with(['egresos' => function ($query7) {
-                    $query7->select('id', 'id_egreso', 'fecha', 'cantidad');
-                    $query7->where('reemplazo', false);
-                }]);
-            }])
-            ->with(['fundas_reemplazo' => function ($query4) use ($semana) {
-                $query4->select('id', 'id_egreso', 'cantidad', 'fecha', 'presente', 'futuro', 'idempleado');
-                $query4->with(['get_egreso' => function ($query5) use ($semana) {
-                    $query5->select('id', 'semana', 'idempleado');
-                    $query5->where('semana', $semana);
-                    $query5->with(['empleado' => function ($query6) {
-                        $query6->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
+                    $query7->select('id', 'id_egreso', 'fecha', 'cantidad', 'reemplazo', 'idempleado');
+                    $query7->with(['nom_reemplazo' => function ($query10) {
+                        $query10->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
+                        $query10->orderBy('NOMBRE_CORTO', 'asc');
                     }]);
                 }]);
             }])
