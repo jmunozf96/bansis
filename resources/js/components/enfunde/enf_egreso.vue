@@ -251,39 +251,50 @@
                         .then(response => {
                             let respuesta = response.data;
                             let tipo = 'danger', title = 'Error al intentar guardar el registro';
-
+                            console.log(respuesta)
                             if (respuesta.code == 200) {
                                 tipo = 'success';
                                 title = 'Registro guardado con éxito';
                                 self.despachos = [];
-                                for (var x in respuesta.reg.egresos) {
-                                    let egreso = {
-                                        id: respuesta.reg.egresos[x].id,
-                                        fecha: (respuesta.reg.egresos[x].fecha).toString("dd/MM/yyyy"),
-                                        idmaterial: respuesta.reg.egresos[x].idmaterial,
-                                        desmaterial: respuesta.reg.egresos[x].get_material.nombre,
-                                        reemplazo: +respuesta.reg.egresos[x].reemplazo,
-                                        idempleado: +respuesta.reg.egresos[x].idempleado,
-                                        empleado: respuesta.reg.egresos[x].nom_reemplazo != null ? respuesta.reg.egresos[x].nom_reemplazo.nombre : '',
-                                        cantidad: +respuesta.reg.egresos[x].cantidad,
-                                        presente: +respuesta.reg.egresos[x].presente,
-                                        futuro: +respuesta.reg.egresos[x].futuro,
-                                        estado: respuesta.reg.egresos[x].status
-                                    };
-                                    self.despachos.push(egreso);
+                                if (respuesta.reg) {
+                                    for (var x in respuesta.reg.egresos) {
+                                        let egreso = {
+                                            id: respuesta.reg.egresos[x].id,
+                                            fecha: (respuesta.reg.egresos[x].fecha).toString("dd/MM/yyyy"),
+                                            idmaterial: respuesta.reg.egresos[x].idmaterial,
+                                            desmaterial: respuesta.reg.egresos[x].get_material.nombre,
+                                            reemplazo: +respuesta.reg.egresos[x].reemplazo,
+                                            idempleado: +respuesta.reg.egresos[x].idempleado,
+                                            empleado: respuesta.reg.egresos[x].nom_reemplazo != null ? respuesta.reg.egresos[x].nom_reemplazo.nombre : '',
+                                            cantidad: +respuesta.reg.egresos[x].cantidad,
+                                            presente: +respuesta.reg.egresos[x].presente,
+                                            futuro: +respuesta.reg.egresos[x].futuro,
+                                            estado: respuesta.reg.egresos[x].status
+                                        };
+                                        self.despachos.push(egreso);
+                                    }
+
+                                    $('#detalle-total').val(self.totalizaDespacho());
+
+                                    Swal.fire({
+                                        position: 'top-end',
+                                        type: tipo,
+                                        title: title,
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    })
+                                }else{
+                                    Swal.fire({
+                                        position: 'top-end',
+                                        type: 'info',
+                                        title: 'Despacho de la semana cerrado',
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    }) 
                                 }
-
-                                $('#detalle-total').val(self.totalizaDespacho());
-
                             }
 
-                            Swal.fire({
-                                position: 'top-end',
-                                type: tipo,
-                                title: title,
-                                showConfirmButton: false,
-                                timer: 1500
-                            })
+
                         })
                         .catch(error => {
                             console.log(error.response)

@@ -116,8 +116,12 @@ class EgresoController extends Controller
                     $detalle->cantidad = $item->cantidad;
                     $detalle->presente = $item->presente;
                     $detalle->futuro = $item->futuro;
-                    $detalle->status = 1;
 
+                    if ($item->futuro) {
+                        $despacho->status = 0;
+                    }
+
+                    $detalle->status = 1;
                     $resp = $detalle->save();
                 } else {
                     $detalle = ENF_DET_EGRESO::select('id', 'cantidad')->find($item->id);
@@ -127,6 +131,12 @@ class EgresoController extends Controller
 
                 $totalizar += $edit ? +$item->cantidad : 0;
             endforeach;
+
+            if (!$despacho->status) {
+                $despacho_cab = ENF_EGRESO::select('id', 'total')->find($despacho->id);
+                $despacho_cab->status = 0;
+                $despacho_cab->save();
+            }
 
             if ($edit) {
                 $despacho_cabecera = ENF_EGRESO::select('id', 'total')->find($despacho->id);
