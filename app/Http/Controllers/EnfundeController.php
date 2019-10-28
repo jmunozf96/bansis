@@ -52,7 +52,7 @@ class EnfundeController extends Controller
         $data = [
             'recursos' => $this->recursos,
             'semana' => $this->utilidades->getSemana(),
-            'loteros' => $this->Loteros($hacienda),
+            'loteros' => $this->Loteros($hacienda, $this->utilidades->getSemana()[0]->semana),
         ];
 
 
@@ -76,7 +76,7 @@ class EnfundeController extends Controller
                 $query3->select('id', 'semana', 'idempleado', 'total', 'status');
                 $query3->where('semana', $semana);
                 $query3->with(['egresos' => function ($query7) {
-                    $query7->select('id', 'id_egreso', 'fecha', 'cantidad', 'reemplazo', 'idempleado');
+                    $query7->select('id', 'id_egreso', 'fecha', 'cantidad', 'presente', 'futuro', 'status', 'reemplazo', 'idempleado');
                     $query7->with(['nom_reemplazo' => function ($query10) {
                         $query10->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
                         $query10->orderBy('NOMBRE_CORTO', 'asc');
@@ -95,12 +95,23 @@ class EnfundeController extends Controller
         return $lotero;
     }
 
-    public function Loteros($hacienda)
+    public function Loteros($hacienda, $semana)
     {
         $empleado = ENF_LOTERO::selectRaw('id, idempleado')
             ->with(['empleado' => function ($query) {
                 $query->selectRaw('trim(NOMBRE_CORTO) as nombre, COD_TRABAJ');
                 $query->where('ESTADO', 'A');
+            }])
+            ->with(['fundas' => function ($query3) use ($semana) {
+                $query3->select('id', 'semana', 'idempleado', 'total', 'status');
+                $query3->where('semana', $semana);
+                $query3->with(['egresos' => function ($query7) {
+                    $query7->select('id', 'id_egreso', 'fecha', 'cantidad', 'reemplazo', 'idempleado');
+                    $query7->with(['nom_reemplazo' => function ($query10) {
+                        $query10->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
+                        $query10->orderBy('NOMBRE_CORTO', 'asc');
+                    }]);
+                }]);
             }])
             ->where('idhacienda', $hacienda)
             ->get();
@@ -113,7 +124,7 @@ class EnfundeController extends Controller
         $resp = false;
         $edit = false;
 
-        if ($request->presente && !$request->edicion) {
+        if ($request->presente == 1 && !$request->edicion) {
             $enfunde = new ENF_ENFUNDE();
             $enfunde->idhacienda = $request->idhacienda == '343' ? 1 : 2;
             $enfunde->fecha = $request->fecha;
@@ -136,7 +147,7 @@ class EnfundeController extends Controller
 
             if ($enfunde) {
                 $resp = true;
-                $edit = $request->edicion ? true : false;
+                $edit = $request->edicion;
             }
         }
 
@@ -147,7 +158,7 @@ class EnfundeController extends Controller
             foreach ($request->detalle_enfunde as $key => $det_enf):
                 $det_enf = (object)$det_enf;
                 $detalle = null;
-                if (!$edit && !$request->edicion) {
+                if (!$edit) {
                     $detalle = new ENF_DET_ENFUNDE();
                 } else {
                     $detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion')
@@ -157,6 +168,7 @@ class EnfundeController extends Controller
 
                 $detalle->idenfunde = $enfunde->id;
                 $detalle->idseccion = $det_enf->seccion;
+
                 if ($request->presente) {
                     $totaliza_presente += +intval($det_enf->presente);
                     $detalle->cantidad = $det_enf->presente;
@@ -176,11 +188,9 @@ class EnfundeController extends Controller
             if ($resp) {
                 if ($request->presente && $request->edicion) {
                     $enfunde->total_pre = $totaliza_presente;
-                    $enfunde->total_fut = $totaliza_futuro;
                 } else {
-                    if ($request->futuro) {
+                    if ($request->futuro || $request->edicion) {
                         $enfunde->count = 2;
-                        $enfunde->status = 0;
                         $enfunde->total_fut = $request->total_fut;
                         $enfunde->chapeo = $request->desbunchado;
                     }

@@ -98,9 +98,22 @@
                                             data-live-search="true"
                                             title="Seleccionar lotero ..."
                                             id="nombre-empleado">
-                                        @foreach($loteros as $lotero)
-                                            <option value="{{$lotero->idempleado}}">{{$lotero->empleado->nombre}}</option>
-                                        @endforeach
+                                        <optgroup label="Loteros con saldo de fundas" data-max-options="2">
+                                            @foreach($loteros as $lotero)
+                                                @if($lotero->fundas)
+                                                    <option data-subtext="Tiene fundas despachada"
+                                                            value="{{$lotero->idempleado}}">{{$lotero->empleado->nombre}}</option>
+                                                @endif
+                                            @endforeach
+                                        </optgroup>
+                                        <optgroup label="Loteros pendientes despacho" data-max-options="2">
+                                            @foreach($loteros as $lotero)
+                                                @if(!$lotero->fundas)
+                                                    <option value="{{$lotero->idempleado}}">{{$lotero->empleado->nombre}}</option>
+                                                @endif
+                                            @endforeach
+                                        </optgroup>
+
                                     </select>
                                     <small>Buscar empleado por nombre o apellido</small>
                                 </div>

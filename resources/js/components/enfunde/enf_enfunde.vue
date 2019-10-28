@@ -6,7 +6,19 @@
                         data-live-search="true" multiple data-max-options="1"
                         title="Seleccionar lotero a reportar enfunde..."
                         id="lotero">
-                    <option v-for="lotero in this.loteros" :value="lotero.id">{{lotero.empleado.nombre}}</option>
+                    <optgroup label="Loteros con saldo de fundas" data-max-options="2">
+                        <option v-for="lotero in this.loteros" v-if="lotero.fundas"
+                                :data-subtext="lotero.fundas ? ' - Tiene fundas despachadas' : ''"
+                                :value="lotero.id">
+                            {{lotero.empleado.nombre}}
+                        </option>
+                    </optgroup>
+                    <optgroup label="Loteros pendientes despacho" data-max-options="2">
+                        <option v-for="lotero in this.loteros" v-if="!lotero.fundas"
+                                :value="lotero.id">
+                            {{lotero.empleado.nombre}}
+                        </option>
+                    </optgroup>
                 </select>
                 <small>Buscar lotero por nombre o apellido</small>
             </div>
@@ -32,7 +44,7 @@
                 <table class="table table-bordered table-hover" id="enfunde-items">
                     <thead>
                     <tr class="text-center">
-                        <th>Estado</th>
+                        <th width="10%">Estado</th>
                         <th>Lote</th>
                         <th>Has.</th>
                         <th>%</th>
@@ -43,18 +55,18 @@
                     </thead>
                     <tbody>
                     <tr v-for="(sec, index) in seccion" class="text-center">
-                        <td>
+                        <td width="10%">
                             <span v-if="status">
                                 <span v-if="statusForm  && sec.seccion == lote_enfunde.seccion">
                                 <button class="btn btn-primary btn-sm"
                                         v-on:click="saveForm(index)">
-                                    <i class="fas fa-save"></i> Guardar
+                                    <i class="fas fa-save"></i>
                                 </button>
                             </span>
                             <span v-else>
                                 <button class="btn btn-success btn-sm"
                                         v-on:click="editForm(index)">
-                                    <i class="fas fa-edit"></i> Editar
+                                    <i class="fas fa-edit"></i>
                                 </button>
                             </span>
                             </span>
@@ -65,9 +77,9 @@
                                 Reportado
                             </span>
                         </td>
-                        <td>{{sec.lote}}</td>
-                        <td>{{sec.has}}</td>
-                        <td>
+                        <td width="10%">{{sec.lote}}</td>
+                        <td width="10%">{{sec.has}}</td>
+                        <td width="15%">
                             <b-progress :max="100">
                                 <b-progress-bar :value="sec.porcentaje * 100"
                                                 :label="`${(sec.porcentaje * 100).toFixed(2)}%`"></b-progress-bar>
@@ -104,6 +116,15 @@
                             </span>
                         </td>
                     </tr>
+                    <tr class="text-center table-sm" style="font-size: 18px">
+                        <td width="10%">Total</td>
+                        <td width="10%"></td>
+                        <td width="10%"></td>
+                        <td></td>
+                        <td><b>{{totalPresente()}}</b></td>
+                        <td><b>{{totalFuturo()}}</b></td>
+                        <td><b>{{totalDesbunche()}}</b></td>
+                    </tr>
                     </tbody>
                 </table>
                 <div class="form-row p-1 mb-2">
@@ -121,12 +142,14 @@
                         <tr class="text-center">
                             <th>Fecha</th>
                             <th>Fundas Desp.</th>
+                            <th>Pre/Fut</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="(fundas, index) in fundas" class="text-center">
-                            <td>{{fundas.fecha}}</td>
-                            <td>{{fundas.cantidad}}</td>
+                        <tr v-for="(funda, index) in fundas" class="text-center">
+                            <td>{{funda.fecha}}</td>
+                            <td>{{funda.cantidad}}</td>
+                            <td>{{funda.status}}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -139,6 +162,7 @@
                             <th>Fecha</th>
                             <th>Reemplazo</th>
                             <th>Fundas Desp.</th>
+                            <th>Pre/Fut</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -146,6 +170,7 @@
                             <td>{{reemplazo.fecha}}</td>
                             <td>{{reemplazo.nombre}}</td>
                             <td>{{reemplazo.cantidad}}</td>
+                            <td>{{reemplazo.status}}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -198,14 +223,22 @@
         mounted(){
             var self = this;
 
-
             $('#lotero').on({
                 change: function (e) {
                     e.preventDefault();
                     $('#btn-save').attr('disabled', false);
                     let id = $(this).val()[0];
 
-                    if (id == '') {
+                    self.totalfundas = 0;
+                    self.seccion = [];
+                    self.reemplazos = [];
+                    self.fundas = [];
+                    self.presente = 1;
+                    self.futuro = 0;
+                    self.status = 1;
+                    self.edicion = 0;
+
+                    if (id === undefined) {
                         alert('Seleccioone un lotero');
                         return;
                     }
@@ -215,16 +248,11 @@
                     axios.get(`/sistema/axios/enfunde/lotero/${id}/${self.semana}`)
                         .then(response => {
                             if (response.data) {
-                                self.totalfundas = 0;
-                                self.seccion = [];
-                                self.reemplazos = [];
-                                self.fundas = [];
-                                self.presente = 1;
-                                self.futuro = 0;
-                                self.status = 1;
-                                self.edicion = 0;
 
                                 let datos4 = response.data[0].enfunde;
+
+                                let presente = false;
+                                let futuro = false;
 
                                 let datos = response.data[0].seccion;
                                 for (var i in datos) {
@@ -254,14 +282,13 @@
 
                                             self.status = 0;
                                             $('#btn-save').attr('disabled', true);
-                                        } else {
-                                            self.edicion = 1;
                                         }
 
-                                        self.presente = 0;
-                                        self.futuro = 1;
-
                                         for (var y in datos4.detalle) {
+
+                                            presente = datos4.detalle[y].presente == 1 ? true : false;
+                                            futuro = datos4.detalle[y].futuro == 1 ? true : false;
+
                                             if (datos4.detalle[y].presente == 1 && datos4.detalle[y].idseccion == seccion.seccion) {
                                                 seccion.presente = datos4.detalle[y].cantidad;
                                             }
@@ -280,45 +307,61 @@
 
                                 if (datos3) {
 
-                                    if (datos3.status == 1) {
-                                        self.presente = 1;
-                                        self.futuro = 0;
-
-                                        Swal.fire({
-                                            position: 'center',
-                                            type: 'info',
-                                            title: 'Edicion para enfunde presente activa',
-                                            showConfirmButton: false,
-                                            timer: 3000
-                                        });
-
-                                    } else {
-                                        self.presente = 0;
-                                        self.futuro = 1;
-                                        self.edicion = 0;
-                                    }
-
                                     for (var i in datos3.egresos) {
                                         if (datos3.egresos[i].reemplazo == 0) {
                                             var despacho = {
                                                 fecha: (datos3.egresos[i].fecha).toString("dd/MM/yyyy"),
-                                                cantidad: parseInt(datos3.egresos[i].cantidad)
+                                                cantidad: parseInt(datos3.egresos[i].cantidad),
+                                                status: datos3.egresos[i].presente == 1 ? 'Presente' : 'Futuro'
                                             };
                                             self.fundas.push(despacho);
                                         } else {
                                             var reemplazo = {
                                                 fecha: (datos3.egresos[i].fecha).toString("dd/MM/yyyy"),
                                                 nombre: datos3.egresos[i].nom_reemplazo.nombre,
-                                                cantidad: parseInt(datos3.egresos[i].cantidad)
+                                                cantidad: parseInt(datos3.egresos[i].cantidad),
+                                                status: datos3.egresos[i].presente == 1 ? 'Presente' : 'Futuro'
                                             };
                                             self.reemplazos.push(reemplazo);
                                         }
 
                                         self.totalfundas += parseInt(datos3.egresos[i].cantidad);
+
+                                        if (datos3.egresos[i].futuro == 1 && presente) {
+                                            self.presente = 0;
+                                            self.futuro = 1;
+                                        }
                                     }
+
+                                    let mensaje;
+                                    if (self.presente) {
+                                        mensaje = 'Lotero listo para reportar enfunde presente';
+                                        if (!presente) {
+                                            self.edicion = false;
+                                        }else{
+                                            self.edicion = true;
+                                            mensaje = 'Edicion para enfunde presente activa';
+                                        }
+                                    } else {
+                                        mensaje = 'Lotero listo para reportar enfunde futuro';
+                                        if (!futuro) {
+                                            self.edicion = false;
+                                        }else{
+                                            self.edicion = true;
+                                            mensaje = 'Edicion para enfunde futuro activa';
+                                        }
+                                    }
+
+                                    Swal.fire({
+                                        position: 'center',
+                                        type: 'info',
+                                        title: mensaje,
+                                        showConfirmButton: false,
+                                        timer: 3000
+                                    });
                                 }
 
-                                if (datos2.length == 0 && !datos3) {
+                                if (!datos3) {
                                     Swal.fire({
                                         position: 'center',
                                         type: 'error',
@@ -329,6 +372,16 @@
 
                                     self.status = 0;
                                     $('#btn-save').attr('disabled', true);
+                                } else {
+                                    if (self.saldoEnfunde() < 0) {
+                                        Swal.fire({
+                                            position: 'center',
+                                            type: 'error',
+                                            title: 'Tiene una diferencia de saldo, corregir este error',
+                                            showConfirmButton: false,
+                                            timer: 3000
+                                        });
+                                    }
                                 }
                             }
                         });
@@ -363,7 +416,7 @@
                                 timer: 1500
                             })
                             if (resp.status == 'success') {
-                                self.resetData();
+                                //self.resetData();
                                 $('#lotero').focus();
                             }
                         })
