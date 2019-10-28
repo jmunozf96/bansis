@@ -192,10 +192,24 @@
                         Swal.fire({
                             position: 'center',
                             type: 'info',
-                            title: 'Lotero tiene enfunde reportado',
+                            title: 'Lotero tiene enfunde reportado: ' + self.enfunde.total_pre,
                             showConfirmButton: false,
                             timer: 1500
+                        });
+
+                        let saldo_presente = +self.totalPresente() - +self.enfunde.total_pre;
+                        var uniqs = self.despachos.filter(function (item, index, array) {
+                            console.log(index)
+                            console.log(array.indexOf(item)
+                            return array.indexOf(item) === index;
                         })
+
+                        console.log(uniqs);
+
+                        //Logica para saldo de fundas en la semana
+                        //Traer el total de enfunde presente y futuro
+                        //Restar por tipo de funda segun el estado del despacho ya sea presente o futuro
+                        //el status es para tener el saldo de las fundas OJO
                     } else {
                         $('input[name=status-semana][value=presente]').prop('checked', true);
                         Swal.fire({
@@ -421,6 +435,24 @@
                 var total = 0;
                 for (var i in this.despachos) {
                     total += parseInt(this.despachos[i].cantidad);
+                }
+                return total;
+            },
+            totalPresente: function () {
+                var total = 0;
+                for (var i in this.despachos) {
+                    if (this.despachos[i].presente) {
+                        total += parseInt(this.despachos[i].cantidad);
+                    }
+                }
+                return total;
+            },
+            totalFuturo: function () {
+                var total = 0;
+                for (var i in this.despachos) {
+                    if (this.despachos[i].futuro) {
+                        total += parseInt(this.despachos[i].cantidad);
+                    }
                 }
                 return total;
             },
