@@ -103,7 +103,8 @@
                     futuro: 0,
                     estado: 1
                 },
-                despachos: []
+                despachos: [],
+                enfunde: null,
             }
         },
         mounted(){
@@ -134,10 +135,9 @@
                     self.fecha = $(this).val();
                 }
             });
-            alert($('#nombre-empleado').val());
-            if ($('#nombre-empleado').val() != undefined) {
-                alert("entro");
-                self.empleado = $(this).val();
+
+            if ($('#nombre-empleado').val() != "") {
+                self.empleado = $('#nombre-empleado').val();
                 $('#nombre-producto').attr('disabled', false);
                 $('#nombre-producto').focus();
 
@@ -185,6 +185,30 @@
                 }
             });
 
+            $('input[name=status-semana]').on('change', function () {
+                var radios = $(this);
+                if (radios.filter('[value=futuro]').is(':checked')) {
+                    if (self.enfunde) {
+                        Swal.fire({
+                            position: 'center',
+                            type: 'info',
+                            title: 'Lotero tiene enfunde reportado',
+                            showConfirmButton: false,
+                            timer: 1500
+                        })
+                    } else {
+                        $('input[name=status-semana][value=presente]').prop('checked', true);
+                        Swal.fire({
+                            position: 'center',
+                            type: 'info',
+                            title: 'Lotero no tiene enfunde reportado',
+                            showConfirmButton: false,
+                            timer: 1500
+                        })
+                    }
+                }
+            });
+
             $('#add-despacho').on({
                 click: function (e) {
                     var fecha, des_material, idmaterial, cantidad, presente = 0, futuro = 0;
@@ -218,6 +242,7 @@
                         futuro: futuro,
                         estado: 1
                     };
+
 
                     if ($('#id-reemplazo').prop('checked')) {
                         $('#emp-reemplazo').modal('show');
@@ -590,6 +615,7 @@
                     .then(response => {
                         if (response.data) {
                             console.log(response.data);
+                            self.enfunde = response.data.empleado.lotero.enfunde;
                             for (var x in response.data.egresos) {
                                 let egreso = {
                                     id: response.data.egresos[x].id,
@@ -602,7 +628,7 @@
                                     cantidad: +response.data.egresos[x].cantidad,
                                     presente: +response.data.egresos[x].presente,
                                     futuro: +response.data.egresos[x].futuro,
-                                    estado: response.data.egresos[x].status
+                                    estado: response.data.egresos[x].status,
                                 };
                                 self.despachos.push(egreso);
                             }

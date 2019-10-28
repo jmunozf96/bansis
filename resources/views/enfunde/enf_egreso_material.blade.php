@@ -98,6 +98,7 @@
                                             data-live-search="true"
                                             title="Seleccionar lotero ..."
                                             id="nombre-empleado">
+                                        <option value=""></option>
                                         <optgroup label="Loteros con saldo de fundas" data-max-options="2">
                                             @foreach($loteros as $lotero)
                                                 @if($lotero->fundas)

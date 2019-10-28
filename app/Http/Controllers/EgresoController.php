@@ -160,6 +160,11 @@ class EgresoController extends Controller
             ->where('status', 1)
             ->with(['empleado' => function ($query) {
                 $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
+                $query->with(['lotero' => function($query3){
+                    $query3->with(['enfunde' => function($query){
+                        $query->select('id', 'total_pre', 'total_fut', 'idlotero', 'status', 'count');
+                    }]);
+                }]);
             }])
             ->with(['egresos' => function ($query) {
                 $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'reemplazo', 'idempleado', 'cantidad', 'presente', 'futuro', 'status');
