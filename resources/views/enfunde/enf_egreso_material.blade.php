@@ -155,7 +155,7 @@
                                 <input type="hidden" id="codigo-producto">
                                 <input type="text" class="form-control  form-control-lg text-dark"
                                        placeholder="Buscar producto"
-                                       id="nombre-producto" style="font-size: 16px"
+                                       id="nombre-producto" style="font-size: 20px"
                                        oninput="this.value = this.value.toUpperCase()">
                                 <div class="my-1">
                                     <div class="custom-control custom-checkbox mr-sm-2">
@@ -165,12 +165,12 @@
                                 </div>
                             </div>
                             <div class="form-group col-md-3 col-8  mb-0">
-                                <input type="number" class="form-control bg-white form-control-lg" id="cantidad"
+                                <input type="number" style="font-size: 20px" class="form-control bg-white form-control-lg" id="cantidad"
                                        placeholder="0.00">
                                 <small>Ingrese la cantidad a despachar</small>
                             </div>
                             <div class="form-group  mb-0">
-                                <button type="button" class="btn btn-primary btn-lg" id="add-despacho">+</button>
+                                <button type="button" class="btn btn-primary btn-lg" style="font-size: 20px" id="add-despacho">+</button>
                             </div>
                         </div>
                     </div>
