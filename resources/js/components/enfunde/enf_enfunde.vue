@@ -2,10 +2,10 @@
     <div class="container-fluid">
         <div class="form-row mt-3 mb-0">
             <div class="form-group col-md-8">
-                <select class="selectpicker show-tick form-control"
+                <select class="selectpicker show-tick form-control form-control-lg" data-style="btn-outline-dark"
                         data-live-search="true" multiple data-max-options="1"
                         title="Seleccionar lotero a reportar enfunde..."
-                        id="lotero">
+                        id="lotero" style="font-size: 20px">
                     <optgroup label="Loteros con saldo de fundas" data-max-options="2">
                         <option v-for="lotero in this.loteros" v-if="lotero.fundas"
                                 :data-subtext="lotero.fundas ? ' - Tiene fundas despachadas' : ''"

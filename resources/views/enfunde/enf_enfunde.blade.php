@@ -4,6 +4,9 @@
 @section('content')
     <div class="container-fluid">
         <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-street-view"></i> Enfunde Semanal</h3>
+            </div>
             <div class="card-body">
                 <div class="form-row mb-0 ml-1">
                     <div class="form-row col-8">
@@ -19,7 +22,7 @@
                         </div>
                         <div class="form-group col-md-8 mb-0">
                             <select class="selectpicker show-tick form-control"
-                                    data-live-search="true"
+                                    data-live-search="true" data-style="btn-outline-dark"
                                     id="id-hacienda" {{Auth::user()->id_hacienda == 1 || Auth::user()->id_hacienda == 2 ? 'disabled' : ''}}>
                                 <option data-tokens="343"
                                         value="343" {{Auth::user()->id_hacienda == 1 ? 'selected' : ''}}>
@@ -40,7 +43,7 @@
                             ['modulo' => Auth::user()->modulo,
                             'objeto' =>  Auth::user()->objeto,
                             'idRecurso' => Auth::user()->recursoId,]
-                            )}}"> <i class="fas fa-plus"></i> Nuevo Registro </a>
+                            )}}"> <i class="fas fa-plus"></i> Nuevo Registro Enfunde</a>
                         </div>
                     </div>
                 </div>

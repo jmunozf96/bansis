@@ -19,10 +19,10 @@ class PerfilController extends Controller
             ->join('SEG_RECURSOS as rec', 'rec.ID', '=', 'SEG_PERFILES.RecursoID')
             ->join('SEG_USUARIOS', 'SEG_USUARIOS.ID', '=', 'SEG_PERFILES.id')
             ->select('rec.Nombre', 'rec.Tipo', 'rec.ID', 'rec.PadreID', 'rec.icono', 'rec.modulo', 'rec.objeto', 'rec.Controlador')
-            ->where('SEG_USUARIOS.ID', '=', $IDusuario)
+            ->where('SEG_PERFILES.id', '=', $IDusuario)
             ->where('rec.web', '=', 1)
             ->orderBy('rec.NOMBRE', 'asc')
-            ->get()->all();
+            ->get();
 
         return $recursos;
     }

@@ -75,7 +75,7 @@
                         <hr class="mt-0">
                         <div class="container-fluid p-0">
                             <div class="form-row mb-0">
-                                <div class="form-group col-md-2">
+                                <div class="form-group col-md-2 d-none">
                                     <label>Codigo Empleado</label>
                                     <div class="input-group flex-nowrap">
                                         <div class="input-group-prepend">
@@ -88,14 +88,14 @@
                                                aria-label="Codigo" aria-describedby="addon-wrapping" disabled>
                                     </div>
                                 </div>
-                                <div class="form-group col-md-10">
+                                <div class="form-group col-md-12">
                                     <label>Nombre | Apellido - Empleado</label>
                                     {{--<input type="text" class="form-control  form-control-lg text-dark"
                                            placeholder="Empleado"
                                            id="nombre-empleado"
                                            oninput="this.value = this.value.toUpperCase()">--}}
-                                    <select class="selectpicker show-tick form-control"
-                                            data-live-search="true"
+                                    <select class="selectpicker show-tick form-control form-control-lg"
+                                            data-live-search="true" data-style="btn-outline-dark"
                                             title="Seleccionar lotero ..."
                                             id="nombre-empleado">
                                         <option value=""></option>
