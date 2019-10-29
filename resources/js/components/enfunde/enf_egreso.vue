@@ -11,8 +11,9 @@
         </tr>
         </thead>
         <tbody id="detalle">
-        <tr v-for="(egreso, index) in despachos" class="table-sm">
+        <tr v-for="(egreso, index) in despachos" class="table-sm" v-if="!('enfunde' in despachos[index])">
             <td style="width: 10%" class="text-center">
+                <span v-if="!('enfunde' in despachos[index])">
                     <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha
                         && despacho.presente == egreso.presente && despacho.futuro == egreso.futuro
                         && despacho.reemplazo == egreso.reemplazo && despacho.idempleado == egreso.idempleado">
@@ -30,15 +31,19 @@
                             <i class="fas fa-minus"></i>
                         </button>
                     </span>
+                </span>
+
             </td>
             <td class="text-center" style="font-size: 16px">{{egreso.fecha}}</td>
             <td style="font-size: 16px">{{egreso.desmaterial}}</td>
             <td class="text-center">
-                <b-button variant="primary"
-                          v-b-popover.hover.top="egreso.reemplazo ? egreso.empleado : 'No hace relevo'"
-                          title="Nombre lotero">
+                <span v-if="!('enfunde' in despachos[index])">
+                    <b-button variant="primary"
+                              v-b-popover.hover.top="egreso.reemplazo ? egreso.empleado : 'No hace relevo'"
+                              title="Nombre lotero">
                     {{egreso.reemplazo ? "Si" : "No"}}
                 </b-button>
+                </span>
             </td>
             <td class="text-center" style="font-size: 16px">
                     <span v-if="egreso.presente">
@@ -73,6 +78,22 @@
                 <span v-else></span>
             </td>
         </tr>
+        <tr v-for="(egreso, index) in dato_enfunde" class="table-sm" v-if="('enfunde' in dato_enfunde[index])">
+            <td style="width: 10%" class="text-center"></td>
+            <td class="text-center" style="font-size: 16px">{{egreso.fecha}}</td>
+            <td style="font-size: 16px"><b>{{egreso.desmaterial}}</b></td>
+            <td class="text-center"></td>
+            <td class="text-center" style="font-size: 16px">
+               <span v-if="egreso.presente">
+                   <b style="color: red">{{egreso.cantidad}}</b>
+               </span>
+            </td>
+            <td class="text-center" style="font-size: 16px">
+                <span v-if="egreso.futuro">
+                    <b style="color: red">{{egreso.cantidad}}</b>
+                </span>
+            </td>
+        </tr>
         </tbody>
     </table>
 </template>
@@ -104,6 +125,7 @@
                     estado: 1
                 },
                 despachos: [],
+                dato_enfunde: [],
                 enfunde: null,
             }
         },
@@ -196,15 +218,6 @@
                             showConfirmButton: false,
                             timer: 1500
                         });
-
-                        let saldo_presente = +self.totalPresente() - +self.enfunde.total_pre;
-                        var uniqs = self.despachos.filter(function (item, index, array) {
-                            console.log(index)
-                            console.log(array.indexOf(item)
-                            return array.indexOf(item) === index;
-                        })
-
-                        console.log(uniqs);
 
                         //Logica para saldo de fundas en la semana
                         //Traer el total de enfunde presente y futuro
@@ -319,7 +332,13 @@
                                 tipo = 'success';
                                 title = 'Registro guardado con éxito';
                                 self.despachos = [];
+                                self.dato_enfunde = [];
+
                                 if (respuesta.reg) {
+                                    console.log(respuesta.reg);
+
+                                    self.enfunde = respuesta.reg.empleado.lotero.enfunde;
+
                                     for (var x in respuesta.reg.egresos) {
                                         let egreso = {
                                             id: respuesta.reg.egresos[x].id,
@@ -334,8 +353,12 @@
                                             futuro: +respuesta.reg.egresos[x].futuro,
                                             estado: respuesta.reg.egresos[x].status
                                         };
+
                                         self.despachos.push(egreso);
                                     }
+
+                                    self.getEnfunde(self.enfunde, self.dato_enfunde);
+
 
                                     $('#detalle-total').val(self.totalizaDespacho());
 
@@ -434,15 +457,19 @@
             totalizar: function () {
                 var total = 0;
                 for (var i in this.despachos) {
-                    total += parseInt(this.despachos[i].cantidad);
+                    if (!('enfunde' in this.despachos[i])) {
+                        total += parseInt(this.despachos[i].cantidad);
+                    }
                 }
                 return total;
             },
             totalPresente: function () {
                 var total = 0;
                 for (var i in this.despachos) {
-                    if (this.despachos[i].presente) {
-                        total += parseInt(this.despachos[i].cantidad);
+                    if (!('enfunde' in this.despachos[i])) {
+                        if (this.despachos[i].presente) {
+                            total += parseInt(this.despachos[i].cantidad);
+                        }
                     }
                 }
                 return total;
@@ -450,8 +477,10 @@
             totalFuturo: function () {
                 var total = 0;
                 for (var i in this.despachos) {
-                    if (this.despachos[i].futuro) {
-                        total += parseInt(this.despachos[i].cantidad);
+                    if (!('enfunde' in this.despachos[i])) {
+                        if (this.despachos[i].futuro) {
+                            total += parseInt(this.despachos[i].cantidad);
+                        }
                     }
                 }
                 return total;
@@ -462,10 +491,12 @@
                 let presente = 0;
                 let futuro = 0;
                 for (var i in this.despachos) {
-                    if (this.despachos[i].presente) {
-                        presente += parseInt(this.despachos[i].cantidad);
-                    } else {
-                        futuro += parseInt(this.despachos[i].cantidad);
+                    if (!('enfunde' in this.despachos[i])) {
+                        if (this.despachos[i].presente) {
+                            presente += parseInt(this.despachos[i].cantidad);
+                        } else {
+                            futuro += parseInt(this.despachos[i].cantidad);
+                        }
                     }
                 }
                 total = +presente + +futuro;
@@ -648,6 +679,7 @@
                         if (response.data) {
                             console.log(response.data);
                             self.enfunde = response.data.empleado.lotero.enfunde;
+
                             for (var x in response.data.egresos) {
                                 let egreso = {
                                     id: response.data.egresos[x].id,
@@ -662,11 +694,49 @@
                                     futuro: +response.data.egresos[x].futuro,
                                     estado: response.data.egresos[x].status,
                                 };
+
                                 self.despachos.push(egreso);
                             }
+
+                            self.getEnfunde(self.enfunde, self.dato_enfunde);
+
                             $('#detalle-total').val(self.totalizaDespacho());
                         }
                     })
+            },
+            getEnfunde: function (enfunde, array) {
+                if (enfunde) {
+                    if (parseInt(enfunde.total_pre) > 0) {
+                        let tot_enfunde = {
+                            fecha: '',
+                            desmaterial: 'TOTAL ENFUNDE PRESENTE',
+                            reemplazo: 0,
+                            idempleado: 0,
+                            empleado: '',
+                            cantidad: -(parseInt(enfunde.total_pre)),
+                            presente: 1,
+                            futuro: 0,
+                            estado: 0,
+                            enfunde: 1
+                        };
+                        array.push(tot_enfunde);
+                    }
+                    if (parseInt(enfunde.total_fut) > 0) {
+                        let tot_enfunde = {
+                            fecha: '',
+                            desmaterial: 'TOTAL ENFUNDE FUTURO',
+                            reemplazo: 0,
+                            idempleado: 0,
+                            empleado: '',
+                            cantidad: -(parseInt(enfunde.total_fut)),
+                            presente: 0,
+                            futuro: 1,
+                            estado: 0,
+                            enfunde: 1
+                        };
+                        array.push(tot_enfunde);
+                    }
+                }
             },
             resetData: function () {
                 this.despacho.fecha = $('#fecha').val();
@@ -685,6 +755,7 @@
                 this.despacho.futuro = 0;
                 this.despacho.estado = 1;
                 this.despachos = [];
+                this.dato_enfunde = [];
 
                 $('#codigo-empleado').val('');
                 $('#codigo-producto').val('');

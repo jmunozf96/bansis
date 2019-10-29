@@ -164,25 +164,41 @@ class EnfundeController extends Controller
                     $detalle = new ENF_DET_ENFUNDE();
                     $detalle->idenfunde = $enfunde->id;
                     $detalle->idseccion = $det_enf->seccion;
+
+                    if ($request->presente) {
+                        $detalle->cantidad = $det_enf->presente;
+                        $detalle->presente = 1;
+                        $detalle->futuro = 0;
+                    } else {
+                        $detalle->cantidad = $det_enf->futuro;
+                        $detalle->desbunchado = $det_enf->desbunche;
+                        $detalle->presente = 0;
+                        $detalle->futuro = 1;
+                    }
+
                 } else {
-                    $detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'presente', 'futuro')
-                        ->where('idenfunde', $enfunde->id)
-                        ->where('id', $det_enf->iddetalle)
-                        ->where('idseccion', $det_enf->seccion)->first();
+                    if ($request->presente) {
+                        $detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'presente', 'futuro')
+                            ->where('idenfunde', $enfunde->id)
+                            ->where('id', $det_enf->iddet_pre)
+                            ->where('idseccion', $det_enf->seccion)->first();
+                    } else {
+                        $detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'presente', 'futuro')
+                            ->where('idenfunde', $enfunde->id)
+                            ->where('id', $det_enf->iddet_fut)
+                            ->where('idseccion', $det_enf->seccion)->first();
+                    }
+
+                    if ($detalle->presente == 1) {
+                        $detalle->cantidad = $det_enf->presente;
+                    } else {
+                        $detalle->cantidad = $det_enf->futuro;
+                        $detalle->desbunchado = $det_enf->desbunche;
+                    }
                 }
 
-                if ($request->presente) {
-                    $totaliza_presente += +intval($det_enf->presente);
-                    $detalle->cantidad = $det_enf->presente;
-                    $detalle->presente = 1;
-                    $detalle->futuro = 0;
-                } else {
-                    $totaliza_futuro += +intval($det_enf->futuro);
-                    $detalle->cantidad = $det_enf->futuro;
-                    $detalle->desbunchado = $det_enf->desbunche;
-                    $detalle->presente = 0;
-                    $detalle->futuro = 1;
-                }
+                $totaliza_presente += +intval($det_enf->presente);
+                $totaliza_futuro += +intval($det_enf->futuro);
 
                 $resp = $detalle->save();
             endforeach;
@@ -204,17 +220,7 @@ class EnfundeController extends Controller
 
         if ($resp) {
             //Pasar status de egresos a 0
-            /*$egresos = $request->egresos;
-            foreach ($egresos->fundas as $egreso_local) :
-                $egreso_detalle = ENF_DET_EGRESO::find($egreso_local->id);
-                $egreso_detalle->status = 0;
-                $egreso_detalle->save();
-            endforeach;
-            foreach ($egresos->fundas as $egreso_reemplazo) :
-                $egreso_detalle = ENF_DET_EGRESO::find($egreso_reemplazo->id);
-                $egreso_detalle->status = 0;
-                $egreso_detalle->save();
-            endforeach;*/
+
             return $this->respuesta('success', 'Enfunde reportado correctamente');
         }
 

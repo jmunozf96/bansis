@@ -72,7 +72,7 @@ class EgresoController extends Controller
             'recursos' => $this->recursos,
             'semana' => $this->utilidades->getSemana(),
             'bodegas' => $this->utilidades->Bodegas(),
-            'loteros' => $this->enfunde->Loteros($hacienda,$this->utilidades->getSemana()[0]->semana)
+            'loteros' => $this->enfunde->Loteros($hacienda, $this->utilidades->getSemana()[0]->semana)
         ];
         return view('enfunde.enf_egreso_material', $data);
     }
@@ -160,8 +160,8 @@ class EgresoController extends Controller
             ->where('status', 1)
             ->with(['empleado' => function ($query) {
                 $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                $query->with(['lotero' => function($query3){
-                    $query3->with(['enfunde' => function($query){
+                $query->with(['lotero' => function ($query3) {
+                    $query3->with(['enfunde' => function ($query) {
                         $query->select('id', 'total_pre', 'total_fut', 'idlotero', 'status', 'count');
                     }]);
                 }]);

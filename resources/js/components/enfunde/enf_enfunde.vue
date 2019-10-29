@@ -285,12 +285,13 @@
                                         }
 
                                         for (var y in datos4.detalle) {
-                                            seccion.iddetalle = datos4.detalle[y].id;
                                             if (datos4.detalle[y].presente == 1 && datos4.detalle[y].idseccion == seccion.seccion) {
+                                                seccion.iddet_pre = datos4.detalle[y].id;
                                                 seccion.presente = datos4.detalle[y].cantidad;
                                                 presente.push(true);
                                             }
                                             if (datos4.detalle[y].futuro == 1 && datos4.detalle[y].idseccion == seccion.seccion) {
+                                                seccion.iddet_fut = datos4.detalle[y].id;
                                                 seccion.futuro = datos4.detalle[y].cantidad;
                                                 seccion.desbunche = datos4.detalle[y].desbunchado;
                                                 futuro.push(true);
