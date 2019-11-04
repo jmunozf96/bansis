@@ -164,12 +164,16 @@ class EgresoController extends Controller
                     }
                 endforeach;
 
+                //Validar cuando sea presente o futuro
+
                 $validator = \Validator::make($request->all(), [
                     'semana' => ['required',
                         Rule::unique('INV_LOT_FUND')->where(function ($query) use ($request, $item2) {
                             return $query->where('semana', $request->semana)
                                 ->where('idlotero', $request->idempleado)
-                                ->where('idmaterial', $item2->idmaterial);
+                                ->where('idmaterial', $item2->idmaterial)
+                                ->where('presente', $item2->presente)
+                                ->where('presente', $item2->futuro);
                         })]
                 ]);
 
@@ -260,6 +264,7 @@ class EgresoController extends Controller
 
     public function deleteDetalle($empleado, $semana, $hacienda, $id)
     {
+        //PRESENTE O FUTURO
         $detalle = ENF_DET_EGRESO::find($id);
 
         $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo')
