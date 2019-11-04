@@ -19,8 +19,9 @@ class CreateInventarioFundas extends Migration
             $table->integer('idlotero');
             $table->integer('idmaterial');
             $table->integer('saldo');
-            $table->boolean('presente');
-            $table->boolean('futuro');
+            $table->integer('enfunde')->nullable();
+            $table->boolean('presente')->nullable();
+            $table->boolean('futuro')->nullable();
             $table->boolean('status');
             $table->timestamps();
         });

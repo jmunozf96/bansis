@@ -8,6 +8,7 @@ use App\Sisban\Enfunde\ENF_DET_EGRESO;
 use App\Sisban\Enfunde\ENF_DET_ENFUNDE;
 use App\Sisban\Enfunde\ENF_ENFUNDE;
 use App\Sisban\Enfunde\ENF_LOTERO;
+use App\Sisban\Enfunde\INV_LOT_FUND;
 use App\Sisban\Hacienda\SIS_LOTE;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -203,6 +204,27 @@ class EnfundeController extends Controller
                 $resp = $detalle->save();
             endforeach;
 
+            $lotero = ENF_LOTERO::find($request->lotero);
+
+            if ($request->presente) {
+                $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'enfunde', 'presente')
+                    ->where('semana', $request->semana)
+                    ->where('idlotero', $lotero->idempleado)
+                    ->where('presente', true)->first();
+
+                $inventario->enfunde = $totaliza_presente;
+                $inventario->save();
+            } else {
+                if ($request->futuro) {
+                    $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'enfunde', 'futuro')
+                        ->where('semana', $request->semana)
+                        ->where('idlotero', $lotero->idempleado)
+                        ->where('futuro', true)->first();
+
+                    $inventario->enfunde = $totaliza_futuro;
+                    $inventario->save();
+                }
+            }
 
 
             if ($resp) {
