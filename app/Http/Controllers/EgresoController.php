@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Perfil\PerfilController;
 use App\Http\Controllers\Sistema\UtilidadesController;
+use App\Sisban\Enfunde\INV_LOT_FUND;
 use App\Sisban\Enfunde\ENF_DET_EGRESO;
 use App\Sisban\Enfunde\ENF_EGRESO;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class EgresoController extends Controller
 {
@@ -122,6 +124,7 @@ class EgresoController extends Controller
                     $detalle->futuro = $item->futuro;
                     $detalle->status = 1;
                     $resp = $detalle->save();
+
                 } else {
                     $detalle = ENF_DET_EGRESO::select('id', 'cantidad')->find($item->id);
                     $detalle->cantidad = $item->cantidad;
@@ -136,6 +139,71 @@ class EgresoController extends Controller
                 $despacho_cabecera->total = $totalizar;
                 $despacho_cabecera->save();
             }
+
+            //Guardar saldo en inventario
+            foreach ($this->utilidades->unique_multidim_array($request->despachos, 'idmaterial') as $key2 => $item2):
+                $item2 = (object)$item2;
+
+                $saldo_pre = 0;
+                $saldo_fut = 0;
+                $presente = false;
+                $futuro = false;
+
+                foreach ($request->despachos as $key => $item):
+                    $item = (object)$item;
+                    if ($item->idmaterial == $item2->idmaterial) {
+                        if ($item->presente) {
+                            $presente = true;
+                            $saldo_pre += $item->cantidad;
+                        } else {
+                            if ($item->futuro) {
+                                $futuro = true;
+                                $saldo_fut += $item->cantidad;
+                            }
+                        }
+                    }
+                endforeach;
+
+                $validator = \Validator::make($request->all(), [
+                    'semana' => ['required',
+                        Rule::unique('INV_LOT_FUND')->where(function ($query) use ($request, $item2) {
+                            return $query->where('semana', $request->semana)
+                                ->where('idlotero', $request->idempleado)
+                                ->where('idmaterial', $item2->idmaterial);
+                        })]
+                ]);
+
+                if ($validator->fails()) {
+                    $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo')
+                        ->where('semana', $request->semana)
+                        ->where('idlotero', $request->idempleado)
+                        ->where('idmaterial', $item2->idmaterial)->first();
+
+
+                } else {
+                    $inventario = new INV_LOT_FUND();
+                    $inventario->semana = $request->semana;
+                    $inventario->idlotero = $request->idempleado;
+                    $inventario->idmaterial = $item2->idmaterial;
+                }
+
+                if ($presente) {
+                    $inventario->saldo = $saldo_pre;
+                    $inventario->presente = true;
+                    $inventario->futuro = false;
+                } else {
+                    if ($futuro) {
+                        $inventario->saldo = $saldo_fut;
+                        $inventario->presente = false;
+                        $inventario->futuro = true;
+                    }
+                }
+
+                $inventario->status = true;
+                $inventario->save();
+
+            endforeach;
+
         }
 
         if ($resp) {
@@ -194,19 +262,51 @@ class EgresoController extends Controller
     {
         $detalle = ENF_DET_EGRESO::find($id);
 
+        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo')
+            ->where('semana', $semana)
+            ->where('idlotero', $empleado)
+            ->where('idmaterial', $detalle->idmaterial)->first();
+
+        if ($detalle->presente) {
+            $inventario->saldo = $inventario->saldo - $detalle->cantidad;
+            $inventario->presente = true;
+            $inventario->futuro = false;
+        } else {
+            if ($detalle->futuro) {
+                $inventario->saldo = $inventario->saldo - $detalle->cantidad;
+                $inventario->presente = false;
+                $inventario->futuro = true;
+            }
+        }
+
         if (!$detalle->delete()) {
             return $this->response(500, 'danger', 'No se pudo eliminar');
         } else {
+
+            if (intval($inventario->saldo) == 0) {
+                $inventario->delete();
+            } else {
+                $inventario->save();
+            }
+
             $despacho = $this->getdespacho($empleado, $semana, $hacienda);
 
             if ($despacho->egresos->isEmpty()) {
                 $cabecera = ENF_EGRESO::find($despacho->id);
                 $cabecera->delete();
+
+                $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero')
+                    ->where('semana', $semana)
+                    ->where('idlotero', $empleado);
+
+                $inventario->delete();
+
             } else {
                 //Totaliza detalle
                 $totaliza = 0;
                 foreach ($despacho->egresos as $egreso):
                     $totaliza += intval($egreso->cantidad);
+
                 endforeach;
 
                 $despacho_cabecera = ENF_EGRESO::select('id', 'total')->find($despacho->id);
@@ -218,7 +318,8 @@ class EgresoController extends Controller
         return $this->respuesta('success', 'Registro eliminado con éxito!');
     }
 
-    public function editDetalle(Request $request)
+    public
+    function editDetalle(Request $request)
     {
         $detalle = ENF_DET_EGRESO::select('id', 'cantidad')->find($request->id);
         $detalle->cantidad = $request->cantidad;
@@ -240,7 +341,8 @@ class EgresoController extends Controller
     }
 
 
-    public function respuesta($status, $messagge)
+    public
+    function respuesta($status, $messagge)
     {
         $data = [
             'status' => $status,
@@ -250,7 +352,8 @@ class EgresoController extends Controller
         return response()->json($data, 200);
     }
 
-    public function saldopendiente(Request $request)
+    public
+    function saldopendiente(Request $request)
     {
         //Aqui debemos consultar el saldo que tenga pendiente
         $idmaterial = $request->get('idmaterial');

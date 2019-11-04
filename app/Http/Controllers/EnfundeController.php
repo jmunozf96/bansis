@@ -203,6 +203,8 @@ class EnfundeController extends Controller
                 $resp = $detalle->save();
             endforeach;
 
+
+
             if ($resp) {
                 if ($request->presente && $request->edicion) {
                     $enfunde->total_pre = $totaliza_presente;
@@ -223,6 +225,7 @@ class EnfundeController extends Controller
 
             return $this->respuesta('success', 'Enfunde reportado correctamente');
         }
+
 
         return $this->respuesta('error', 'Error al intentar guardar los datos');
     }

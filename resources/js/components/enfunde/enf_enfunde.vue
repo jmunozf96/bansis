@@ -606,8 +606,6 @@
                     }
                 });
 
-
-                console.log(myChart);
             },
             resetData: function () {
                 this.idlotero = 0;
