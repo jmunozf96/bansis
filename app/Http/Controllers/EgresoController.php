@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Perfil\PerfilController;
 use App\Http\Controllers\Sistema\UtilidadesController;
+use App\Sisban\Enfunde\ENF_LOTERO;
 use App\Sisban\Enfunde\INV_LOT_FUND;
 use App\Sisban\Enfunde\ENF_DET_EGRESO;
 use App\Sisban\Enfunde\ENF_EGRESO;
@@ -164,48 +165,73 @@ class EgresoController extends Controller
                     }
                 endforeach;
 
+                $lotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $request->idempleado)->first();
+                $request->idempleado = $lotero->id;
+
                 //Validar cuando sea presente o futuro
+                if ($presente) {
+                    $validator = \Validator::make($request->all(), [
+                        'semana' => ['required',
+                            Rule::unique('INV_LOT_FUND')->where(function ($query) use ($request, $item2) {
+                                return $query->where('semana', $request->semana)
+                                    ->where('idlotero', $request->idempleado)
+                                    ->where('idmaterial', $item2->idmaterial)
+                                    ->where('presente', true);
+                            })]
+                    ]);
 
-                $validator = \Validator::make($request->all(), [
-                    'semana' => ['required',
-                        Rule::unique('INV_LOT_FUND')->where(function ($query) use ($request, $item2) {
-                            return $query->where('semana', $request->semana)
-                                ->where('idlotero', $request->idempleado)
-                                ->where('idmaterial', $item2->idmaterial)
-                                ->where('presente', $item2->presente)
-                                ->where('presente', $item2->futuro);
-                        })]
-                ]);
+                    if ($validator->fails()) {
+                        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo', 'presente', 'futuro')
+                            ->where('semana', $request->semana)
+                            ->where('idlotero', $request->idempleado)
+                            ->where('idmaterial', $item2->idmaterial)
+                            ->where('presente', true)->first();
+                    } else {
+                        $inventario = new INV_LOT_FUND();
+                        $inventario->semana = $request->semana;
+                        $inventario->idlotero = $request->idempleado;
+                        $inventario->idmaterial = $item2->idmaterial;
+                        $inventario->presente = true;
+                        $inventario->futuro = false;
+                    }
 
-                if ($validator->fails()) {
-                    $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo')
-                        ->where('semana', $request->semana)
-                        ->where('idlotero', $request->idempleado)
-                        ->where('idmaterial', $item2->idmaterial)->first();
+                    $inventario->saldo = $saldo_pre;
 
-
-                } else {
-                    $inventario = new INV_LOT_FUND();
-                    $inventario->semana = $request->semana;
-                    $inventario->idlotero = $request->idempleado;
-                    $inventario->idmaterial = $item2->idmaterial;
+                    $inventario->status = true;
+                    $inventario->save();
                 }
 
-                if ($presente) {
-                    $inventario->saldo = $saldo_pre;
-                    $inventario->presente = true;
-                    $inventario->futuro = false;
-                } else {
-                    if ($futuro) {
-                        $inventario->saldo = $saldo_fut;
+                if ($futuro) {
+                    $validator2 = \Validator::make($request->all(), [
+                        'semana' => ['required',
+                            Rule::unique('INV_LOT_FUND')->where(function ($query) use ($request, $item2) {
+                                return $query->where('semana', $request->semana)
+                                    ->where('idlotero', $request->idempleado)
+                                    ->where('idmaterial', $item2->idmaterial)
+                                    ->where('futuro', true);
+                            })]
+                    ]);
+
+                    if ($validator2->fails()) {
+                        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo', 'presente', 'futuro')
+                            ->where('semana', $request->semana)
+                            ->where('idlotero', $request->idempleado)
+                            ->where('idmaterial', $item2->idmaterial)
+                            ->where('futuro', true)->first();
+                    } else {
+                        $inventario = new INV_LOT_FUND();
+                        $inventario->semana = $request->semana;
+                        $inventario->idlotero = $request->idempleado;
+                        $inventario->idmaterial = $item2->idmaterial;
                         $inventario->presente = false;
                         $inventario->futuro = true;
                     }
+
+                    $inventario->saldo = $saldo_fut;
+
+                    $inventario->status = true;
+                    $inventario->save();
                 }
-
-                $inventario->status = true;
-                $inventario->save();
-
             endforeach;
 
         }
@@ -230,11 +256,21 @@ class EgresoController extends Controller
             ->where('semana', $semana)
             ->where('idhacienda', $hacienda == '343' ? 1 : 2)
             ->where('status', 1)
-            ->with(['empleado' => function ($query) {
+            ->with(['empleado' => function ($query) use ($semana) {
                 $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                $query->with(['lotero' => function ($query3) {
+                $query->with(['lotero' => function ($query3) use ($semana) {
                     $query3->with(['enfunde' => function ($query) {
                         $query->select('id', 'total_pre', 'total_fut', 'idlotero', 'status', 'count');
+                    }]);
+                    $query3->with(['saldo_semana' => function ($query) use ($semana) {
+                        $query->select('idlotero', 'idmaterial', 'semana', 'presente', 'futuro', 'saldo', 'enfunde')
+                            ->where('presente', true)
+                            ->where('semana', (int)$semana);
+                    }]);
+                    $query3->with(['saldo_ultima_semana' => function ($query) use ($semana) {
+                        $query->select('idlotero', 'idmaterial', 'semana', 'presente', 'futuro', 'saldo', 'enfunde')
+                            ->where('futuro', true)
+                            ->where('semana', (int)$semana - 1);
                     }]);
                 }]);
             }])
@@ -267,10 +303,15 @@ class EgresoController extends Controller
         //PRESENTE O FUTURO
         $detalle = ENF_DET_EGRESO::find($id);
 
+        $lotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $empleado)->first();
+
         $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo')
             ->where('semana', $semana)
-            ->where('idlotero', $empleado)
-            ->where('idmaterial', $detalle->idmaterial)->first();
+            ->where('idlotero', $lotero->id)
+            ->where('idmaterial', $detalle->idmaterial)
+            ->where('presente', $detalle->presente)
+            ->where('futuro', $detalle->futuro)
+            ->first();
 
         if ($detalle->presente) {
             $inventario->saldo = $inventario->saldo - $detalle->cantidad;
@@ -302,7 +343,7 @@ class EgresoController extends Controller
 
                 $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero')
                     ->where('semana', $semana)
-                    ->where('idlotero', $empleado);
+                    ->where('idlotero', $lotero->id);
 
                 $inventario->delete();
 
