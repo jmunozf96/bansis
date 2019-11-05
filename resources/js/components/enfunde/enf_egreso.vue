@@ -615,6 +615,7 @@
                 });
             },
             getAutocompleteProducto: function () {
+                let self = this;
                 var options = {
                     url: function (criterio) {
                         var bodega = $('#bodega').val();
@@ -650,6 +651,8 @@
                             $('#add-despacho').attr('disabled', false);
                             $('#nombre-empleado').attr('disabled', true);
                             $('#cantidad').focus();
+
+                            self.getSaldoPendienteEmpleado(self.empleado, data.codigo);
                         },
                         onKeyEnterEvent: function () {
                             var data = $('#nombre-producto').getSelectedItemData();
@@ -658,6 +661,8 @@
                             $('#add-despacho').attr('disabled', false);
                             $('#nombre-empleado').attr('disabled', true);
                             $('#cantidad').focus();
+
+                            self.getSaldoPendienteEmpleado(self.empleado, data.codigo);
                         },
                     }
                 };
@@ -702,13 +707,10 @@
 
                             $('#detalle-total').val(self.totalizaDespacho());
                         }
-                    })
-
-                self.getSaldoPendienteEmpleado(empleado, semana);
+                    });
             },
-            getSaldoPendienteEmpleado: function (idempleado, semana) {
-                semana = semana - 1;
-                axios.get(`/api/enfunde/saldo_empleado/${idempleado}/${semana}`)
+            getSaldoPendienteEmpleado: function (idempleado, idmaterial) {
+                axios.get(`/api/enfunde/saldo_empleado/${idempleado}/${idmaterial}`)
                     .then(response => {
                         console.log(response.data);
                     });

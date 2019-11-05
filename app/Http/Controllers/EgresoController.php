@@ -23,9 +23,9 @@ class EgresoController extends Controller
 
     function __construct()
     {
-        $this->middleware('auth');
-        $this->middleware('AccesoURL',
-            ['except' => ['save', 'getdespacho', 'deleteDetalle', 'editDetalle', 'respuesta', 'saldopendiente']]);
+        //$this->middleware('auth');
+        /*$this->middleware('AccesoURL',
+            ['except' => ['save', 'getdespacho', 'deleteDetalle', 'editDetalle', 'respuesta', 'saldopendiente']]);*/
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
@@ -141,6 +141,9 @@ class EgresoController extends Controller
                 $despacho_cabecera->save();
             }
 
+            $lotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $request->idempleado)->first();
+            $request->idempleado = $lotero->id;
+
             //Guardar saldo en inventario
             foreach ($this->utilidades->unique_multidim_array($request->despachos, 'idmaterial') as $key2 => $item2):
                 $item2 = (object)$item2;
@@ -165,9 +168,6 @@ class EgresoController extends Controller
                     }
                 endforeach;
 
-                $lotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $request->idempleado)->first();
-                $request->idempleado = $lotero->id;
-
                 //Validar cuando sea presente o futuro
                 if ($presente) {
                     $validator = \Validator::make($request->all(), [
@@ -180,8 +180,10 @@ class EgresoController extends Controller
                             })]
                     ]);
 
+                    $id_inventario_presente = 0;
+
                     if ($validator->fails()) {
-                        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo', 'presente', 'futuro')
+                        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo', 'presente', 'futuro', 'enfunde')
                             ->where('semana', $request->semana)
                             ->where('idlotero', $request->idempleado)
                             ->where('idmaterial', $item2->idmaterial)
@@ -193,9 +195,23 @@ class EgresoController extends Controller
                         $inventario->idmaterial = $item2->idmaterial;
                         $inventario->presente = true;
                         $inventario->futuro = false;
+
+                        //ESTE TRABAJA PARA STATUS INTENTARIO
+                        $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
+                            ->where('idlotero', $request->idempleado)
+                            ->where('idmaterial', $item2->idmaterial)
+                            ->where('status', true)->first();
+
+                        if ($status_futuro) {
+                            $status_futuro->status = false;
+                            $status_futuro->save();
+                        }
                     }
 
+                    $id_inventario_presente = $inventario->id;
+
                     $inventario->saldo = $saldo_pre;
+                    $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
 
                     $inventario->status = true;
                     $inventario->save();
@@ -213,7 +229,7 @@ class EgresoController extends Controller
                     ]);
 
                     if ($validator2->fails()) {
-                        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo', 'presente', 'futuro')
+                        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo', 'presente', 'futuro', 'enfunde')
                             ->where('semana', $request->semana)
                             ->where('idlotero', $request->idempleado)
                             ->where('idmaterial', $item2->idmaterial)
@@ -225,9 +241,28 @@ class EgresoController extends Controller
                         $inventario->idmaterial = $item2->idmaterial;
                         $inventario->presente = false;
                         $inventario->futuro = true;
+
+                        //ESTE TRABAJA PARA STATUS ENTRE SEMANA
+                        $status_presente = INV_LOT_FUND::find($id_inventario_presente);
+                        if ($status_presente->idmaterial == $item2->idmaterial) {
+                            $status_presente->status = false;
+                            $status_presente->save();
+                        } else {
+                            //ESTE TRABAJA PARA STATUS INTENTARIO
+                            $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
+                                ->where('idlotero', $request->idempleado)
+                                ->where('idmaterial', $item2->idmaterial)
+                                ->where('status', true)->first();
+
+                            if ($status_futuro) {
+                                $status_futuro->status = false;
+                                $status_futuro->save();
+                            }
+                        }
                     }
 
                     $inventario->saldo = $saldo_fut;
+                    $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
 
                     $inventario->status = true;
                     $inventario->save();
@@ -259,18 +294,14 @@ class EgresoController extends Controller
             ->with(['empleado' => function ($query) use ($semana) {
                 $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
                 $query->with(['lotero' => function ($query3) use ($semana) {
-                    $query3->with(['enfunde' => function ($query) {
-                        $query->select('id', 'total_pre', 'total_fut', 'idlotero', 'status', 'count');
+                    $query3->with(['enfunde' => function ($query) use ($semana) {
+                        $query->select('id', 'total_pre', 'total_fut', 'idlotero', 'status', 'count')
+                            ->where('semana', $semana);
                     }]);
                     $query3->with(['saldo_semana' => function ($query) use ($semana) {
-                        $query->select('idlotero', 'idmaterial', 'semana', 'presente', 'futuro', 'saldo', 'enfunde')
+                        $query->select('idlotero', 'idmaterial', 'semana', 'presente', 'futuro', 'saldo', 'enfunde', 'pendiente')
                             ->where('presente', true)
                             ->where('semana', (int)$semana);
-                    }]);
-                    $query3->with(['saldo_ultima_semana' => function ($query) use ($semana) {
-                        $query->select('idlotero', 'idmaterial', 'semana', 'presente', 'futuro', 'saldo', 'enfunde')
-                            ->where('futuro', true)
-                            ->where('semana', (int)$semana - 1);
                     }]);
                 }]);
             }])
@@ -305,7 +336,8 @@ class EgresoController extends Controller
 
         $lotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $empleado)->first();
 
-        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo')
+        $id_inventario_presente = 0;
+        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo', 'pendiente', 'enfunde')
             ->where('semana', $semana)
             ->where('idlotero', $lotero->id)
             ->where('idmaterial', $detalle->idmaterial)
@@ -315,11 +347,13 @@ class EgresoController extends Controller
 
         if ($detalle->presente) {
             $inventario->saldo = $inventario->saldo - $detalle->cantidad;
+            $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
             $inventario->presente = true;
             $inventario->futuro = false;
         } else {
             if ($detalle->futuro) {
                 $inventario->saldo = $inventario->saldo - $detalle->cantidad;
+                $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
                 $inventario->presente = false;
                 $inventario->futuro = true;
             }
@@ -331,6 +365,49 @@ class EgresoController extends Controller
 
             if (intval($inventario->saldo) == 0) {
                 $inventario->delete();
+
+                $status_presente = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'status')
+                    ->where('semana', $semana)
+                    ->where('idlotero', $lotero->id)->first();
+
+                if ($status_presente) {
+                    if ($status_presente->idmaterial == $detalle->idmaterial) {
+                        $status_presente->status = true;
+                        $status_presente->save();
+                    }else{
+                        $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
+                            ->where('idlotero', $lotero->id)
+                            ->where('idmaterial', $detalle->idmaterial)
+                            ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and status = 0)")
+                            ->where('status', false)
+                            ->get();
+                        if ($status_futuro) {
+                            if (count($status_futuro) > 1) {
+                                $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
+                                    ->where('idlotero', $lotero->id)
+                                    ->where('idmaterial', $detalle->idmaterial)
+                                    ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and idmaterial = " . $detalle->idmaterial . " and status = 0)")
+                                    ->where('status', false)
+                                    ->where('futuro', true)
+                                    ->first();
+
+                                $status_futuro->status = true;
+                                $status_futuro->save();
+                            } else {
+                                $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
+                                    ->where('idlotero', $lotero->id)
+                                    ->where('idmaterial', $detalle->idmaterial)
+                                    ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and status = 0)")
+                                    ->where('status', false)
+                                    ->first();
+
+                                $status_futuro->status = true;
+                                $status_futuro->save();
+                            }
+                        }
+
+                    }
+                }
             } else {
                 $inventario->save();
             }
@@ -346,6 +423,39 @@ class EgresoController extends Controller
                     ->where('idlotero', $lotero->id);
 
                 $inventario->delete();
+
+                $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
+                    ->where('idlotero', $lotero->id)
+                    ->where('idmaterial', $detalle->idmaterial)
+                    ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and status = 0)")
+                    ->where('status', false)
+                    ->get();
+
+
+                if ($status_futuro) {
+                    if (count($status_futuro) > 1) {
+                        $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
+                            ->where('idlotero', $lotero->id)
+                            ->where('idmaterial', $detalle->idmaterial)
+                            ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and idmaterial = " . $detalle->idmaterial . " and status = 0)")
+                            ->where('status', false)
+                            ->where('futuro', true)
+                            ->first();
+
+                        $status_futuro->status = true;
+                        $status_futuro->save();
+                    } else {
+                        $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
+                            ->where('idlotero', $lotero->id)
+                            ->where('idmaterial', $detalle->idmaterial)
+                            ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and status = 0)")
+                            ->where('status', false)
+                            ->first();
+
+                        $status_futuro->status = true;
+                        $status_futuro->save();
+                    }
+                }
 
             } else {
                 //Totaliza detalle
@@ -364,8 +474,7 @@ class EgresoController extends Controller
         return $this->respuesta('success', 'Registro eliminado con éxito!');
     }
 
-    public
-    function editDetalle(Request $request)
+    public function editDetalle(Request $request)
     {
         $detalle = ENF_DET_EGRESO::select('id', 'cantidad')->find($request->id);
         $detalle->cantidad = $request->cantidad;
@@ -387,8 +496,7 @@ class EgresoController extends Controller
     }
 
 
-    public
-    function respuesta($status, $messagge)
+    public function respuesta($status, $messagge)
     {
         $data = [
             'status' => $status,
@@ -398,15 +506,13 @@ class EgresoController extends Controller
         return response()->json($data, 200);
     }
 
-    public
-    function saldopendiente($idempleado, $semana, $idmaterial)
+    public function saldopendiente($idempleado, $idmaterial)
     {
         $idlotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $idempleado)->first();
-        $inventario = INV_LOT_FUND::select('idlotero', 'semana', 'saldo', 'enfunde', 'futuro')
+        $inventario = INV_LOT_FUND::select('idlotero', 'semana', 'pendiente', 'presente', 'futuro')
             ->where('idlotero', $idlotero->id)
-            ->where('semana', $semana)
             ->where('idmaterial', $idmaterial)
-            ->where('futuro', true)->first();
+            ->where('status', 1)->first();
 
         return $inventario;
     }

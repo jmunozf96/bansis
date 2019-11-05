@@ -20,9 +20,10 @@ class CreateInventarioFundas extends Migration
             $table->integer('idmaterial');
             $table->integer('saldo');
             $table->integer('enfunde')->nullable();
+            $table->integer('pendiente')->nullable()->default(0);
             $table->boolean('presente')->nullable();
             $table->boolean('futuro')->nullable();
-            $table->boolean('status');
+            $table->boolean('status')->nullable()->default(false);
             $table->timestamps();
         });
     }

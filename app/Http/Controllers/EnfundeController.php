@@ -204,25 +204,34 @@ class EnfundeController extends Controller
                 $resp = $detalle->save();
             endforeach;
 
-            $lotero = ENF_LOTERO::find($request->lotero);
+            //$lotero = ENF_LOTERO::select('id', 'idempleado')->where('id', $request->lotero)->first();
 
             if ($request->presente) {
-                $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'enfunde', 'presente')
+                $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'saldo', 'enfunde', 'pendiente', 'presente')
                     ->where('semana', $request->semana)
-                    ->where('idlotero', $lotero->idempleado)
+                    ->where('idlotero', $request->lotero)
                     ->where('presente', true)->first();
 
-                $inventario->enfunde = $totaliza_presente;
-                $inventario->save();
+                if ($inventario) {
+                    $inventario->enfunde = $totaliza_presente;
+                    $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
+                    $inventario->status = true;
+                    $inventario->save();
+                }
+
             } else {
                 if ($request->futuro) {
-                    $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'enfunde', 'futuro')
+                    $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'saldo', 'enfunde', 'pendiente', 'futuro')
                         ->where('semana', $request->semana)
-                        ->where('idlotero', $lotero->idempleado)
+                        ->where('idlotero', $request->lotero)
                         ->where('futuro', true)->first();
 
-                    $inventario->enfunde = $totaliza_futuro;
-                    $inventario->save();
+                    if ($inventario) {
+                        $inventario->enfunde = $totaliza_futuro;
+                        $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
+                        $inventario->status = true;
+                        $inventario->save();
+                    }
                 }
             }
 
