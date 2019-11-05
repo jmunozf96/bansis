@@ -103,11 +103,12 @@
     import moment from 'moment/moment';
     import SweetAlert from 'sweetalert2/src/sweetalert2';
     import BootstrapVue from 'bootstrap-vue';
+
     Vue.use(BootstrapVue);
 
     const Swal = SweetAlert;
-    export default{
-        data(){
+    export default {
+        data() {
             return {
                 hacienda: $('#id-hacienda').val(),
                 fecha: $('#fecha').val(),
@@ -129,7 +130,7 @@
                 enfunde: null,
             }
         },
-        mounted(){
+        mounted() {
             var self = this;
             moment.locale('es');
 
@@ -379,7 +380,6 @@
                                     })
                                 }
                             }
-
 
                         })
                         .catch(error => {
@@ -703,6 +703,15 @@
                             $('#detalle-total').val(self.totalizaDespacho());
                         }
                     })
+
+                self.getSaldoPendienteEmpleado(empleado, semana);
+            },
+            getSaldoPendienteEmpleado: function (idempleado, semana) {
+                semana = semana - 1;
+                axios.get(`/api/enfunde/saldo_empleado/${idempleado}/${semana}`)
+                    .then(response => {
+                        console.log(response.data);
+                    });
             },
             getEnfunde: function (enfunde, array) {
                 if (enfunde) {
@@ -762,7 +771,7 @@
                 $('#nombre-producto').val('');
                 $('#cantidad').val('');
             },
-            datasweetalert(){
+            datasweetalert() {
                 var data = {
                     title: 'Estas seguro de realizar esta acción?',
                     text: "Tu no podras revertir esto!",

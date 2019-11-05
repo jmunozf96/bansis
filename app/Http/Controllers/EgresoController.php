@@ -25,7 +25,7 @@ class EgresoController extends Controller
     {
         $this->middleware('auth');
         $this->middleware('AccesoURL',
-            ['except' => ['save', 'getdespacho', 'deleteDetalle', 'editDetalle', 'respuesta']]);
+            ['except' => ['save', 'getdespacho', 'deleteDetalle', 'editDetalle', 'respuesta', 'saldopendiente']]);
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
@@ -399,13 +399,15 @@ class EgresoController extends Controller
     }
 
     public
-    function saldopendiente(Request $request)
+    function saldopendiente($idempleado, $semana, $idmaterial)
     {
-        //Aqui debemos consultar el saldo que tenga pendiente
-        $idmaterial = $request->get('idmaterial');
-        $semana = $request->get('semana');
-        $idhacienda = $request->get('hacienda');
-        $idempleado = $request->get('idempleado');
+        $idlotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $idempleado)->first();
+        $inventario = INV_LOT_FUND::select('idlotero', 'semana', 'saldo', 'enfunde', 'futuro')
+            ->where('idlotero', $idlotero->id)
+            ->where('semana', $semana)
+            ->where('idmaterial', $idmaterial)
+            ->where('futuro', true)->first();
 
+        return $inventario;
     }
 }

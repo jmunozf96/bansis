@@ -46,6 +46,7 @@ Route::get('/sistema/{modulo}/{objeto}/{idRecurso}/registro_enfunde', 'EnfundeCo
 Route::post('/sistema/enfunde/registro/save', 'EnfundeController@save');
 Route::get('/sistema/axios/enfunde/lotero/{idlotero}/{semana}', 'EnfundeController@getLotero')->name('lotero');
 
+Route::get('/api/enfunde/saldo_empleado/{idempleado}/{semana}', 'EgresoController@saldopendiente');
 Route::get('/api/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');
 Route::get('/api/loteros/{criterio}', 'EnfundeController@Loteros')->name('loteros');
 Route::get('/api/calendario/{fecha?}', 'Sistema\UtilidadesController@getSemana')->name('calendario');
