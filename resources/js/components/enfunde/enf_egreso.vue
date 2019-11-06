@@ -1,18 +1,64 @@
 <template>
-    <table class="table table-bordered table-hover" id="despacho-items">
-        <thead>
-        <tr class="text-center">
-            <th scope="col" style="width: 5%; font-size: 18px">Accion</th>
-            <th scope="col" style="width: 10%; font-size: 18px">Fecha</th>
-            <th scope="col" style="font-size: 18px">Detalle</th>
-            <th style="font-size: 18px">Reemp.</th>
-            <th scope="col" style="width: 15%; font-size: 18px">Presente</th>
-            <th scope="col" style="width: 15%; font-size: 18px">Futuro</th>
-        </tr>
-        </thead>
-        <tbody id="detalle">
-        <tr v-for="(egreso, index) in despachos" class="table-sm" v-if="!('enfunde' in despachos[index])">
-            <td style="width: 10%" class="text-center">
+    <div class="container-fluid p-0">
+        <table class="table table-bordered table-hover" v-if="saldo">
+            <thead>
+            <tr class="text-center">
+                <th style="width: 5%">...</th>
+                <th style="width: 15%; font-size: 18px">Ultimo despacho</th>
+                <th style="width: 15%; font-size: 18px">Saldo</th>
+                <th style="width: 15%; font-size: 18px">Status</th>
+            </tr>
+            </thead>
+            <tbody class="table-sm">
+            <tr style="font-size: 16px" class="text-center">
+                <td>
+                    <div class="spinner-grow" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </td>
+                <td>Semana <b>{{saldo.semana}}</b></td>
+                <td><b style="color: red; font-size: 20px">{{saldo.pendiente}} fundas.</b></td>
+                <td>
+                    <div class="custom-control custom-switch" v-if="saldo.presente">
+                        <input type="checkbox" class="custom-control-input" disabled id="customSwitch1" checked>
+                        <label class="custom-control-label" for="customSwitch1">Presente</label>
+                    </div>
+                    <div class="custom-control custom-switch" v-else-if="saldo.futuro">
+                        <input type="checkbox" class="custom-control-input" disabled id="customSwitch2" checked>
+                        <label class="custom-control-label" for="customSwitch1">Futuro</label>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="position-absolute w-100 d-flex flex-column p-4">
+            <div class="toast ml-auto" role="alert" data-delay="1200" data-autohide="false">
+                <div class="toast-header">
+                    <strong class="mr-auto text-primary" id="titulo">Toast</strong>
+                    <small class="text-muted">3 mins ago</small>
+                    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="toast-body" id="contenido">
+                    Hey, there! This is a Bootstrap 4 toast.
+                </div>
+            </div>
+        </div>
+        <table class="table table-bordered table-hover" id="despacho-items">
+            <thead>
+            <tr class="text-center">
+                <th scope="col" style="width: 5%; font-size: 18px">Accion</th>
+                <th scope="col" style="width: 10%; font-size: 18px">Fecha</th>
+                <th scope="col" style="font-size: 18px">Detalle</th>
+                <th style="font-size: 18px">Reemp.</th>
+                <th scope="col" style="width: 15%; font-size: 18px">Presente</th>
+                <th scope="col" style="width: 15%; font-size: 18px">Futuro</th>
+            </tr>
+            </thead>
+            <tbody id="detalle">
+            <tr v-for="(egreso, index) in despachos" class="table-sm" v-if="!('enfunde' in despachos[index])">
+                <td style="width: 10%" class="text-center">
                 <span v-if="!('enfunde' in despachos[index])">
                     <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha
                         && despacho.presente == egreso.presente && despacho.futuro == egreso.futuro
@@ -33,10 +79,10 @@
                     </span>
                 </span>
 
-            </td>
-            <td class="text-center" style="font-size: 16px">{{egreso.fecha}}</td>
-            <td style="font-size: 16px">{{egreso.desmaterial}}</td>
-            <td class="text-center">
+                </td>
+                <td class="text-center" style="font-size: 16px">{{egreso.fecha}}</td>
+                <td style="font-size: 16px">{{egreso.desmaterial}}</td>
+                <td class="text-center">
                 <span v-if="!('enfunde' in despachos[index])">
                     <b-button variant="primary"
                               v-b-popover.hover.top="egreso.reemplazo ? egreso.empleado : 'No hace relevo'"
@@ -44,8 +90,8 @@
                     {{egreso.reemplazo ? "Si" : "No"}}
                 </b-button>
                 </span>
-            </td>
-            <td class="text-center" style="font-size: 16px">
+                </td>
+                <td class="text-center" style="font-size: 16px">
                     <span v-if="egreso.presente">
                         <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha
                         && despacho.presente == egreso.presente && despacho.futuro == egreso.futuro
@@ -59,9 +105,9 @@
                             {{egreso.cantidad}}
                         </span>
                     </span>
-                <span v-else></span>
-            </td>
-            <td class="text-center" style="font-size: 16px">
+                    <span v-else></span>
+                </td>
+                <td class="text-center" style="font-size: 16px">
                     <span v-if="egreso.futuro">
                         <span v-if="statusForm && despacho.idmaterial == egreso.idmaterial && despacho.fecha == egreso.fecha
                             && despacho.presente == egreso.presente && despacho.futuro == egreso.futuro
@@ -75,27 +121,32 @@
                             {{egreso.cantidad}}
                         </span>
                     </span>
-                <span v-else></span>
-            </td>
-        </tr>
-        <tr v-for="(egreso, index) in dato_enfunde" class="table-sm" v-if="('enfunde' in dato_enfunde[index])">
-            <td style="width: 10%" class="text-center"></td>
-            <td class="text-center" style="font-size: 16px">{{egreso.fecha}}</td>
-            <td style="font-size: 16px"><b>{{egreso.desmaterial}}</b></td>
-            <td class="text-center"></td>
-            <td class="text-center" style="font-size: 16px">
+                    <span v-else></span>
+                </td>
+            </tr>
+            <tr v-for="(egreso, index) in dato_enfunde" class="table-sm" v-if="('enfunde' in dato_enfunde[index])">
+                <td style="width: 10%" class="text-center"></td>
+                <td class="text-center" style="font-size: 16px">{{egreso.fecha}}</td>
+                <td style="font-size: 16px"><b>{{egreso.desmaterial}}</b></td>
+                <td class="text-center"></td>
+                <td class="text-center" style="font-size: 16px">
                <span v-if="egreso.presente">
-                   <b style="color: red">{{egreso.cantidad}}</b>
+                   <b style="color: darkgreen">{{egreso.cantidad}}</b>
                </span>
-            </td>
-            <td class="text-center" style="font-size: 16px">
+                </td>
+                <td class="text-center" style="font-size: 16px">
                 <span v-if="egreso.futuro">
-                    <b style="color: red">{{egreso.cantidad}}</b>
+                    <b style="color: darkgreen">{{egreso.cantidad}}</b>
                 </span>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="form-row ml-2 mr-2 mb-3">
+            <input id="detalle-total" type="text" style="font-size: 22px"
+                   class="form-control form-control-lg bg-white text-right" disabled>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -128,6 +179,7 @@
                 despachos: [],
                 dato_enfunde: [],
                 enfunde: null,
+                saldo: null
             }
         },
         mounted() {
@@ -159,7 +211,7 @@
                 }
             });
 
-            if ($('#nombre-empleado').val() != "") {
+            if ($('#nombre-empleado').val() != null) {
                 self.empleado = $('#nombre-empleado').val();
                 $('#nombre-producto').attr('disabled', false);
                 $('#nombre-producto').focus();
@@ -170,9 +222,6 @@
             }
 
             $('#nombre-empleado').on('change', function () {
-                if ($(this).val() == '') {
-                    return;
-                }
                 self.empleado = $(this).val();
                 $('#nombre-producto').attr('disabled', false);
                 $('#nombre-producto').focus();
@@ -198,8 +247,6 @@
             $('#btn-nuevo').on({
                 click: function (e) {
                     self.resetForm();
-                    $('#nombre-empleado').attr('disabled', false);
-                    $('#nombre-empleado').focus();
                     $('#nombre-producto').attr('disabled', true);
                     $('#cantidad').attr('disabled', true);
                     $('#add-despacho').attr('disabled', true);
@@ -212,13 +259,13 @@
                 var radios = $(this);
                 if (radios.filter('[value=futuro]').is(':checked')) {
                     if (self.enfunde) {
-                        Swal.fire({
+                        /*Swal.fire({
                             position: 'center',
                             type: 'info',
                             title: 'Lotero tiene enfunde reportado: ' + self.enfunde.total_pre,
                             showConfirmButton: false,
                             timer: 1500
-                        });
+                        });*/
 
                         //Logica para saldo de fundas en la semana
                         //Traer el total de enfunde presente y futuro
@@ -336,14 +383,12 @@
                                 self.dato_enfunde = [];
 
                                 if (respuesta.reg) {
-                                    console.log(respuesta.reg);
-
+                                    /*console.log(respuesta.reg);
                                     self.enfunde = respuesta.reg.empleado.lotero.enfunde;
-
                                     for (var x in respuesta.reg.egresos) {
                                         let egreso = {
                                             id: respuesta.reg.egresos[x].id,
-                                            fecha: (respuesta.reg.egresos[x].fecha).toString("dd/MM/yyyy"),
+                                            fecha: (respuesta.reg.egresos[x].fecha),
                                             idmaterial: respuesta.reg.egresos[x].idmaterial,
                                             desmaterial: respuesta.reg.egresos[x].get_material.nombre,
                                             reemplazo: +respuesta.reg.egresos[x].reemplazo,
@@ -357,10 +402,9 @@
 
                                         self.despachos.push(egreso);
                                     }
+                                    self.getEnfunde(self.enfunde, self.dato_enfunde);*/
 
-                                    self.getEnfunde(self.enfunde, self.dato_enfunde);
-
-
+                                    self.resetForm();
                                     $('#detalle-total').val(self.totalizaDespacho());
 
                                     Swal.fire({
@@ -649,7 +693,6 @@
                             $('#codigo-producto').val(data.codigo);
                             $('#cantidad').attr('disabled', false);
                             $('#add-despacho').attr('disabled', false);
-                            $('#nombre-empleado').attr('disabled', true);
                             $('#cantidad').focus();
 
                             self.getSaldoPendienteEmpleado(self.empleado, data.codigo);
@@ -659,7 +702,6 @@
                             $('#codigo-producto').val(data.codigo);
                             $('#cantidad').attr('disabled', false);
                             $('#add-despacho').attr('disabled', false);
-                            $('#nombre-empleado').attr('disabled', true);
                             $('#cantidad').focus();
 
                             self.getSaldoPendienteEmpleado(self.empleado, data.codigo);
@@ -679,40 +721,54 @@
             getDataEmpleado: function (empleado, semana, hacienda) {
                 let self = this;
                 self.despachos = [];
-                axios.get(`/sistema/enfunde/despacho/${empleado}/${semana}/${hacienda}/1`)
-                    .then(response => {
-                        if (response.data) {
-                            console.log(response.data);
-                            self.enfunde = response.data.empleado.lotero.enfunde;
+                if (empleado != null) {
+                    axios.get(`/sistema/enfunde/despacho/${empleado}/${semana}/${hacienda}/1`)
+                        .then(response => {
+                            if (response.data) {
+                                console.log(response.data);
+                                self.enfunde = response.data.empleado.lotero.enfunde;
 
-                            for (var x in response.data.egresos) {
-                                let egreso = {
-                                    id: response.data.egresos[x].id,
-                                    fecha: (response.data.egresos[x].fecha).toString("dd/MM/yyyy"),
-                                    idmaterial: response.data.egresos[x].idmaterial,
-                                    desmaterial: response.data.egresos[x].get_material.nombre,
-                                    reemplazo: +response.data.egresos[x].reemplazo,
-                                    idempleado: +response.data.egresos[x].idempleado,
-                                    empleado: response.data.egresos[x].nom_reemplazo != null ? response.data.egresos[x].nom_reemplazo.nombre : '',
-                                    cantidad: +response.data.egresos[x].cantidad,
-                                    presente: +response.data.egresos[x].presente,
-                                    futuro: +response.data.egresos[x].futuro,
-                                    estado: response.data.egresos[x].status,
-                                };
+                                for (var x in response.data.egresos) {
+                                    let egreso = {
+                                        id: response.data.egresos[x].id,
+                                        fecha: (response.data.egresos[x].fecha).toString("dd/MM/yyyy"),
+                                        idmaterial: response.data.egresos[x].idmaterial,
+                                        desmaterial: response.data.egresos[x].get_material.nombre,
+                                        reemplazo: +response.data.egresos[x].reemplazo,
+                                        idempleado: +response.data.egresos[x].idempleado,
+                                        empleado: response.data.egresos[x].nom_reemplazo != null ? response.data.egresos[x].nom_reemplazo.nombre : '',
+                                        cantidad: +response.data.egresos[x].cantidad,
+                                        presente: +response.data.egresos[x].presente,
+                                        futuro: +response.data.egresos[x].futuro,
+                                        estado: response.data.egresos[x].status,
+                                    };
 
-                                self.despachos.push(egreso);
+                                    self.despachos.push(egreso);
+                                }
+
+                                if (self.enfunde) {
+                                    $('input[name=status-semana][value=futuro]').prop('checked', true);
+                                    $('input[name=status-semana][value=presente]').prop('disabled', true);
+                                }
+
+                                self.getEnfunde(self.enfunde, self.dato_enfunde);
+
+                                $('#detalle-total').val(self.totalizaDespacho());
                             }
-
-                            self.getEnfunde(self.enfunde, self.dato_enfunde);
-
-                            $('#detalle-total').val(self.totalizaDespacho());
-                        }
-                    });
+                        });
+                }
             },
             getSaldoPendienteEmpleado: function (idempleado, idmaterial) {
+                let self = this;
+                self.saldo = null;
                 axios.get(`/api/enfunde/saldo_empleado/${idempleado}/${idmaterial}`)
                     .then(response => {
-                        console.log(response.data);
+                        if (response.data) {
+                            self.saldo = response.data;
+                            document.getElementById('titulo').innerHTML = 'Notificacion';
+                            document.getElementById('contenido').innerHTML = 'Lotero tiene un saldo pendiente: ' + self.saldo.pendiente;
+                            $('.toast').toast('show');
+                        }
                     });
             },
             getEnfunde: function (enfunde, array) {
@@ -724,7 +780,7 @@
                             reemplazo: 0,
                             idempleado: 0,
                             empleado: '',
-                            cantidad: -(parseInt(enfunde.total_pre)),
+                            cantidad: (parseInt(enfunde.total_pre)),
                             presente: 1,
                             futuro: 0,
                             estado: 0,
@@ -739,7 +795,7 @@
                             reemplazo: 0,
                             idempleado: 0,
                             empleado: '',
-                            cantidad: -(parseInt(enfunde.total_fut)),
+                            cantidad: (parseInt(enfunde.total_fut)),
                             presente: 0,
                             futuro: 1,
                             estado: 0,

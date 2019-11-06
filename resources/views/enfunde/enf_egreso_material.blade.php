@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Egreso Bodega')
 @section('content')
+
     <div class="container-fluid">
         <!--nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -72,76 +73,6 @@
                                 <small>Futuro</small>
                             </div>
                         </div>
-                        <hr class="mt-0">
-                        <div class="container-fluid p-0">
-                            <div class="form-row mb-0">
-                                <div class="form-group col-md-2 d-none">
-                                    <label>Codigo Empleado</label>
-                                    <div class="input-group flex-nowrap">
-                                        <div class="input-group-prepend">
-                                                    <span class="input-group-text" id="addon-wrapping">
-                                                    <i class="fas fa-barcode"></i>
-                                                    </span>
-                                        </div>
-                                        <input type="text" id="codigo-empleado"
-                                               class="form-control form-control-lg bg-white" placeholder="Codigo"
-                                               aria-label="Codigo" aria-describedby="addon-wrapping" disabled>
-                                    </div>
-                                </div>
-                                <div class="form-group col-md-12">
-                                    <label>Nombre | Apellido - Empleado</label>
-                                    {{--<input type="text" class="form-control  form-control-lg text-dark"
-                                           placeholder="Empleado"
-                                           id="nombre-empleado"
-                                           oninput="this.value = this.value.toUpperCase()">--}}
-                                    <select class="selectpicker show-tick form-control form-control-lg"
-                                            data-live-search="true" data-style="btn-outline-dark"
-                                            title="Seleccionar lotero ..."
-                                            id="nombre-empleado">
-                                        <option value=""></option>
-                                        <optgroup label="Loteros con saldo de fundas" data-max-options="2">
-                                            @foreach($loteros as $lotero)
-                                                @if($lotero->fundas)
-                                                    <option data-subtext="Tiene fundas despachada"
-                                                            value="{{$lotero->idempleado}}" {{isset($_GET['lotero']) ? $lotero->idempleado == $_GET['lotero'] ? 'selected' : '' : ''}}>{{$lotero->empleado->nombre}}</option>
-                                                @endif
-                                            @endforeach
-                                        </optgroup>
-                                        <optgroup label="Loteros pendientes despacho" data-max-options="2">
-                                            @foreach($loteros as $lotero)
-                                                @if(!$lotero->fundas)
-                                                    <option value="{{$lotero->idempleado}}">{{$lotero->empleado->nombre}}</option>
-                                                @endif
-                                            @endforeach
-                                        </optgroup>
-
-                                    </select>
-                                    <small>Buscar empleado por nombre o apellido</small>
-                                </div>
-                            </div>
-                            <div class="form-row mb-2 d-none">
-                                <div class="form-group col-md-12 mb-0 d-none d-md-block d-lg-block">
-                                    <input type="text" class="form-control form-control-lg bg-dark"
-                                           placeholder="Detalle"
-                                           value="Semana actual: {{$semana[0]->semana}} / Saldo pendiente: 0"
-                                           id="detalle" style="color: #41DB00; font-size: 35px"
-                                           oninput="this.value = this.value.toUpperCase()" disabled>
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="custom-control custom-radio custom-control-inline">
-                                    <input type="radio" id="presente" value="presente" name="status-semana"
-                                           class="custom-control-input" checked>
-                                    <label class="custom-control-label" for="presente">Despacho para cinta
-                                        presente</label>
-                                </div>
-                                <div class="custom-control custom-radio custom-control-inline">
-                                    <input type="radio" id="futuro" value="futuro" name="status-semana"
-                                           class="custom-control-input">
-                                    <label class="custom-control-label" for="futuro">Despacho para cinta futuro</label>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -150,8 +81,58 @@
             <div class="container-fluid col-md-12 mt-2">
                 <div class="card">
                     <div class="card-body">
-                        <div class="form-row">
-                            <div class="form-group col-md-8  mb-0">
+                        <div class="form-row col-12 mb-0">
+                            <div class="form-group col-md-2 d-none">
+                                <label>Codigo Empleado</label>
+                                <div class="input-group flex-nowrap">
+                                    <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="addon-wrapping">
+                                                    <i class="fas fa-barcode"></i>
+                                                    </span>
+                                    </div>
+                                    <input type="text" id="codigo-empleado"
+                                           class="form-control form-control-lg bg-white" placeholder="Codigo"
+                                           aria-label="Codigo" aria-describedby="addon-wrapping" disabled>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                {{--<input type="text" class="form-control  form-control-lg text-dark"
+                                       placeholder="Empleado"
+                                       id="nombre-empleado"
+                                       oninput="this.value = this.value.toUpperCase()">--}}
+                                <select class="selectpicker show-tick form-control form-control-lg"
+                                        data-live-search="true" data-style="btn-outline-dark"
+                                        id="nombre-empleado">
+                                    <option value="" selected disabled>Seleccione un lotero</option>
+                                    <optgroup label="Loteros con saldo de fundas" data-max-options="2">
+                                        @foreach($loteros as $lotero)
+                                            @if($lotero->fundas)
+                                                <option data-subtext="Tiene fundas despachada"
+                                                        value="{{$lotero->idempleado}}" {{isset($_GET['lotero']) ? $lotero->idempleado == $_GET['lotero'] ? 'selected' : '' : ''}}>{{$lotero->empleado->nombre}}</option>
+                                            @endif
+                                        @endforeach
+                                    </optgroup>
+                                    <optgroup label="Loteros pendientes despacho" data-max-options="2">
+                                        @foreach($loteros as $lotero)
+                                            @if(!$lotero->fundas)
+                                                <option value="{{$lotero->idempleado}}">{{$lotero->empleado->nombre}}</option>
+                                            @endif
+                                        @endforeach
+                                    </optgroup>
+
+                                </select>
+                                <div class="custom-control custom-radio custom-control-inline mt-1 mb-0">
+                                    <input type="radio" id="presente" value="presente" name="status-semana"
+                                           class="custom-control-input" checked>
+                                    <label class="custom-control-label" for="presente">Presente</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline mt-1 mb-0">
+                                    <input type="radio" id="futuro" value="futuro" name="status-semana"
+                                           class="custom-control-input">
+                                    <label class="custom-control-label" for="futuro">Futuro</label>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-5  mb-0">
                                 <input type="hidden" id="codigo-producto">
                                 <input type="text" class="form-control  form-control-lg text-dark"
                                        placeholder="Buscar producto"
@@ -160,16 +141,16 @@
                                 <div class="my-1">
                                     <div class="custom-control custom-checkbox mr-sm-2">
                                         <input type="checkbox" class="custom-control-input" id="id-reemplazo">
-                                        <label class="custom-control-label" for="id-reemplazo">Reemplazo</label>
+                                        <label class="custom-control-label" for="id-reemplazo">Despacho reemplazo</label>
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group col-md-3 col-8  mb-0">
+                            <div class="form-group col-md-2 col-8  mb-0">
                                 <input type="number" style="font-size: 20px" class="form-control bg-white form-control-lg" id="cantidad"
                                        placeholder="0.00">
-                                <small>Ingrese la cantidad a despachar</small>
+                                <small>Cantidad</small>
                             </div>
-                            <div class="form-group  mb-0">
+                            <div class="form-group col-md-1 mb-0">
                                 <button type="button" class="btn btn-primary btn-lg" style="font-size: 20px" id="add-despacho">+</button>
                             </div>
                         </div>
@@ -179,13 +160,7 @@
             <div class="container-fluid col-md-12 mt-2">
                 <div class="card">
                     <div class="card-body p-0">
-                        <div class="container-fluid p-0">
-                            <enfunde-egreso></enfunde-egreso>
-                            <div class="form-row ml-2 mr-2 mb-3">
-                                <input id="detalle-total" type="text" style="font-size: 22px"
-                                       class="form-control form-control-lg bg-white text-right" disabled>
-                            </div>
-                        </div>
+                        <enfunde-egreso></enfunde-egreso>
                     </div>
                     <div class="card-footer">
                         <div class="form-row float-right">
@@ -210,7 +185,6 @@
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="emp-reemplazo" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
