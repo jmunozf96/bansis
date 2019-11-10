@@ -352,7 +352,7 @@
                 click: function (e) {
                     e.preventDefault();
 
-                    let object_data = {
+                    let data = {
                         fecha: self.fecha,
                         semana: $('#semana').val(),
                         hacienda: self.hacienda,
@@ -365,40 +365,26 @@
 
                     $('#btn-save').attr('disabled', true);
 
-                    axios.post('/sistema/enfunde/despacho/save', object_data)
+                    axios.post('/sistema/enfunde/despacho/save', {json: JSON.stringify(data)})
                         .then(response => {
                             let respuesta = response.data;
-                            let tipo = 'danger', title = 'Error al intentar guardar el registro';
                             console.log(respuesta)
-                            if (respuesta.code == 200) {
-                                tipo = 'success';
-                                title = 'Registro guardado con éxito';
-                                self.despachos = [];
-                                self.dato_enfunde = [];
-                                if (respuesta.reg) {
-                                    self.resetForm();
-                                    $('#detalle-total').val(self.totalizaDespacho());
-                                    Swal.fire({
-                                        position: 'top-end',
-                                        type: tipo,
-                                        title: title,
-                                        showConfirmButton: false,
-                                        timer: 1500
-                                    });
-                                    $('#btn-save').attr('disabled', false);
+                            let tipo = 'danger', title = 'Error al intentar guardar el registro';
+                            if (respuesta.code == 202) {
+                                self.resetForm();
+                                $('#detalle-total').val(self.totalizaDespacho());
+                                Swal.fire({
+                                    position: 'top-end',
+                                    type: respuesta.status,
+                                    title: respuesta.message,
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
+                                $('#btn-save').attr('disabled', false);
 
-                                    $('#nombre-empleado').html(respuesta.render.html);
-                                    $('#nombre-empleado').val("");
-                                    $("#nombre-empleado").selectpicker("refresh");
-                                } else {
-                                    Swal.fire({
-                                        position: 'top-end',
-                                        type: 'info',
-                                        title: 'Despacho de la semana cerrado',
-                                        showConfirmButton: false,
-                                        timer: 1500
-                                    })
-                                }
+                                $('#nombre-empleado').html(respuesta.render.html);
+                                $('#nombre-empleado').val("");
+                                $("#nombre-empleado").selectpicker("refresh");
                             }
 
                         })
@@ -548,58 +534,6 @@
                 this.statusForm = false;
                 $('#detalle-total').val(this.totalizaDespacho());
             },
-            /*getAutocompleteEmpleado: function () {
-             var object = this;
-             var semana = $('#semana').val();
-             var options = {
-             url: function (criterio) {
-             return `/api/empleados/${criterio}`;
-             },
-             getValue: "nombre",
-             ajaxSettings: {
-             method: 'GET',
-             dataType: "json"
-             },
-             theme: "green-light",
-             list: {
-             maxNumberOfElements: 5,
-             match: {
-             enabled: true
-             },
-             onClickEvent: function () {
-             var data = $('#nombre-empleado').getSelectedItemData();
-             $('#codigo-empleado').val(data.codigo);
-             object.empleado = data.codigo;
-             $('#nombre-producto').attr('disabled', false);
-             $('#nombre-producto').focus();
-
-             if (object.empleado != '') {
-             object.getDataEmpleado(object.empleado, semana, object.hacienda);
-             }
-             },
-             onKeyEnterEvent: function () {
-             var data = $('#nombre-empleado').getSelectedItemData();
-             $('#codigo-empleado').val(data.codigo);
-             object.empleado = data.codigo;
-             $('#nombre-producto').attr('disabled', false);
-             $('#nombre-producto').focus();
-
-             if (object.empleado != '') {
-             object.getDataEmpleado(object.empleado, semana, object.hacienda);
-             }
-             },
-             }
-             };
-
-             $("#nombre-empleado").easyAutocomplete(options);
-             $("#nombre-empleado").on({
-             change: function () {
-             if ($(this).val() == '') {
-             $('#codigo-empleado').val('');
-             }
-             }
-             });
-             },*/
             getAutocompleteEmpleadoReemplazo: function () {
                 var object = this;
                 var semana = $('#semana').val();
@@ -710,7 +644,7 @@
 
                                 for (var x in response.data.egresos) {
                                     let egreso = {
-                                        id: response.data.egresos[x].id,
+                                        id: response.data.egresos[x].idhash,
                                         fecha: (response.data.egresos[x].fecha).toString("dd/MM/yyyy"),
                                         idmaterial: response.data.egresos[x].idmaterial,
                                         desmaterial: response.data.egresos[x].get_material.nombre,
@@ -742,7 +676,7 @@
             getSaldoPendienteEmpleado: function (idempleado, idmaterial) {
                 let self = this;
                 self.saldo = null;
-                axios.get(`/api/enfunde/saldo_empleado/${idempleado}/${idmaterial}`)
+                /*axios.get(`/api/enfunde/saldo_empleado/${idempleado}/${idmaterial}`)
                     .then(response => {
                         if (response.data) {
                             self.saldo = response.data;
@@ -750,7 +684,7 @@
                             document.getElementById('contenido').innerHTML = 'Lotero tiene un saldo pendiente: ' + self.saldo.pendiente;
                             $('.toast').toast('show');
                         }
-                    });
+                    });*/
             },
             getEnfunde: function (enfunde, array) {
                 if (enfunde) {

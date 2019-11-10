@@ -6,6 +6,7 @@ use App\Http\Controllers\Perfil\PerfilController;
 use App\Http\Controllers\Sistema\UtilidadesController;
 use App\Sisban\Enfunde\ENF_DET_EGRESO;
 use App\Sisban\Enfunde\ENF_DET_ENFUNDE;
+use App\Sisban\Enfunde\ENF_EGRESO;
 use App\Sisban\Enfunde\ENF_ENFUNDE;
 use App\Sisban\Enfunde\ENF_LOTERO;
 use App\Sisban\Enfunde\INV_LOT_FUND;
@@ -22,9 +23,9 @@ class EnfundeController extends Controller
 
     function __construct()
     {
-        $this->middleware('auth');
+        /*$this->middleware('auth');
         $this->middleware('AccesoURL',
-            ['except' => ['getLotero', 'Loteros', 'save']]);
+            ['except' => ['getLotero', 'Loteros', 'save']]);*/
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
@@ -78,7 +79,7 @@ class EnfundeController extends Controller
                 $query3->select('id', 'semana', 'idempleado', 'total', 'status');
                 $query3->where('semana', $semana);
                 $query3->with(['egresos' => function ($query7) {
-                    $query7->select('id', 'id_egreso', 'fecha', 'cantidad', 'presente', 'futuro', 'status', 'reemplazo', 'idempleado');
+                    $query7->select('id', 'id_egreso', 'fecha', 'idmaterial', 'cantidad', 'presente', 'futuro', 'status', 'reemplazo', 'idempleado');
                     $query7->with(['nom_reemplazo' => function ($query10) {
                         $query10->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
                         $query10->orderBy('NOMBRE_CORTO', 'asc');
@@ -126,142 +127,171 @@ class EnfundeController extends Controller
         $resp = false;
         $edit = false;
 
-        if ($request->presente == 1 && !$request->edicion) {
-            $enfunde = new ENF_ENFUNDE();
-            $enfunde->idhacienda = $request->idhacienda == '343' ? 1 : 2;
-            $enfunde->fecha = $request->fecha;
-            $enfunde->semana = $request->semana;
-            $enfunde->periodo = $request->periodo;
-            $enfunde->cinta_pre = $this->utilidades->getSemana()[0]->cod_color;
-            $enfunde->cinta_fut = $this->utilidades->getSemana()[1]->cod_color;
-            $enfunde->idlotero = $request->lotero;
-            $enfunde->total_pre = $request->total_pre;
-            $enfunde->total_fut = $request->total_fut;
-            $enfunde->chapeo = $request->desbunchado;
-            $enfunde->count = 1;
-            $enfunde->status = 1;
+        $json = $request->input('json');
+        $params = json_decode($json);
+        $params_array = json_decode($json, true);
 
-            $resp = $enfunde->save();
+        if (!empty($params) && !empty($params_array)) {
 
-        } else {
-            $enfunde = ENF_ENFUNDE::select('id')
-                ->where('idlotero', $request->lotero)
-                ->where('semana', $request->semana)->first();
+            $validacion = \Validator::make($params_array, [
+                'fecha' => 'required|date',
+                'semana' => 'required',
+                'lotero' => 'required',
+                'detalle_enfunde' => 'required|array',
+                'detalle_enfunde.*' => 'required'
+            ]);
 
-            if ($enfunde) {
-                $resp = true;
-                $edit = $request->edicion;
-            }
-        }
+            if (!$validacion->fails()) {
+                $lotero = ENF_LOTERO::select('id', 'idempleado')->where('id', $params_array['lotero'])->first();
 
-        $totaliza_presente = 0;
-        $totaliza_futuro = 0;
+                $enfunde = new ENF_ENFUNDE();
+                $enfunde->idhacienda = $params_array['idhacienda'] == '343' ? 1 : 2;
+                $enfunde->fecha = $params_array['fecha'];
+                $enfunde->semana = $params_array['semana'];
+                $enfunde->periodo = $params_array['periodo'];
+                $enfunde->cinta_pre = $this->utilidades->getSemana()[0]->cod_color;
+                $enfunde->cinta_fut = $this->utilidades->getSemana()[1]->cod_color;
+                $enfunde->idlotero = $params_array['lotero'];
+                $enfunde->total_pre = $params_array['total_pre'];
+                $enfunde->total_fut = $params_array['total_fut'];
+                $enfunde->chapeo = $params_array['desbunchado'];
+                $enfunde->count = $params_array['presente'] ? 1 : 2;
+                $enfunde->status = 1;
 
-        if ($resp) {
-            foreach ($request->detalle_enfunde as $key => $det_enf):
-                $det_enf = (object)$det_enf;
-                $detalle = null;
-                if (!$edit) {
-                    $detalle = new ENF_DET_ENFUNDE();
-                    $detalle->idenfunde = $enfunde->id;
-                    $detalle->idseccion = $det_enf->seccion;
+                $existe = ENF_ENFUNDE::select('id', 'total_pre', 'total_fut', 'chapeo')->where([
+                    'semana' => $params_array['semana'],
+                    'idlotero' => $params_array['lotero']
+                ])->first();
 
-                    if ($request->presente) {
-                        $detalle->cantidad = $det_enf->presente;
-                        $detalle->presente = 1;
-                        $detalle->futuro = 0;
-                    } else {
-                        $detalle->cantidad = $det_enf->futuro;
-                        $detalle->desbunchado = $det_enf->desbunche;
-                        $detalle->presente = 0;
-                        $detalle->futuro = 1;
-                    }
-
+                if (!$existe) {
+                    $enfunde->save();
                 } else {
-                    if ($request->presente) {
-                        $detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'presente', 'futuro')
-                            ->where('idenfunde', $enfunde->id)
-                            ->where('id', $det_enf->iddet_pre)
-                            ->where('idseccion', $det_enf->seccion)->first();
+                    $edit = true;
+                    $enfunde->id = $existe->id;
+                }
+
+                $totaliza_presente = 0;
+                $totaliza_futuro = 0;
+                $totaliza_desbunche = 0;
+
+                $rep_presente_backup = 0;
+                $rep_fut_backup = 0;
+
+                foreach ($params->detalle_enfunde as $item) {
+                    $existe_detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'cantidad', 'desbunchado', 'presente', 'futuro')
+                        ->where([
+                            'idenfunde' => $enfunde->id,
+                            'idseccion' => $item->seccion,
+                            'presente' => $params_array['presente'],
+                            'futuro' => $params_array['futuro']
+                        ])->first();
+
+                    if ($existe_detalle) {
+                        $detalle = $existe_detalle;
+                        $edit = true;
+
+                        if ($detalle->presente) {
+                            $rep_presente_backup += $detalle->cantidad;
+                        } else {
+                            $rep_fut_backup += $detalle->cantidad;
+                        }
+
                     } else {
-                        $detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'presente', 'futuro')
-                            ->where('idenfunde', $enfunde->id)
-                            ->where('id', $det_enf->iddet_fut)
-                            ->where('idseccion', $det_enf->seccion)->first();
+                        $detalle = new ENF_DET_ENFUNDE();
+                        $detalle->idenfunde = $enfunde->id;
+                        $detalle->idseccion = $item->seccion;
+                        $detalle->presente = $params_array['presente'];
+                        $detalle->futuro = $params_array['futuro'];
+                        $edit = false;
                     }
 
-                    if ($detalle->presente == 1) {
-                        $detalle->cantidad = $det_enf->presente;
+                    if ($params_array['presente']) {
+                        $detalle->cantidad = $item->presente;
                     } else {
-                        $detalle->cantidad = $det_enf->futuro;
-                        $detalle->desbunchado = $det_enf->desbunche;
+                        $detalle->cantidad = $item->futuro;
+                        $detalle->desbunchado = $item->desbunche;
+                    }
+
+                    $totaliza_presente += $item->presente;
+                    $totaliza_futuro += $item->futuro;
+                    $totaliza_desbunche += $item->desbunche;
+                    $detalle->save();
+                }
+
+                $despacho = ENF_EGRESO::select('id', 'idempleado', 'semana')
+                    ->where([
+                        'idempleado' => $lotero->idempleado,
+                        'semana' => $params_array['semana']
+                    ])->first();
+
+                if ($despacho) {
+                    $despacho_detalle_pre = ENF_DET_EGRESO::select('id', 'id_egreso', 'idmaterial', 'cantidad', 'presente', 'futuro')
+                        ->where('presente', true)
+                        ->where('id_egreso', $despacho->id)->get();
+
+                    $despacho_detalle_fut = ENF_DET_EGRESO::select('id', 'id_egreso', 'idmaterial', 'cantidad', 'presente', 'futuro')
+                        ->where('futuro', true)
+                        ->where('id_egreso', $despacho->id)->get();
+
+                    //Enlista materiales sacados en la semana presente y futuro
+                    $material_presente = $this->utilidades->unique_multidim_array($despacho_detalle_pre, 'idmaterial');
+                    $material_futuro = $this->utilidades->unique_multidim_array($despacho_detalle_fut, 'idmaterial');
+
+                    $options = [
+                        'new' => false,
+                        'delete' => false,
+                        'update' => false,
+                        'salida' => true];
+
+                    $inventario = new EgresoController();
+
+                    if ($totaliza_presente > 0) {
+                        if ($totaliza_futuro > 0) {
+                            if (count($material_presente) == 1) {
+                                if (count($material_futuro) == 1) {
+                                    if ($material_presente[0]->idmaterial == $material_futuro[0]->idmaterial) {
+                                        $inventario->Inv_lotero($lotero->id, $material_presente[0]->idmaterial,
+                                            $totaliza_futuro,
+                                            $rep_fut_backup > 0 ? $rep_fut_backup : 0,
+                                            $options);
+                                    } else {
+                                        $inventario->Inv_lotero($lotero->id, $material_futuro[0]->idmaterial,
+                                            $totaliza_futuro,
+                                            $rep_fut_backup > 0 ? $rep_fut_backup : 0, $options);
+                                    }
+                                }
+                            }
+                        } else {
+                            $inventario->Inv_lotero($lotero->id, $material_presente[0]->idmaterial,
+                                $totaliza_presente,
+                                $rep_presente_backup > 0 ? $rep_presente_backup : 0, $options);
+                        }
+
                     }
                 }
 
-                $totaliza_presente += +intval($det_enf->presente);
-                $totaliza_futuro += +intval($det_enf->futuro);
+                //Totalizar cabecera
+                $existe = ENF_ENFUNDE::select('id', 'total_pre', 'total_fut', 'chapeo')->where([
+                    'semana' => $params_array['semana'],
+                    'idlotero' => $params_array['lotero']
+                ])->first();
 
-                $resp = $detalle->save();
-            endforeach;
-
-            //$lotero = ENF_LOTERO::select('id', 'idempleado')->where('id', $request->lotero)->first();
-
-            if ($request->presente) {
-                $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'saldo', 'enfunde', 'pendiente', 'presente')
-                    ->where('semana', $request->semana)
-                    ->where('idlotero', $request->lotero)
-                    ->where('presente', true)->first();
-
-                if ($inventario) {
-                    $inventario->enfunde = $totaliza_presente;
-                    $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
-                    $inventario->status = true;
-                    $inventario->save();
+                if ($existe) {
+                    $existe->total_pre = $totaliza_presente;
+                    $existe->total_fut = $totaliza_futuro;
+                    $existe->save();
                 }
 
-            } else {
-                if ($request->futuro) {
-                    $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'saldo', 'enfunde', 'pendiente', 'futuro')
-                        ->where('semana', $request->semana)
-                        ->where('idlotero', $request->lotero)
-                        ->where('futuro', true)->first();
-
-                    if ($inventario) {
-                        $inventario->enfunde = $totaliza_futuro;
-                        $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
-                        $inventario->status = true;
-                        $inventario->save();
-                    }
-                }
-            }
-
-
-            if ($resp) {
-                if ($request->presente && $request->edicion) {
-                    $enfunde->total_pre = $totaliza_presente;
-                } else {
-                    if ($request->futuro || $request->edicion) {
-                        $enfunde->count = 2;
-                        $enfunde->total_fut = $request->total_fut;
-                        $enfunde->chapeo = $request->desbunchado;
-                    }
-                }
-                $enfunde->save();
             }
         }
 
+        //Pasar status de egresos a 0
 
-        if ($resp) {
-            //Pasar status de egresos a 0
-
-            return $this->respuesta('success', 'Enfunde reportado correctamente');
-        }
-
-
-        return $this->respuesta('error', 'Error al intentar guardar los datos');
+        return $this->respuesta('success', 'Enfunde reportado correctamente');
     }
 
-    public function respuesta($status, $messagge)
+    public
+    function respuesta($status, $messagge)
     {
         $data = [
             'status' => $status,

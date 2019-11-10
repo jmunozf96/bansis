@@ -15,14 +15,11 @@ class CreateInventarioFundas extends Migration
     {
         Schema::create('INV_LOT_FUND', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('semana');
             $table->integer('idlotero');
             $table->integer('idmaterial');
-            $table->integer('saldo');
-            $table->integer('enfunde')->nullable();
-            $table->integer('pendiente')->nullable()->default(0);
-            $table->boolean('presente')->nullable();
-            $table->boolean('futuro')->nullable();
+            $table->integer('entrada');
+            $table->integer('salida')->nullable();
+            $table->integer('saldo')->nullable()->default(0);
             $table->boolean('status')->nullable()->default(false);
             $table->timestamps();
         });

@@ -3,29 +3,29 @@
         <div class="form-row mt-3 mb-0">
             <div class="form-group col-md-8">
                 <select
-                        class="selectpicker show-tick form-control form-control-lg"
-                        data-style="btn-outline-dark"
-                        data-live-search="true"
-                        multiple
-                        data-max-options="1"
-                        title="Seleccionar lotero a reportar enfunde..."
-                        id="lotero"
-                        style="font-size: 20px"
+                    class="selectpicker show-tick form-control form-control-lg"
+                    data-style="btn-outline-dark"
+                    data-live-search="true"
+                    multiple
+                    data-max-options="1"
+                    title="Seleccionar lotero a reportar enfunde..."
+                    id="lotero"
+                    style="font-size: 20px"
                 >
                     <optgroup label="Loteros con saldo de fundas" data-max-options="2">
                         <option
-                                v-for="lotero in this.loteros"
-                                v-if="lotero.fundas"
-                                :data-subtext="lotero.fundas ? ' - Tiene fundas despachadas' : ''"
-                                :value="lotero.id"
+                            v-for="lotero in this.loteros"
+                            v-if="lotero.fundas"
+                            :data-subtext="lotero.fundas ? ' - Tiene fundas despachadas' : ''"
+                            :value="lotero.id"
                         >{{lotero.empleado.nombre}}
                         </option>
                     </optgroup>
                     <optgroup label="Loteros pendientes despacho" data-max-options="2">
                         <option
-                                v-for="lotero in this.loteros"
-                                v-if="!lotero.fundas"
-                                :value="lotero.id"
+                            v-for="lotero in this.loteros"
+                            v-if="!lotero.fundas"
+                            :value="lotero.id"
                         >{{lotero.empleado.nombre}}
                         </option>
                     </optgroup>
@@ -34,14 +34,14 @@
             </div>
             <div class="form-group col-md-4 mb-">
                 <input
-                        type="text"
-                        class="form-control form-control-lg bg-dark text-right"
-                        placeholder="Detalle"
-                        :value="'Fundas Total: ' + totalfundas"
-                        id="detalle"
-                        style="color: #41DB00; font-size: 25px"
-                        oninput="this.value = this.value.toUpperCase()"
-                        disabled
+                    type="text"
+                    class="form-control form-control-lg bg-dark text-right"
+                    placeholder="Detalle"
+                    :value="'Fundas Total: ' + totalfundas"
+                    id="detalle"
+                    style="color: #41DB00; font-size: 25px"
+                    oninput="this.value = this.value.toUpperCase()"
+                    disabled
                 />
                 <small>Total de fundas despachadas en la semana</small>
             </div>
@@ -92,19 +92,19 @@
                             <td width="15%">
                                 <b-progress :max="100">
                                     <b-progress-bar
-                                            :value="sec.porcentaje * 100"
-                                            :label="`${(sec.porcentaje * 100).toFixed(2)}%`"
+                                        :value="sec.porcentaje * 100"
+                                        :label="`${(sec.porcentaje * 100).toFixed(2)}%`"
                                     ></b-progress-bar>
                                 </b-progress>
                             </td>
                             <td style="width: 15%">
                   <span v-if="statusForm && sec.seccion == lote_enfunde.seccion && presente">
                     <input
-                            class="form-control text-center cantidad-despacho"
-                            ref="presente"
-                            v-model="lote_enfunde.presente"
-                            v-on:keyup.enter="saveForm(index)"
-                            type="number"
+                        class="form-control text-center cantidad-despacho"
+                        ref="presente"
+                        v-model="lote_enfunde.presente"
+                        v-on:keyup.enter="saveForm(index)"
+                        type="number"
                     />
                   </span>
                                 <span v-else>{{sec.presente}}</span>
@@ -112,11 +112,11 @@
                             <td style="width: 15%">
                   <span v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
                     <input
-                            class="form-control text-center cantidad-despacho"
-                            ref="futuro"
-                            v-model="lote_enfunde.futuro"
-                            v-on:keyup.enter="saveForm(index)"
-                            type="number"
+                        class="form-control text-center cantidad-despacho"
+                        ref="futuro"
+                        v-model="lote_enfunde.futuro"
+                        v-on:keyup.enter="saveForm(index)"
+                        type="number"
                     />
                   </span>
                                 <span v-else>{{sec.futuro}}</span>
@@ -124,11 +124,11 @@
                             <td style="width: 15%">
                   <span v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
                     <input
-                            class="form-control text-center cantidad-despacho"
-                            ref="desbunche"
-                            v-model="lote_enfunde.desbunche"
-                            v-on:keyup.enter="saveForm(index)"
-                            type="number"
+                        class="form-control text-center cantidad-despacho"
+                        ref="desbunche"
+                        v-model="lote_enfunde.desbunche"
+                        v-on:keyup.enter="saveForm(index)"
+                        type="number"
                     />
                   </span>
                                 <span v-else>{{sec.desbunche}}</span>
@@ -196,12 +196,12 @@
             <div class="col-md-6">
                 <div class="form-row p-1 mb-2">
                     <input
-                            id="detalle-total"
-                            type="text"
-                            style="font-size: 22px"
-                            class="form-control form-control-lg bg-white text-right"
-                            :value="`Enfunde Total de la semana: ${totalEnfunde()} racimos enfundados`"
-                            disabled
+                        id="detalle-total"
+                        type="text"
+                        style="font-size: 22px"
+                        class="form-control form-control-lg bg-white text-right"
+                        :value="`Enfunde Total de la semana: ${totalEnfunde()} racimos enfundados`"
+                        disabled
                     />
                 </div>
                 <div class="col-12" id="data_canvas">
@@ -217,6 +217,7 @@
     import moment from "moment/moment";
     import SweetAlert from "sweetalert2/src/sweetalert2";
     import BootstrapVue from "bootstrap-vue";
+
     Vue.use(BootstrapVue);
 
     const Swal = SweetAlert;
@@ -453,10 +454,11 @@
                         edicion: self.edicion
                     };
 
-                    axios
-                        .post("/sistema/enfunde/registro/save", enfunde)
+                    axios.post("/sistema/enfunde/registro/save", {json: JSON.stringify(enfunde)})
                         .then(response => {
                             let resp = response.data;
+                            console.log(response.data);
+                            return;
                             Swal.fire({
                                 position: "top-end",
                                 type: resp.status,

@@ -2,6 +2,7 @@
 
 namespace App\Sisban\Enfunde;
 
+use Hashids\Hashids;
 use Illuminate\Database\Eloquent\Model;
 
 class ENF_DET_EGRESO extends Model
@@ -10,8 +11,10 @@ class ENF_DET_EGRESO extends Model
     protected $table = 'ENF_DET_EGRESOS';
     protected $primaryKey = 'id';
     protected $dateFormat = 'M j Y h:i:s';
-
+    protected $appends = ['idhash'];
     //public $timestamps = false;
+
+    protected $fillable = ['id'];
 
     public function get_egreso()
     {
@@ -31,5 +34,11 @@ class ENF_DET_EGRESO extends Model
     public function nom_reemplazo()
     {
         return $this->hasOne('App\Empleado', 'COD_TRABAJ', 'idempleado');
+    }
+
+    public function getidHashAttribute()
+    {
+        $hashid = new Hashids('', 50, '0123456789abcdefghijklmnopqrstuvwxyz');
+        return $hashid->encode($this->attributes['id']);
     }
 }

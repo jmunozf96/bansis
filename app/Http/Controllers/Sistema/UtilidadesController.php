@@ -59,4 +59,12 @@ class UtilidadesController extends Controller
         }
         return $temp_array;
     }
+
+    function unsetValue(array $array, $value, $strict = TRUE)
+    {
+        if(($key = array_search($value, $array, $strict)) !== FALSE) {
+            unset($array[$key]);
+        }
+        return $array;
+    }
 }

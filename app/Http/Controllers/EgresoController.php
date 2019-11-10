@@ -8,6 +8,8 @@ use App\Sisban\Enfunde\ENF_LOTERO;
 use App\Sisban\Enfunde\INV_LOT_FUND;
 use App\Sisban\Enfunde\ENF_DET_EGRESO;
 use App\Sisban\Enfunde\ENF_EGRESO;
+use Hashids\Hashids;
+use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -23,9 +25,9 @@ class EgresoController extends Controller
 
     function __construct()
     {
-        $this->middleware('auth');
+        /*$this->middleware('auth');
         $this->middleware('AccesoURL',
-            ['except' => ['save', 'getdespacho', 'deleteDetalle', 'editDetalle', 'respuesta', 'saldopendiente']]);
+            ['except' => ['save', 'getdespacho', 'deleteDetalle', 'editDetalle', 'respuesta', 'saldopendiente']]);*/
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
@@ -40,7 +42,7 @@ class EgresoController extends Controller
 
         $egresos = ENF_EGRESO::select('id', 'idempleado', 'total', 'status')
             ->where('semana', $this->utilidades->getSemana()[0]->semana)
-            ->where('idhacienda', Auth::user()->idhacienda == 0 ? 1 : Auth::user()->idhacienda)
+            ->where('idhacienda', Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda)
             ->with(['empleado' => function ($query) {
                 $query->selectRaw('COD_TRABAJ, CONCAT(trim(APELLIDO_1)," ",trim(NOMBRE_1)) as nombre');
             }])
@@ -88,222 +90,176 @@ class EgresoController extends Controller
         $totalizar = 0;
         $edit = false;
 
-        $despacho = new ENF_EGRESO();
+        $json = $request->input('json');
+        $params = json_decode($json);
+        $params_array = json_decode($json, true);
 
-        $despacho->fecha = $request->fecha;
-        $despacho->semana = $request->semana;
-        $despacho->idhacienda = $request->hacienda == '343' ? 1 : 2;
-        $despacho->idempleado = $request->idempleado;
-        $despacho->total = $request->total;
-        $despacho->saldo = $request->saldo;
-        $despacho->status = 1;
+        $resp = [
+            'code' => 500,
+            'status' => 'error',
+            'message' => 'no se pudo guardar el registro'
+        ];
 
-        $despacho_existe = $this->getdespacho($request->idempleado, $request->semana, $request->hacienda);
+        if (!empty($params_array) && !empty($params)) {
+            $validacion = \Validator::make($params_array, [
+                'fecha' => 'required|date',
+                'semana' => 'required',
+                'hacienda' => 'required',
+                'idempleado' => 'required',
+                'despachos' => 'required|array',
+                'despachos.*' => 'required'
+            ]);
 
-        //Pregunta si este empleado ya tiene un despacho abierto en esta semana
-        $resp = $despacho_existe ? true : false;
-        if ($resp) {
-            $despacho->id = $despacho_existe->id;
-            $edit = true;
-        } else {
-            $resp = $despacho->save();
-        }
+            if (!$validacion->fails()) {
 
-        if ($resp) {
-            foreach ($request->despachos as $key => $item):
-                $item = (object)$item;
-                if (!isset($item->id)) {
-                    $detalle = new ENF_DET_EGRESO();
-                    $detalle->id_egreso = $despacho->id;
-                    $detalle->fecha = $item->fecha;
-                    $detalle->idbodega = 0;
-                    $detalle->idmaterial = $item->idmaterial;
-                    $detalle->reemplazo = $item->reemplazo;
-                    $detalle->idempleado = $item->idempleado;
-                    $detalle->cantidad = $item->cantidad;
-                    $detalle->presente = $item->presente;
-                    $detalle->futuro = $item->futuro;
-                    $detalle->status = 1;
-                    $resp = $detalle->save();
+                $lotero = ENF_LOTERO::where([
+                    'idempleado' => $params_array['idempleado']
+                ])->first();
 
+                $despacho = new ENF_EGRESO();
+                $despacho->fecha = $params_array['fecha'];
+                $despacho->semana = $params_array['semana'];
+                $despacho->idhacienda = $params_array['hacienda'] == '343' ? 1 : 2;
+                $despacho->idempleado = $params_array['idempleado'];
+                $despacho->total = $params_array['total'];
+                $despacho->saldo = $params_array['saldo'];
+                $despacho->status = 1;
+
+                $existe = ENF_EGRESO::where([
+                    'semana' => $despacho->semana,
+                    'idempleado' => $despacho->idempleado,
+                    'idhacienda' => $despacho->idhacienda
+                ])->first();
+
+                if (!$existe) {
+                    $despacho->save();
+                    $resp['code'] = 202;
+                    $resp['status'] = 'success';
+                    $resp['message'] = 'Registro guardado correctamente';
                 } else {
-                    $detalle = ENF_DET_EGRESO::select('id', 'cantidad')->find($item->id);
-                    $detalle->cantidad = $item->cantidad;
-                    $detalle->save();
+                    $despacho->id = $existe->id;
+                    $edit = true;
                 }
 
-                $totalizar += $edit ? +$item->cantidad : 0;
-            endforeach;
+                foreach ($params->despachos as $key => $item):
+                    $detalle = null;
+                    $nuevo = true;
 
-            if ($edit) {
-                $despacho_cabecera = ENF_EGRESO::select('id', 'total')->find($despacho->id);
-                $despacho_cabecera->total = $totalizar;
-                $despacho_cabecera->save();
-            }
+                    if ($edit) {
+                        $detalle = ENF_DET_EGRESO::select('id', 'id_egreso', 'fecha', 'idmaterial', 'cantidad', 'presente', 'futuro')->where([
+                            'id_egreso' => $despacho->id,
+                            'fecha' => $item->fecha,
+                            'idmaterial' => $item->idmaterial,
+                            'presente' => $item->presente,
+                            'futuro' => $item->futuro
+                        ])->first();
 
-            $lotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $request->idempleado)->first();
-            $request->idempleado = $lotero->id;
-
-            //Guardar saldo en inventario
-            //Aqui se consolidan los materiales que vienen del despacho, para guardarlos en la tabla de inventario
-            foreach ($this->utilidades->unique_multidim_array($request->despachos, 'idmaterial') as $key2 => $item2):
-                $item2 = (object)$item2;
-                $saldo_pre = 0;
-                $saldo_fut = 0;
-                $presente = false;
-                $futuro = false;
-
-                //Se recorren los detalles en base a los tipos de materiales que sacaron de bodega, ya sea presente
-                //o futuro
-                $saldo_pendiente = $this->saldopendiente($lotero->idempleado, $item2->idmaterial);
-                foreach ($request->despachos as $key => $item):
-                    $item = (object)$item;
-                    if ($item->idmaterial == $item2->idmaterial) {
-                        if ($item->presente) {
-                            $presente = true;
-                            $saldo_pre += $item->cantidad;
+                        if ($detalle) {
+                            $nuevo = false;
                         } else {
-                            if ($item->futuro) {
-                                $futuro = true;
-                                $saldo_fut += $item->cantidad;
-                            }
+                            $nuevo = true;
                         }
+                    } else {
+                        $nuevo = true;
                     }
+
+                    if ($nuevo) {
+                        $detalle = new ENF_DET_EGRESO();
+                        $detalle->id_egreso = $despacho->id;
+                        $detalle->fecha = $item->fecha;
+                        $detalle->idbodega = 0;
+                        $detalle->idmaterial = $item->idmaterial;
+                        $detalle->reemplazo = $item->reemplazo;
+                        $detalle->idempleado = $item->idempleado;
+                        $detalle->cantidad = $item->cantidad;
+                        $detalle->presente = $item->presente;
+                        $detalle->futuro = $item->futuro;
+                        $detalle->status = 1;
+
+                        $options = [
+                            'new' => true,
+                            'delete' => false,
+                            'update' => false,
+                            'salida' => false];
+
+                        //Registramos inventario
+                        $this->Inv_lotero($lotero->id, $item->idmaterial, $item->cantidad, 0, $options);
+                    } else {
+                        $options = [
+                            'new' => false,
+                            'delete' => false,
+                            'update' => true,
+                            'salida' => false];
+
+                        //Registramos inventario
+                        $this->Inv_lotero($lotero->id, $item->idmaterial, $item->cantidad, $detalle->cantidad, $options);
+
+                        $detalle->cantidad = $item->cantidad;
+                    }
+
+
+                    if ($detalle) {
+                        $detalle->save();
+                        $resp['code'] = 202;
+                        $resp['status'] = 'success';
+                        $resp['message'] = 'Registro guardado correctamente';
+                    }
+
+                    $totalizar += $edit ? +$item->cantidad : 0;
                 endforeach;
 
-                //Validar cuando sea presente o futuro
-                if ($presente) {
-                    //Aqui verificamos que no exista en la tabla de inventarios en base al
-                    //lotero - semana - material - presente
-                    $validator = \Validator::make($request->all(), [
-                        'semana' => ['required',
-                            Rule::unique('INV_LOT_FUND')->where(function ($query) use ($request, $item2) {
-                                return $query->where('semana', $request->semana)
-                                    ->where('idlotero', $request->idempleado)
-                                    ->where('idmaterial', $item2->idmaterial)
-                                    ->where('presente', true);
-                            })]
-                    ]);
+                if ($edit) {
+                    $despacho_cabecera = ENF_EGRESO::select('id', 'idempleado', 'total')->where([
+                        'id' => $despacho->id,
+                        'idempleado' => $despacho->idempleado
+                    ])->first();
 
-                    $id_inventario_presente = 0;
-
-                    if ($validator->fails()) {
-                        //En caso de que exista traemos los datos para editar la cantidad de despacho que sale por cada
-                        //tipo de funda
-                        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo', 'presente', 'futuro', 'enfunde')
-                            ->where('semana', $request->semana)
-                            ->where('idlotero', $request->idempleado)
-                            ->where('idmaterial', $item2->idmaterial)
-                            ->where('presente', true)->first();
-                    } else {
-                        //En caso de que no exista, se lo registra en la bitacora de inventario
-                        $inventario = new INV_LOT_FUND();
-                        $inventario->semana = $request->semana;
-                        $inventario->idlotero = $request->idempleado;
-                        $inventario->idmaterial = $item2->idmaterial;
-                        //Como es presente por ende lo dejamos en true y false en futuro
-                        $inventario->presente = true;
-                        $inventario->futuro = false;
-
-                        //ESTE TRABAJA PARA STATUS INTENTARIO
-                        //Como se envia un nuevo registro de saldo a la bitacora, en el front end ya se encargo
-                        //de tomar el ultimo saldo, por ende se le debe dar de baja en la bitacora
-                        $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
-                            ->where('idlotero', $request->idempleado)
-                            ->where('idmaterial', $item2->idmaterial)
-                            ->where('status', true)->first();
-                        if ($status_futuro) {
-                            $status_futuro->status = false;
-                            $status_futuro->save();
-                        }
-                    }
-
-                    //Guardamos el id del material presente en la semana
-                    //para preguntar si en la futuro tomamos el mismo
-                    //material
-                    $id_inventario_presente = $inventario->id;
-                    //Guardamos el saldo y calculamos lo que tenemos pendiente restandole dato de enfunde en caso
-                    //de existir
-                    if ($saldo_pendiente)
-                        if ($saldo_pendiente->semana != $request->semana)
-                            $saldo_pre += +$saldo_pendiente->pendiente;
-                    $inventario->saldo = $saldo_pre;
-                    $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
-
-                    $inventario->status = true;
-                    $inventario->save();
+                    $despacho_cabecera->total = $totalizar;
+                    $despacho_cabecera->save();
                 }
 
-                if ($futuro) {
-                    $validator2 = \Validator::make($request->all(), [
-                        'semana' => ['required',
-                            Rule::unique('INV_LOT_FUND')->where(function ($query) use ($request, $item2) {
-                                return $query->where('semana', $request->semana)
-                                    ->where('idlotero', $request->idempleado)
-                                    ->where('idmaterial', $item2->idmaterial)
-                                    ->where('futuro', true);
-                            })]
-                    ]);
-
-                    if ($validator2->fails()) {
-                        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo', 'presente', 'futuro', 'enfunde')
-                            ->where('semana', $request->semana)
-                            ->where('idlotero', $request->idempleado)
-                            ->where('idmaterial', $item2->idmaterial)
-                            ->where('futuro', true)->first();
-                    } else {
-                        $inventario = new INV_LOT_FUND();
-                        $inventario->semana = $request->semana;
-                        $inventario->idlotero = $request->idempleado;
-                        $inventario->idmaterial = $item2->idmaterial;
-                        $inventario->presente = false;
-                        $inventario->futuro = true;
-
-                        //ESTE TRABAJA PARA STATUS ENTRE SEMANA
-                        $status_presente = INV_LOT_FUND::find($id_inventario_presente);
-                        if ($status_presente->idmaterial == $item2->idmaterial) {
-                            $status_presente->status = false;
-                            $status_presente->save();
-                        } else {
-                            //ESTE TRABAJA PARA STATUS INTENTARIO
-
-                            //Como no es el mismo, tomamos de unas semanas anteriores
-                            //y buscamos el valor que este en true y lo mandamos a false
-                            $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
-                                ->where('idlotero', $request->idempleado)
-                                ->where('idmaterial', $item2->idmaterial)
-                                ->where('status', true)->first();
-
-                            if ($status_futuro) {
-                                $status_futuro->status = false;
-                                $status_futuro->save();
-                            }
-                        }
-                    }
-                    if ($saldo_pendiente)
-                        $saldo_fut += +$saldo_pendiente->pendiente;
-
-                    $inventario->saldo = $saldo_fut;
-                    $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
-
-                    $inventario->status = true;
-                    $inventario->save();
-                }
-            endforeach;
+                $resp['render'] = $this->renderSelectLotero();
+            }
         }
 
-        if ($resp) {
-            $resp = ['success', 'Guardo con exito!'];
+        return response()->json($resp, $resp['code']);
+    }
+
+    public function deleteDetalle($empleado, $semana, $hacienda, $codigo)
+    {
+        $hashid = new Hashids('', 50, '0123456789abcdefghijklmnopqrstuvwxyz');
+        $id = $hashid->decode($codigo)[0];
+
+        //PRESENTE O FUTURO
+        $detalle = ENF_DET_EGRESO::select('id', 'id_egreso', 'idmaterial', 'cantidad')->where('id', $id)->first();
+        $egreso = ENF_EGRESO::select('id', 'total', 'idempleado')->where('id', $detalle->id_egreso)->first();
+        $egreso->total = $egreso->total - $detalle->cantidad;
+        $lotero = ENF_LOTERO::where('idempleado', $egreso->idempleado)->first();
+        $options = [
+            'new' => false,
+            'delete' => true,
+            'update' => false,
+            'salida' => false];
+
+        //Registramos inventario
+        $this->Inv_lotero($lotero->id, $detalle->idmaterial, $detalle->cantidad, 0, $options);
+
+        $detalle->delete();
+        if ($egreso->total == 0) {
+            $egreso->delete();
         } else {
-            $resp = ['danger', 'Error en el proceso de registro!'];
+            $egreso->save();
         }
 
-        return response()->json([
-            'code' => $resp ? 200 : 500,
-            'status' => $resp ? 'success' : 'danger',
+
+        $data = [
+            'code' => 200,
+            'status' => 'success',
+            'message' => 'Registro eliminado con éxito!',
             'render' => $this->renderSelectLotero(),
-            'reg' => $this->getdespacho($despacho->idempleado, $despacho->semana, $request->hacienda)
-        ], 200);
+        ];
+
+        return response()->json($data, 200);
     }
 
     public function renderSelectLotero()
@@ -330,11 +286,6 @@ class EgresoController extends Controller
                         $query->select('id', 'total_pre', 'total_fut', 'idlotero', 'status', 'count')
                             ->where('semana', $semana);
                     }]);
-                    $query3->with(['saldo_semana' => function ($query) use ($semana) {
-                        $query->select('idlotero', 'idmaterial', 'semana', 'presente', 'futuro', 'saldo', 'enfunde', 'pendiente')
-                            ->where('presente', true)
-                            ->where('semana', (int)$semana);
-                    }]);
                 }]);
             }])
             ->with(['egresos' => function ($query) {
@@ -349,6 +300,14 @@ class EgresoController extends Controller
             }])
             ->first();
 
+        if ($despacho) {
+            $hashid = new Hashids('', 50, '0123456789abcdefghijklmnopqrstuvwxyz');
+            $id = $hashid->encode($despacho->id);
+            unset($despacho->id);
+            $despacho->idhash = $id;
+            $despacho->decode = $hashid->decode($id)[0];
+        }
+
         //Si es una peticion desde el lado del cliente
         if ($axios && $despacho) {
             $despacho->toArray();
@@ -360,183 +319,6 @@ class EgresoController extends Controller
 
         return $despacho;
     }
-
-    public function deleteDetalle($empleado, $semana, $hacienda, $id)
-    {
-        //PRESENTE O FUTURO
-        $detalle = ENF_DET_EGRESO::find($id);
-
-        $lotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $empleado)->first();
-
-        $id_inventario_presente = 0;
-        $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'saldo', 'pendiente', 'enfunde')
-            ->where('semana', $semana)
-            ->where('idlotero', $lotero->id)
-            ->where('idmaterial', $detalle->idmaterial)
-            ->where('presente', $detalle->presente)
-            ->where('futuro', $detalle->futuro)
-            ->first();
-
-        $saldo_pendiente = $this->saldopendiente($lotero->idempleado, $detalle->idmaterial);
-        $saldo_pend = 0;
-        if ($detalle->presente) {
-            if ($saldo_pendiente)
-                if ($saldo_pendiente->semana != $semana)
-                    $saldo_pend += +$saldo_pendiente->pendiente;
-            $inventario->saldo = ($inventario->saldo - ($detalle->cantidad + $saldo_pend));
-            $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
-            $inventario->presente = true;
-            $inventario->futuro = false;
-        } else {
-            if ($detalle->futuro) {
-                if ($saldo_pendiente)
-                    $saldo_pend += +$saldo_pendiente->pendiente;
-                $inventario->saldo = $inventario->saldo - ($detalle->cantidad + $saldo_pend);
-                $inventario->pendiente = $inventario->saldo - $inventario->enfunde;
-                $inventario->presente = false;
-                $inventario->futuro = true;
-            }
-        }
-
-        if (!$detalle->delete()) {
-            return $this->response(500, 'danger', 'No se pudo eliminar');
-        } else {
-            if (intval($inventario->saldo) == 0) {
-                $inventario->delete();
-
-                $status_presente = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial', 'status')
-                    ->where('semana', $semana)
-                    ->where('idlotero', $lotero->id)->first();
-
-                if ($status_presente) {
-                    if ($status_presente->idmaterial == $detalle->idmaterial) {
-                        $status_presente->status = true;
-                        $status_presente->save();
-                    } else {
-                        $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
-                            ->where('idlotero', $lotero->id)
-                            ->where('idmaterial', $detalle->idmaterial)
-                            ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and idmaterial = " . $detalle->idmaterial . "and status = 0)")
-                            ->where('status', false)
-                            ->get();
-                        if ($status_futuro) {
-                            if (count($status_futuro) > 1) {
-                                $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
-                                    ->where('idlotero', $lotero->id)
-                                    ->where('idmaterial', $detalle->idmaterial)
-                                    ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and idmaterial = " . $detalle->idmaterial . " and status = 0)")
-                                    ->where('status', false)
-                                    ->where('futuro', true)
-                                    ->first();
-                            } else {
-                                $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
-                                    ->where('idlotero', $lotero->id)
-                                    ->where('idmaterial', $detalle->idmaterial)
-                                    ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and idmaterial = " . $detalle->idmaterial . " and status = 0)")
-                                    ->where('status', false)
-                                    ->first();
-                            }
-                            if ($status_futuro) {
-                                $status_futuro->status = true;
-                                $status_futuro->save();
-                            }
-                        }
-                    }
-                }
-            } else {
-                $inventario->save();
-            }
-
-            $despacho = $this->getdespacho($empleado, $semana, $hacienda);
-
-            if ($despacho->egresos->isEmpty()) {
-                $cabecera = ENF_EGRESO::find($despacho->id);
-                $cabecera->delete();
-
-                $inventario = INV_LOT_FUND::select('id', 'semana', 'idlotero')
-                    ->where('semana', $semana)
-                    ->where('idlotero', $lotero->id);
-
-                if ($inventario) {
-                    $inventario->delete();
-                }
-
-                $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
-                    ->where('idlotero', $lotero->id)
-                    ->where('idmaterial', $detalle->idmaterial)
-                    ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and status = 0)")
-                    ->where('status', false)
-                    ->get();
-
-                if ($status_futuro) {
-                    if (count($status_futuro) > 1) {
-                        $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
-                            ->where('idlotero', $lotero->id)
-                            ->where('idmaterial', $detalle->idmaterial)
-                            ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and idmaterial = " . $detalle->idmaterial . " and status = 0)")
-                            ->where('status', false)
-                            ->where('futuro', true)
-                            ->first();
-                    } else {
-                        $status_futuro = INV_LOT_FUND::select('id', 'semana', 'idlotero', 'idmaterial')
-                            ->where('idlotero', $lotero->id)
-                            ->where('idmaterial', $detalle->idmaterial)
-                            ->whereRaw("semana = (select max(semana) from INV_LOT_FUND where idlotero = " . $lotero->id . " and status = 0)")
-                            ->where('status', false)
-                            ->first();
-                    }
-                    if ($status_futuro) {
-                        $status_futuro->status = true;
-                        $status_futuro->save();
-                    }
-                }
-
-            } else {
-                //Totaliza detalle
-                $totaliza = 0;
-                foreach ($despacho->egresos as $egreso):
-                    $totaliza += intval($egreso->cantidad);
-                endforeach;
-
-                $despacho_cabecera = ENF_EGRESO::select('id', 'total')->find($despacho->id);
-                if ($despacho_cabecera) {
-                    $despacho_cabecera->total = $totaliza;
-                    $despacho_cabecera->save();
-                }
-            }
-        }
-
-        $data = [
-            'code' => 200,
-            'status' => 'success',
-            'message' => 'Registro eliminado con éxito!',
-            'render' => $this->renderSelectLotero(),
-        ];
-
-        return response()->json($data, 200);
-    }
-
-    public function editDetalle(Request $request)
-    {
-        $detalle = ENF_DET_EGRESO::select('id', 'cantidad')->find($request->id);
-        $detalle->cantidad = $request->cantidad;
-        $detalle->save();
-
-        $despacho = $this->getdespacho($request->empleado, $request->semana, $request->hacienda);
-
-        //Totaliza detalle
-        $totaliza = 0;
-        foreach ($despacho->egresos as $egreso):
-            $totaliza += intval($egreso->cantidad);
-        endforeach;
-
-        $despacho_cabecera = ENF_EGRESO::select('id', 'total')->find($despacho->id);
-        $despacho_cabecera->total = $totaliza;
-        $despacho_cabecera->save();
-
-        return $this->respuesta('success', 'Editado con exito');
-    }
-
 
     public function respuesta($status, $messagge)
     {
@@ -557,5 +339,56 @@ class EgresoController extends Controller
             ->where('status', 1)->first();
 
         return $inventario;
+    }
+
+    public function Inv_lotero($lotero, $material, $cantidad, $cant_anterior = 0, $options = [
+        'new' => true,
+        'delete' => false,
+        'update' => false,
+        'salida' => false])
+    {
+
+        if (!is_null($lotero) && !is_null($material) && !is_null($cantidad)) {
+            $inventario = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'entrada', 'salida', 'saldo', 'status')
+                ->where([
+                    'idlotero' => $lotero,
+                    'idmaterial' => $material
+                ])->first();
+
+            if (!$inventario) {
+                $inventario = new INV_LOT_FUND();
+                $inventario->idlotero = $lotero;
+                $inventario->idmaterial = $material;
+                $inventario->status = 1;
+            }
+
+            switch ($options) {
+                case $options['new']:
+                    $inventario->entrada += $cantidad;
+                    $inventario->saldo = $inventario->entrada - $inventario->salida;
+                    return $inventario->save();
+                case $options['update']:
+                    $inventario->entrada = $inventario->entrada - $cant_anterior;
+                    $inventario->entrada += $cantidad;
+                    $inventario->saldo = $inventario->entrada - $inventario->salida;
+                    return $inventario->save();
+                case $options['delete']:
+                    $inventario->entrada = $inventario->entrada - $cantidad;
+                    $inventario->saldo = $inventario->entrada - $inventario->salida;
+                    $inventario->save();
+                    if ($inventario->entrada == 0) {
+                        return $inventario->delete();
+                    } else {
+                        return true;
+                    }
+                case $options['salida']:
+                    if ($cant_anterior > 0) {
+                        $inventario->salida = $inventario->salida - $cant_anterior;
+                    }
+                    $inventario->salida += $cantidad;
+                    $inventario->saldo = $inventario->entrada - $inventario->salida;
+                    return $inventario->save();
+            }
+        }
     }
 }
