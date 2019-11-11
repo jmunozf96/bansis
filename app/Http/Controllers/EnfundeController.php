@@ -95,6 +95,92 @@ class EnfundeController extends Controller
             }])
             ->
             get();
+
+
+        $materiales = array();
+        $empleado = ENF_LOTERO::select('id', 'idempleado')->where('id', $idlotero)->first();
+        $despacho = ENF_EGRESO::select('id', 'idempleado', 'semana')
+            ->where([
+                'idempleado' => $empleado->idempleado,
+                'semana' => $semana
+            ])->first();
+
+        if ($despacho) {
+
+            $despacho_detalle_pre = ENF_DET_EGRESO::select('id', 'id_egreso', 'idmaterial', 'cantidad', 'presente', 'futuro')
+                ->where('presente', true)
+                ->where('id_egreso', $despacho->id)->get();
+
+            $despacho_detalle_fut = ENF_DET_EGRESO::select('id', 'id_egreso', 'idmaterial', 'cantidad', 'presente', 'futuro')
+                ->where('futuro', true)
+                ->where('id_egreso', $despacho->id)->get();
+
+            $material_presente = '';
+            $material_futuro = '';
+            if ($despacho_detalle_pre) {
+                $material_presente = $this->utilidades->unique_multidim_array($despacho_detalle_pre, 'idmaterial');
+                if (count($material_presente) > 0) {
+                    $material_presente = $material_presente[0]->idmaterial;
+                }
+            }
+
+            if ($despacho_detalle_fut) {
+                $material_futuro = $this->utilidades->unique_multidim_array($despacho_detalle_fut, 'idmaterial');
+                if (count($material_futuro) > 0)
+                    $material_futuro = $material_futuro[0]->idmaterial;
+            }
+
+            if ($material_presente == $material_futuro) {
+                $inventario = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
+                    'idmaterial' => $material_presente,
+                    'idlotero' => $idlotero])->first();
+
+                if ($inventario)
+                    $materiales = [
+                        'semana' => [
+                            'idmaterial' => $material_presente,
+                            'saldo' => $inventario->saldo
+                        ]
+                    ];
+
+            } else {
+                if (!empty($material_futuro)) {
+                    $inventario_pre = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
+                        'idmaterial' => $material_presente,
+                        'idlotero' => $idlotero])->first();
+
+                    $inventario_fut = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
+                        'idmaterial' => $material_futuro,
+                        'idlotero' => $idlotero])->first();
+
+                    $materiales = [
+                        'presente' => [
+                            'idmaterial' => $material_presente,
+                            'saldo' => $inventario_pre->saldo,
+                        ],
+                        'futuro' => [
+                            'idmaterial' => $material_futuro,
+                            'saldo' => $inventario_fut->saldo,
+                        ]
+                    ];
+                } else {
+                    $inventario = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
+                        'idmaterial' => $material_presente,
+                        'idlotero' => $idlotero])->first();
+
+                    if ($inventario)
+                        $materiales = [
+                            'semana' => [
+                                'idmaterial' => $material_presente,
+                                'saldo' => $inventario->saldo
+                            ]
+                        ];
+                }
+            };
+
+        }
+
+        $lotero->push(['materiales' => $materiales]);
         return $lotero;
     }
 
@@ -279,6 +365,7 @@ class EnfundeController extends Controller
                 if ($existe) {
                     $existe->total_pre = $totaliza_presente;
                     $existe->total_fut = $totaliza_futuro;
+                    $existe->chapeo = $totaliza_desbunche;
                     $existe->save();
                 }
 

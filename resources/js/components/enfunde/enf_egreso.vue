@@ -4,7 +4,6 @@
             <thead>
             <tr class="text-center">
                 <th style="width: 5%">...</th>
-                <th style="width: 15%; font-size: 18px">Ultimo despacho</th>
                 <th style="width: 15%; font-size: 18px">Saldo</th>
                 <th style="width: 15%; font-size: 18px">Status</th>
             </tr>
@@ -16,18 +15,11 @@
                         <span class="sr-only">Loading...</span>
                     </div>
                 </td>
-                <td>Semana <b>{{saldo.semana}}</b></td>
-                <td><b style="color: red; font-size: 20px">{{saldo.pendiente}} fundas.</b></td>
-                <td v-if="saldo.presente == 1">
+                <td><b style="color: red; font-size: 20px">{{saldo.saldo}} fundas.</b></td>
+                <td v-if="saldo.status == 1">
                     <div class="custom-control custom-switch">
                         <input type="checkbox" class="custom-control-input" disabled id="customSwitch1" checked>
-                        <label class="custom-control-label" for="customSwitch1">Presente</label>
-                    </div>
-                </td>
-                <td v-else-if="saldo.futuro == 1">
-                    <div class="custom-control custom-switch">
-                        <input type="checkbox" class="custom-control-input" disabled id="customSwitch2" checked>
-                        <label class="custom-control-label" for="customSwitch2">Futuro</label>
+                        <label class="custom-control-label" for="customSwitch1">Saldo Activo</label>
                     </div>
                 </td>
             </tr>
@@ -59,12 +51,11 @@
                     </span>
                 <span v-else>
                         <button class="btn btn-primary btn-sm"
-                                v-if="(!enfunde && egreso.presente) ||(enfunde && egreso.presente && +enfunde.total_fut == 0 && totalFuturo() == 0) || (enfunde && egreso.futuro && +enfunde.total_fut == 0)"
+                                v-if="(egreso.presente && !enfunde) || (egreso.futuro && (enfunde && +enfunde.total_fut == 0))"
                                 v-on:click="editForm(index)">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="btn btn-danger btn-sm"
-                                v-if="(!enfunde && egreso.presente) || (enfunde && egreso.futuro && +enfunde.total_fut == 0)"
                                 v-on:click="deleteDespacho(index)">
                             <i class="fas fa-minus"></i>
                         </button>
@@ -368,7 +359,6 @@
                     axios.post('/sistema/enfunde/despacho/save', {json: JSON.stringify(data)})
                         .then(response => {
                             let respuesta = response.data;
-                            console.log(respuesta)
                             let tipo = 'danger', title = 'Error al intentar guardar el registro';
                             if (respuesta.code == 202) {
                                 self.resetForm();
@@ -446,13 +436,14 @@
                                 .then(response => {
                                     if (response.data.code == 200) {
                                         this.despachos.splice(index, 1);
-
                                         $('#nombre-empleado').html(response.data.render.html);
                                         $('#nombre-empleado').val("");
                                         $("#nombre-empleado").selectpicker("refresh");
+                                        Swal.fire(alerta, response.data.message, response.data.status);
+                                        $('#detalle-total').val(this.totalizaDespacho());
+                                    } else {
+                                        Swal.fire('Error ' + response.data.code, response.data.message, response.data.status);
                                     }
-                                    Swal.fire(alerta, response.data.message, response.data.status);
-                                    $('#detalle-total').val(this.totalizaDespacho());
                                 });
                         } else {
                             Swal.fire(alerta, mensaje, 'success');
@@ -639,7 +630,6 @@
                     axios.get(`/sistema/enfunde/despacho/${empleado}/${semana}/${hacienda}/1`)
                         .then(response => {
                             if (response.data) {
-                                console.log(response.data);
                                 self.enfunde = response.data.empleado.lotero.enfunde;
 
                                 for (var x in response.data.egresos) {
@@ -662,7 +652,7 @@
 
                                 if (self.enfunde) {
                                     $('input[name=status-semana][value=futuro]').prop('checked', true);
-                                    $('input[name=status-semana][value=presente]').prop('disabled', true);
+                                    //$('input[name=status-semana][value=presente]').prop('disabled', true);
                                 }
 
                                 self.dato_enfunde = [];
@@ -676,15 +666,12 @@
             getSaldoPendienteEmpleado: function (idempleado, idmaterial) {
                 let self = this;
                 self.saldo = null;
-                /*axios.get(`/api/enfunde/saldo_empleado/${idempleado}/${idmaterial}`)
+                axios.get(`/api/enfunde/saldo_empleado/${idempleado}/${idmaterial}`)
                     .then(response => {
                         if (response.data) {
                             self.saldo = response.data;
-                            document.getElementById('titulo').innerHTML = 'Notificacion';
-                            document.getElementById('contenido').innerHTML = 'Lotero tiene un saldo pendiente: ' + self.saldo.pendiente;
-                            $('.toast').toast('show');
                         }
-                    });*/
+                    });
             },
             getEnfunde: function (enfunde, array) {
                 if (enfunde) {

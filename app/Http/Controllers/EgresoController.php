@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Perfil\PerfilController;
 use App\Http\Controllers\Sistema\UtilidadesController;
+use App\Sisban\Enfunde\ENF_ENFUNDE;
 use App\Sisban\Enfunde\ENF_LOTERO;
 use App\Sisban\Enfunde\INV_LOT_FUND;
 use App\Sisban\Enfunde\ENF_DET_EGRESO;
@@ -231,10 +232,43 @@ class EgresoController extends Controller
         $id = $hashid->decode($codigo)[0];
 
         //PRESENTE O FUTURO
-        $detalle = ENF_DET_EGRESO::select('id', 'id_egreso', 'idmaterial', 'cantidad')->where('id', $id)->first();
-        $egreso = ENF_EGRESO::select('id', 'total', 'idempleado')->where('id', $detalle->id_egreso)->first();
-        $egreso->total = $egreso->total - $detalle->cantidad;
+        $detalle = ENF_DET_EGRESO::select('id', 'id_egreso', 'idmaterial', 'cantidad', 'presente', 'futuro')->where('id', $id)->first();
+        $egreso = ENF_EGRESO::select('id', 'total', 'idempleado', 'semana')->where('id', $detalle->id_egreso)->first();
+
         $lotero = ENF_LOTERO::where('idempleado', $egreso->idempleado)->first();
+
+        $existe_enfunde = ENF_ENFUNDE::where([
+            'semana' => $egreso->semana,
+            'idlotero' => $lotero->id
+        ])->first();
+
+
+        $data = [
+            'code' => 200,
+            'status' => 'success',
+            'message' => 'Registro eliminado con éxito!',
+            'render' => $this->renderSelectLotero()
+        ];
+
+        if ($existe_enfunde) {
+            if ($detalle->presente) {
+                if (+$existe_enfunde->total_pre > 0) {
+                    $data['code'] = 405;
+                    $data['status'] = 'error';
+                    $data['message'] = 'No se puede eliminar, ya se reporto enfunde presente';
+                    return \response()->json($data, 200);
+                }
+            } else {
+                if (+$existe_enfunde->total_fut > 0) {
+                    $data['code'] = 405;
+                    $data['status'] = 'error';
+                    $data['message'] = 'No se puede eliminar, ya se reporto enfunde futuro';
+                    return \response()->json($data, 200);
+                }
+            }
+        }
+
+        $egreso->total = $egreso->total - $detalle->cantidad;
         $options = [
             'new' => false,
             'delete' => true,
@@ -250,14 +284,6 @@ class EgresoController extends Controller
         } else {
             $egreso->save();
         }
-
-
-        $data = [
-            'code' => 200,
-            'status' => 'success',
-            'message' => 'Registro eliminado con éxito!',
-            'render' => $this->renderSelectLotero(),
-        ];
 
         return response()->json($data, 200);
     }
@@ -333,7 +359,7 @@ class EgresoController extends Controller
     public function saldopendiente($idempleado, $idmaterial)
     {
         $idlotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $idempleado)->first();
-        $inventario = INV_LOT_FUND::select('idlotero', 'semana', 'pendiente', 'presente', 'futuro', 'enfunde')
+        $inventario = INV_LOT_FUND::select('idlotero', 'saldo', 'idmaterial', 'status')
             ->where('idlotero', $idlotero->id)
             ->where('idmaterial', $idmaterial)
             ->where('status', 1)->first();

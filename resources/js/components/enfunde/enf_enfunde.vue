@@ -207,6 +207,14 @@
                 <div class="col-12" id="data_canvas">
                     <canvas id="dato_enfunde" width="100"></canvas>
                 </div>
+                <div class="form-row p-1">
+                    <p v-if="saldo_semana && saldo_semana.semana" style="font-size: 18px">El lotero tiene un saldo
+                        pendiente de <b>{{saldo_semana.semana.saldo}} fundas.</b></p>
+                    <p v-else-if="saldo_semana && saldo_semana.presente && saldo_semana.futuro" style="font-size: 18px">
+                        El lotero tiene un saldo pendiente en la cinta presente de <b>{{saldo_semana.presente.saldo}}
+                        fundas</b> y en la cinta futuro tiene un saldo pendiente de <b>{{saldo_semana.futuro.saldo}}
+                        fundas.</b></p>
+                </div>
             </div>
         </div>
     </div>
@@ -234,6 +242,7 @@
                 seccion: [],
                 total_pre: 0,
                 total_fut: 0,
+                saldo_semana: null,
                 desbunche: 0,
                 fundas: [],
                 reemplazos: [],
@@ -286,7 +295,7 @@
                         .then(response => {
                             if (response.data) {
                                 let datos4 = response.data[0].enfunde;
-
+                                self.saldo_semana = response.data[1].materiales;
                                 let presente = [];
                                 let futuro = [];
 
@@ -435,45 +444,58 @@
 
             $("#btn-save").on("click", function () {
                 if (self.status) {
-                    let enfunde = {
-                        idhacienda: self.hacienda,
-                        fecha: self.fecha,
-                        semana: self.semana,
-                        periodo: self.periodo,
-                        lotero: self.idlotero,
-                        total_pre: self.totalPresente(),
-                        total_fut: self.totalFuturo(),
-                        desbunchado: self.totalDesbunche(),
-                        presente: self.presente,
-                        futuro: self.futuro,
-                        detalle_enfunde: self.seccion,
-                        egresos: {
-                            fundas: self.fundas,
-                            reemplazos: self.reemplazos
-                        },
-                        edicion: self.edicion
-                    };
+                    if (+self.totalEnfunde() > 0) {
+                        let enfunde = {
+                            idhacienda: self.hacienda,
+                            fecha: self.fecha,
+                            semana: self.semana,
+                            periodo: self.periodo,
+                            lotero: self.idlotero,
+                            total_pre: self.totalPresente(),
+                            total_fut: self.totalFuturo(),
+                            desbunchado: self.totalDesbunche(),
+                            presente: self.presente,
+                            futuro: self.futuro,
+                            detalle_enfunde: self.seccion,
+                            egresos: {
+                                fundas: self.fundas,
+                                reemplazos: self.reemplazos
+                            },
+                            edicion: self.edicion
+                        };
 
-                    axios.post("/sistema/enfunde/registro/save", {json: JSON.stringify(enfunde)})
-                        .then(response => {
-                            let resp = response.data;
-                            console.log(response.data);
-                            return;
-                            Swal.fire({
-                                position: "top-end",
-                                type: resp.status,
-                                title: resp.message,
-                                showConfirmButton: false,
-                                timer: 1500
+                        axios.post("/sistema/enfunde/registro/save", {json: JSON.stringify(enfunde)})
+                            .then(response => {
+                                let resp = response.data;
+                                Swal.fire({
+                                    position: "top-end",
+                                    type: resp.status,
+                                    title: resp.message,
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
+                                if (resp.status == "success") {
+                                    self.resetData();
+                                    $('#lotero').val("");
+                                    $("#lotero").selectpicker("refresh");
+                                    $("#lotero").focus();
+                                }
+                            })
+                            .catch(error => {
+                                console.log(error.response);
                             });
-                            if (resp.status == "success") {
-                                //self.resetData();
-                                $("#lotero").focus();
-                            }
-                        })
-                        .catch(error => {
-                            console.log(error.response);
+                    } else {
+                        Swal.fire({
+                            position: "top-end",
+                            type: 'info',
+                            title: 'Debe registrar valores de enfunde',
+                            showConfirmButton: false,
+                            timer: 1500
                         });
+                        $('#lotero').val("");
+                        $("#lotero").selectpicker("refresh");
+                        $("#lotero").focus();
+                    }
                 }
             });
         },
@@ -492,12 +514,21 @@
             this.graficarLotes();
         },
         methods: {
-            editForm: function (index) {
+            editForm: function (index, b = false) {
                 this.lote_enfunde.seccion = this.seccion[index].seccion;
                 this.lote_enfunde.idlote = this.seccion[index].idlote;
                 this.lote_enfunde.presente = this.seccion[index].presente;
                 this.lote_enfunde.futuro = this.seccion[index].futuro;
                 this.lote_enfunde.desbunche = this.seccion[index].desbunche;
+
+                if (!b) {
+                    if (this.presente) {
+                        this.saldoEnfunde(0, true, +this.seccion[index].presente);
+                    } else {
+                        this.saldoEnfunde(0, true, +this.seccion[index].futuro);
+                    }
+                }
+
                 this.statusForm = true;
             },
             saveForm: function (index) {
@@ -507,11 +538,30 @@
                 this.seccion[index].futuro = this.lote_enfunde.futuro;
                 this.seccion[index].desbunche = this.lote_enfunde.desbunche;
 
-                this.lote_enfunde.idlote = 0;
-                this.lote_enfunde.presente = 0;
-                this.lote_enfunde.futuro = 0;
-                this.lote_enfunde.futuro = 0;
-                this.statusForm = false;
+                let saldo = this.presente ? this.lote_enfunde.presente : this.lote_enfunde.futuro;
+
+                if (this.saldoEnfunde(saldo) < 0) {
+                    this.editForm(index, false);
+                    if (this.presente) {
+                        this.seccion[index].presente = 0;
+                    } else {
+                        this.seccion[index].futuro = 0;
+                        this.seccion[index].desbunche = 0;
+                    }
+                    Swal.fire({
+                        position: "top-end",
+                        type: 'error',
+                        title: 'Saldo insuficiente',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } else {
+                    this.lote_enfunde.idlote = 0;
+                    this.lote_enfunde.presente = 0;
+                    this.lote_enfunde.futuro = 0;
+                    this.lote_enfunde.futuro = 0;
+                    this.statusForm = false;
+                }
             },
             totalPresente: function () {
                 let total = 0;
@@ -540,9 +590,28 @@
             totalEnfunde: function () {
                 return this.totalPresente() + this.totalFuturo();
             },
-            saldoEnfunde: function () {
-                return +this.totalfundas - +this.totalEnfunde();
-                totalEnfunde;
+            saldoEnfunde: function (actualiza_saldo = 0, edicion = false, saldo_edicion = 0) {
+                let saldos = this.saldo_semana;
+                if (saldos) {
+                    if (saldos.semana) {
+                        if (edicion) {
+                            saldos.semana.saldo = parseInt(saldos.semana.saldo) + +saldo_edicion;
+                        }
+                        return saldos.semana.saldo = saldos.semana.saldo - +actualiza_saldo;
+                    } else {
+                        if (saldos.presente) {
+                            if (saldos.futuro) {
+                                if (this.presente) {
+                                    return +saldos.presente.saldo - actualiza_saldo;
+                                } else {
+                                    return +saldos.futuro.saldo - actualiza_saldo;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return +0;
             },
             statusEnfunde: function () {
                 return this.saldoEnfunde() > 0 ? true : false;
@@ -616,6 +685,7 @@
                 this.total_fut = 0;
                 this.desbunche = 0;
                 this.fundas = [];
+                this.saldo_semana = null;
                 this.reemplazos = [];
                 this.totalfundas = 0;
                 this.statusForm = false;
