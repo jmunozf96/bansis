@@ -442,6 +442,15 @@
                 }
             });
 
+            $('#btn-nuevo').on({
+                click: function (e) {
+                    self.resetData();
+                    $('#lotero').val("");
+                    $("#lotero").selectpicker("refresh");
+                    $("#lotero").focus();
+                }
+            })
+
             $("#btn-save").on("click", function () {
                 if (self.status) {
                     if (+self.totalEnfunde() > 0) {

@@ -95,7 +95,7 @@
                                            aria-label="Codigo" aria-describedby="addon-wrapping" disabled>
                                 </div>
                             </div>
-                            <div class="form-group col-md-4">
+                            <div class="form-group col-md-12">
                                 {{--<input type="text" class="form-control  form-control-lg text-dark"
                                        placeholder="Empleado"
                                        id="nombre-empleado"
@@ -105,6 +105,19 @@
                                         id="nombre-empleado">
                                     @include('enfunde.select_lotero')
                                 </select>
+                                <div class="my-1">
+                                    <div class="custom-control custom-checkbox mr-sm-2">
+                                        <input type="checkbox" class="custom-control-input" id="id-reemplazo">
+                                        <label class="custom-control-label" for="id-reemplazo">Despacho reemplazo</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-8  mb-0">
+                                <input type="hidden" id="codigo-producto">
+                                <input type="text" class="form-control  form-control-lg text-dark"
+                                       placeholder="Buscar producto"
+                                       id="nombre-producto" style="font-size: 20px"
+                                       oninput="this.value = this.value.toUpperCase()">
                                 <div class="custom-control custom-radio custom-control-inline mt-1 mb-0">
                                     <input type="radio" id="presente" value="presente" name="status-semana"
                                            class="custom-control-input" checked>
@@ -114,19 +127,6 @@
                                     <input type="radio" id="futuro" value="futuro" name="status-semana"
                                            class="custom-control-input">
                                     <label class="custom-control-label" for="futuro">Futuro</label>
-                                </div>
-                            </div>
-                            <div class="form-group col-md-5  mb-0">
-                                <input type="hidden" id="codigo-producto">
-                                <input type="text" class="form-control  form-control-lg text-dark"
-                                       placeholder="Buscar producto"
-                                       id="nombre-producto" style="font-size: 20px"
-                                       oninput="this.value = this.value.toUpperCase()">
-                                <div class="my-1">
-                                    <div class="custom-control custom-checkbox mr-sm-2">
-                                        <input type="checkbox" class="custom-control-input" id="id-reemplazo">
-                                        <label class="custom-control-label" for="id-reemplazo">Despacho reemplazo</label>
-                                    </div>
                                 </div>
                             </div>
                             <div class="form-group col-md-2 col-8  mb-0">
