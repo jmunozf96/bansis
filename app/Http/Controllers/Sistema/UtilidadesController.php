@@ -16,7 +16,7 @@ class UtilidadesController extends Controller
         //$this->middleware('auth');
     }
 
-    public function getSemana($fecha = null)
+    public static function getSemana($fecha = null)
     {
         $fecha = is_null($fecha) ? date("d/m/Y", strtotime(date("d-m-Y"))) : $fecha;
         $data = DB::select('exec SP_GETCOLORES_SEMANA ?', array($fecha));

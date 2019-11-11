@@ -34,10 +34,33 @@ class EnfundeController extends Controller
     public function index($objeto, $recursos)
     {
         $this->recursos = $recursos;
+        $enfunde_pendiente = ENF_ENFUNDE::select('idhacienda', 'fecha', 'semana', 'periodo', 'cinta_pre', 'cinta_fut', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'status')
+            ->with(['lotero' => function ($query2) {
+                $query2->with(['empleado' => function ($query2) {
+                    $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
+                    $query2->orderBy('NOMBRE_CORTO', 'asc');
+                }]);
+            }])
+            ->where('status', 1)->paginate(5);
+
+        $enfunde_cerrado = ENF_ENFUNDE::select('idhacienda', 'semana', 'periodo', 'cinta_pre', 'cinta_fut', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'status')
+            ->with(['lotero' => function ($query2) {
+                $query2->with(['empleado' => function ($query2) {
+                    $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
+                    $query2->orderBy('NOMBRE_CORTO', 'asc');
+                }]);
+            }])
+            ->where([
+                'semana' => $this->utilidades->getSemana()[0]->semana,
+                'status' => 0
+            ])->paginate(5);
+
         if (view()->exists('enfunde' . '.' . $objeto)) {
             return view('enfunde' . '.' . $objeto, [
                 'recursos' => $this->recursos,
-                'semana' => $this->utilidades->getSemana()
+                'semana' => $this->utilidades->getSemana(),
+                'enfundes_pendientes' => $enfunde_pendiente,
+                'enfunde_cerrado' => $enfunde_cerrado
             ]);
         }
     }
@@ -147,11 +170,15 @@ class EnfundeController extends Controller
                 if (!empty($material_futuro)) {
                     $inventario_pre = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
                         'idmaterial' => $material_presente,
-                        'idlotero' => $idlotero])->first();
+                        'idlotero' => $idlotero,
+                        'semana' => $semana
+                    ])->first();
 
                     $inventario_fut = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
                         'idmaterial' => $material_futuro,
-                        'idlotero' => $idlotero])->first();
+                        'idlotero' => $idlotero,
+                        'semana' => $semana
+                    ])->first();
 
                     $materiales = [
                         'presente' => [
@@ -336,19 +363,19 @@ class EnfundeController extends Controller
                             if (count($material_presente) == 1) {
                                 if (count($material_futuro) == 1) {
                                     if ($material_presente[0]->idmaterial == $material_futuro[0]->idmaterial) {
-                                        $inventario->Inv_lotero($lotero->id, $material_presente[0]->idmaterial,
+                                        $inventario->Inv_lotero($params_array['semana'], $lotero->id, $material_presente[0]->idmaterial,
                                             $totaliza_futuro,
                                             $rep_fut_backup > 0 ? $rep_fut_backup : 0,
                                             $options);
                                     } else {
-                                        $inventario->Inv_lotero($lotero->id, $material_futuro[0]->idmaterial,
+                                        $inventario->Inv_lotero($params_array['semana'], $lotero->id, $material_futuro[0]->idmaterial,
                                             $totaliza_futuro,
                                             $rep_fut_backup > 0 ? $rep_fut_backup : 0, $options);
                                     }
                                 }
                             }
                         } else {
-                            $inventario->Inv_lotero($lotero->id, $material_presente[0]->idmaterial,
+                            $inventario->Inv_lotero($params_array['semana'], $lotero->id, $material_presente[0]->idmaterial,
                                 $totaliza_presente,
                                 $rep_presente_backup > 0 ? $rep_presente_backup : 0, $options);
                         }
@@ -377,8 +404,170 @@ class EnfundeController extends Controller
         return $this->respuesta('success', 'Enfunde reportado correctamente');
     }
 
-    public
-    function respuesta($status, $messagge)
+    public function getMaterialPresente($lotero, $semana)
+    {
+        $lotero = ENF_LOTERO::select('id', 'idempleado')->where('id', $lotero)->first();
+        $despacho = ENF_EGRESO::select('id', 'idempleado', 'semana')
+            ->where([
+                'idempleado' => $lotero->idempleado,
+                'semana' => $semana
+            ])->first();
+
+        if ($despacho) {
+            $despacho_detalle_pre = ENF_DET_EGRESO::select('id', 'id_egreso', 'idmaterial', 'cantidad', 'presente', 'futuro')
+                ->where('presente', true)
+                ->where('id_egreso', $despacho->id)->get();
+
+            //Enlista materiales sacados en la semana presente
+            return $material_presente = $this->utilidades->unique_multidim_array($despacho_detalle_pre, 'idmaterial');
+        }
+
+        return false;
+    }
+
+    public function getMaterialFuturo($lotero, $semana)
+    {
+        $lotero = ENF_LOTERO::select('id', 'idempleado')->where('id', $lotero)->first();
+        $despacho = ENF_EGRESO::select('id', 'idempleado', 'semana')
+            ->where([
+                'idempleado' => $lotero->idempleado,
+                'semana' => $semana
+            ])->first();
+
+        if ($despacho) {
+            $despacho_detalle_fut = ENF_DET_EGRESO::select('id', 'id_egreso', 'idmaterial', 'cantidad', 'presente', 'futuro')
+                ->where('futuro', true)
+                ->where('id_egreso', $despacho->id)->get();
+
+            //Enlista materiales sacados en la semana futuro
+            return $material_futuro = $this->utilidades->unique_multidim_array($despacho_detalle_fut, 'idmaterial');
+        }
+        return false;
+    }
+
+    public function delete_presente($idlotero, $semana)
+    {
+        //Eliminar registro de enfunde presente
+        $enfunde = ENF_ENFUNDE::where([
+            'idlotero' => $idlotero,
+            'semana' => $semana
+        ])->first();
+
+        if ($enfunde) {
+            if ($enfunde->total_pre > 0) {
+                //Siempre y cuando no hayan despachos para la futuro
+                $reg_futuro = ENF_DET_ENFUNDE::where([
+                    'idenfunde' => $enfunde->id,
+                    'futuro' => 1
+                ])->get();
+
+                //Que no tengan despachos futuro
+                $lotero = ENF_LOTERO::select('id', 'idempleado')->where('id', $idlotero)->first();
+                $egresos = ENF_EGRESO::where([
+                    'idempleado' => $lotero->idempleado,
+                    'semana' => $semana
+                ])->first();
+                if ($egresos) {
+                    $despachos_futuro = ENF_DET_EGRESO::where([
+                        'id_egreso' => $egresos->id,
+                        'futuro' => 1
+                    ])->get();
+                }
+
+                if (count($reg_futuro) == 0 && count($despachos_futuro) == 0) {
+                    $reg_presente = ENF_DET_ENFUNDE::where([
+                        'idenfunde' => $enfunde->id,
+                        'presente' => 1
+                    ])->delete();
+
+                    //Actualizar el inventario
+                    $material_presente = $this->getMaterialPresente($idlotero, $semana);
+                    $material_futuro = $this->getMaterialFuturo($idlotero, $semana);
+                    $options = [
+                        'new' => false,
+                        'delete' => false,
+                        'update' => false,
+                        'salida' => true];
+                    $inventario = new EgresoController();
+
+                    if (count($material_presente) == 1) {
+                        if (count($material_futuro) == 1) {
+                            if ($material_presente[0]->idmaterial == $material_futuro[0]->idmaterial) {
+                                $inventario->Inv_lotero($semana, $idlotero, $material_presente[0]->idmaterial,
+                                    0, intval($enfunde->total_pre), $options);
+                            } else {
+                                $inventario->Inv_lotero($semana, $idlotero, $material_futuro[0]->idmaterial,
+                                    0, intval($enfunde->total_pre), $options);
+                            }
+                        } else {
+                            $inventario->Inv_lotero($semana, $idlotero, $material_presente[0]->idmaterial,
+                                0, intval($enfunde->total_pre), $options);
+                        }
+                    }
+                    //Automaticamente borrar el registro de enfunde
+                    $enfunde->delete();
+                }
+            }
+        }
+        return response()->json('Registro eliminado con exito', 200);
+    }
+
+    public function delete_futuro($idlotero, $semana)
+    {
+        //Eliminar registro de enfunde futuro
+        $enfunde = ENF_ENFUNDE::select('id', 'semana', 'total_pre', 'total_fut')->where([
+            'idlotero' => $idlotero,
+            'semana' => $semana
+        ])->first();
+
+        if ($enfunde) {
+            if ($enfunde->total_fut > 0) {
+                //Siempre y cuando no hayan despachos para la futuro
+                $reg_futuro = ENF_DET_ENFUNDE::where([
+                    'idenfunde' => $enfunde->id,
+                    'futuro' => 1
+                ])->delete();
+
+                //Actualizar el inventario
+                $material_presente = $this->getMaterialPresente($idlotero, $semana);
+                $material_futuro = $this->getMaterialFuturo($idlotero, $semana);
+                $options = [
+                    'new' => false,
+                    'delete' => false,
+                    'update' => false,
+                    'salida' => true];
+
+                $inventario = new EgresoController();
+
+                if (count($material_presente) == 1) {
+                    if (count($material_futuro) == 1) {
+                        if ($material_presente[0]->idmaterial == $material_futuro[0]->idmaterial) {
+                            $inventario->Inv_lotero($semana, $idlotero, $material_presente[0]->idmaterial,
+                                0, intval($enfunde->total_fut), $options);
+                        } else {
+                            $inventario->Inv_lotero($semana, $idlotero, $material_futuro[0]->idmaterial,
+                                0, intval($enfunde->total_fut), $options);
+                        }
+                    } else {
+                        $inventario->Inv_lotero($semana, $idlotero, $material_presente[0]->idmaterial,
+                            0, intval($enfunde->total_fut), $options);
+                    }
+                }
+                $enfunde->total_fut = 0;
+                $enfunde->save();
+            }
+        }
+        return response()->json('Registro eliminado con exito', 200);
+    }
+
+    public function cerrar_enfunde()
+    {
+        //Pasar el status a 1
+
+        //El inventario de esta semana, pasarlo a la siguiente con el saldo de la anterior
+    }
+
+    public function respuesta($status, $messagge)
     {
         $data = [
             'status' => $status,

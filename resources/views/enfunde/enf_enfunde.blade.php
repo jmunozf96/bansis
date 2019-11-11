@@ -48,6 +48,67 @@
                     </div>
                 </div>
                 <hr>
+                <table class="table table-bordered table-hover">
+                    <thead>
+                    <tr class="text-center">
+                        <th scope="col">...</th>
+                        <th scope="col">Hacienda</th>
+                        <th scope="col">Semana</th>
+                        <th scope="col">Lotero</th>
+                        <th scope="col">Col_pre</th>
+                        <th scope="col">Tot_pre</th>
+                        <th scope="col">Col_fut</th>
+                        <th scope="col">Tot_fut</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">Accion</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($enfundes_pendientes as $enfunde)
+                        <tr style="font-size: 16px" class="text-center table-sm">
+                            <th style="width: 5%"><span class="badge badge-primary">P</span></th>
+                            <th scope="row" style="width: 10%">{{$enfunde->idhacienda}}</th>
+                            <td style="width: 5%">{{$enfunde->semana}}</td>
+                            <td>{{trim($enfunde->lotero->empleado->nombre)}}</td>
+                            <td style="width: 5%">
+                                <input class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
+                                       disabled>
+                            </td>
+                            <td><b>{{$enfunde->total_pre}}</b></td>
+                            <td style="width: 5%">
+                                <input class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
+                                       disabled>
+                            </td>
+                            <td><b>{{$enfunde->total_fut}}</b></td>
+                            <td>{{+$enfunde->total_pre + +$enfunde->total_fut}}</td>
+                            <td>
+                                <div class="btn-toolbar justify-content-center" role="toolbar">
+                                    <div class="btn-group mr-1" role="group" aria-label="First group">
+                                        <button type="button" class="btn btn-primary">
+                                            <i class="fas fa-trash"></i> Presente
+                                        </button>
+                                        <button type="button" class="btn btn-danger">
+                                            <i class="fas fa-trash"></i> Futuro
+                                        </button>
+                                    </div>
+                                    <div class="btn-group mr-1" role="group" aria-label="Second group">
+                                        <button type="button" class="btn btn-success">
+                                            <i class="fas fa-lock"></i> Cerrar
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                    <tr>
+                        <td colspan="10">Larry the Bird</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="form-row mt-3 justify-content-center">
+                    {{ $enfundes_pendientes->links() }}
+                </div>
             </div>
         </div>
     </div>

@@ -16,6 +16,6 @@ class ENF_ENFUNDE extends Model
     }
 
     public function lotero(){
-        return $this->hasOne('App\Sisban\Enfunde\ENF_LOTERO', 'idlotero', 'id');
+        return $this->hasOne('App\Sisban\Enfunde\ENF_LOTERO', 'id', 'idlotero');
     }
 }

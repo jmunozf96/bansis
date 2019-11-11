@@ -415,9 +415,11 @@
                         if (data.fecha == self.fecha) {
                             if (data.presente == self.presente && data.futuro == self.futuro) {
                                 if (data.reemplazo == self.reemplazo && data.idempleado == self.idempleado) {
-                                    self.cantidad = +self.cantidad + +data.cantidad;
-                                    $('#detalle-total').val(this.totalizaDespacho());
-                                    return true;
+                                    if ((self.presente && !enfunde) || (self.futuro && (enfunde && enfunde.total_fut == 0))) {
+                                        self.cantidad = +self.cantidad + +data.cantidad;
+                                        $('#detalle-total').val(this.totalizaDespacho());
+                                        return true;
+                                    }
                                 }
                             }
                         }
@@ -600,7 +602,7 @@
                             $('#add-despacho').attr('disabled', false);
                             $('#cantidad').focus();
 
-                            self.getSaldoPendienteEmpleado(self.empleado, data.codigo);
+                            self.getSaldoPendienteEmpleado(self.empleado, data.codigo, $('#semana').val());
                         },
                         onKeyEnterEvent: function () {
                             var data = $('#nombre-producto').getSelectedItemData();
@@ -609,7 +611,7 @@
                             $('#add-despacho').attr('disabled', false);
                             $('#cantidad').focus();
 
-                            self.getSaldoPendienteEmpleado(self.empleado, data.codigo);
+                            self.getSaldoPendienteEmpleado(self.empleado, data.codigo, $('#semana').val());
                         },
                     }
                 };
@@ -663,10 +665,10 @@
                         });
                 }
             },
-            getSaldoPendienteEmpleado: function (idempleado, idmaterial) {
+            getSaldoPendienteEmpleado: function (idempleado, idmaterial, semana) {
                 let self = this;
                 self.saldo = null;
-                axios.get(`/api/enfunde/saldo_empleado/${idempleado}/${idmaterial}`)
+                axios.get(`/api/enfunde/saldo_empleado/${idempleado}/${idmaterial}/${semana}`)
                     .then(response => {
                         if (response.data) {
                             self.saldo = response.data;

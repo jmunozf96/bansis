@@ -184,23 +184,41 @@ class EgresoController extends Controller
                             'salida' => false];
 
                         //Registramos inventario
-                        $this->Inv_lotero($lotero->id, $item->idmaterial, $item->cantidad, 0, $options);
-                    } else {
-                        $options = [
-                            'new' => false,
-                            'delete' => false,
-                            'update' => true,
-                            'salida' => false];
-
-                        //Registramos inventario
-                        $this->Inv_lotero($lotero->id, $item->idmaterial, $item->cantidad, $detalle->cantidad, $options);
-
-                        $detalle->cantidad = $item->cantidad;
+                        $this->Inv_lotero($params_array['semana'], $lotero->id, $item->idmaterial, $item->cantidad, 0, $options);
                     }
 
 
                     if ($detalle) {
-                        $detalle->save();
+                        $enfunde_reportado = ENF_ENFUNDE::where([
+                            'idlotero' => $lotero->id,
+                            'semana' => $params_array['semana']
+                        ])->first();
+
+                        $bool = false;
+
+                        if (!$nuevo && !is_null($enfunde_reportado)) {
+                            if ($detalle->presente && +$enfunde_reportado->total_pre > 0) {
+                                $bool = true;
+                            } else {
+                                if ($detalle->futuro && +$enfunde_reportado->total_fut > 0) {
+                                    $bool = true;
+                                }
+                            }
+                        }
+
+                        if (!$bool) {
+                            $options = [
+                                'new' => false,
+                                'delete' => false,
+                                'update' => true,
+                                'salida' => false];
+
+                            //Registramos inventario
+                            $this->Inv_lotero($params_array['semana'], $lotero->id, $item->idmaterial, $item->cantidad, $detalle->cantidad, $options);
+                            $detalle->cantidad = $item->cantidad;
+                            $detalle->save();
+                        }
+
                         $resp['code'] = 202;
                         $resp['status'] = 'success';
                         $resp['message'] = 'Registro guardado correctamente';
@@ -276,7 +294,7 @@ class EgresoController extends Controller
             'salida' => false];
 
         //Registramos inventario
-        $this->Inv_lotero($lotero->id, $detalle->idmaterial, $detalle->cantidad, 0, $options);
+        $this->Inv_lotero($egreso->semana, $lotero->id, $detalle->idmaterial, $detalle->cantidad, 0, $options);
 
         $detalle->delete();
         if ($egreso->total == 0) {
@@ -356,18 +374,21 @@ class EgresoController extends Controller
         return response()->json($data, 200);
     }
 
-    public function saldopendiente($idempleado, $idmaterial)
+    public function saldopendiente($idempleado, $idmaterial, $semana)
     {
         $idlotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $idempleado)->first();
-        $inventario = INV_LOT_FUND::select('idlotero', 'saldo', 'idmaterial', 'status')
-            ->where('idlotero', $idlotero->id)
-            ->where('idmaterial', $idmaterial)
-            ->where('status', 1)->first();
+        $inventario = INV_LOT_FUND::select('idlotero', 'semana', 'saldo', 'idmaterial', 'status')
+            ->where([
+                'idlotero' => $idlotero->id,
+                'idmaterial' => $idmaterial,
+                'semana' => $semana,
+                'status' => 1
+            ])->first();
 
         return $inventario;
     }
 
-    public function Inv_lotero($lotero, $material, $cantidad, $cant_anterior = 0, $options = [
+    public function Inv_lotero($semana, $lotero, $material, $cantidad, $cant_anterior = 0, $options = [
         'new' => true,
         'delete' => false,
         'update' => false,
@@ -375,32 +396,35 @@ class EgresoController extends Controller
     {
 
         if (!is_null($lotero) && !is_null($material) && !is_null($cantidad)) {
-            $inventario = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'entrada', 'salida', 'saldo', 'status')
+            $inventario = INV_LOT_FUND::select('id', 'idlotero', 'semana', 'idmaterial', 'saldo_inicial', 'entrada', 'salida', 'saldo', 'status')
                 ->where([
                     'idlotero' => $lotero,
-                    'idmaterial' => $material
+                    'idmaterial' => $material,
+                    'semana' => $semana
                 ])->first();
 
             if (!$inventario) {
                 $inventario = new INV_LOT_FUND();
+                $inventario->semana = $semana;
                 $inventario->idlotero = $lotero;
                 $inventario->idmaterial = $material;
+                $inventario->saldo_inicial = 0;
                 $inventario->status = 1;
             }
 
             switch ($options) {
                 case $options['new']:
                     $inventario->entrada += $cantidad;
-                    $inventario->saldo = $inventario->entrada - $inventario->salida;
+                    $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
                     return $inventario->save();
                 case $options['update']:
                     $inventario->entrada = $inventario->entrada - $cant_anterior;
                     $inventario->entrada += $cantidad;
-                    $inventario->saldo = $inventario->entrada - $inventario->salida;
+                    $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
                     return $inventario->save();
                 case $options['delete']:
                     $inventario->entrada = $inventario->entrada - $cantidad;
-                    $inventario->saldo = $inventario->entrada - $inventario->salida;
+                    $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
                     $inventario->save();
                     if ($inventario->entrada == 0) {
                         return $inventario->delete();
@@ -412,7 +436,7 @@ class EgresoController extends Controller
                         $inventario->salida = $inventario->salida - $cant_anterior;
                     }
                     $inventario->salida += $cantidad;
-                    $inventario->saldo = $inventario->entrada - $inventario->salida;
+                    $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
                     return $inventario->save();
             }
         }
