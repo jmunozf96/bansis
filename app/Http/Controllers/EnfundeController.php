@@ -13,6 +13,7 @@ use App\Sisban\Enfunde\INV_LOT_FUND;
 use App\Sisban\Hacienda\SIS_LOTE;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
 class EnfundeController extends Controller
@@ -23,9 +24,9 @@ class EnfundeController extends Controller
 
     function __construct()
     {
-        $this->middleware('auth');
+        /*$this->middleware('auth');
         $this->middleware('AccesoURL',
-            ['except' => ['getLotero', 'Loteros', 'save']]);
+            ['except' => ['getLotero', 'Loteros', 'save']]);*/
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
@@ -34,6 +35,7 @@ class EnfundeController extends Controller
     public function index($objeto, $recursos)
     {
         $this->recursos = $recursos;
+        $hacienda = Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda;
         $enfunde_pendiente = ENF_ENFUNDE::select('idhacienda', 'fecha', 'semana', 'periodo', 'cinta_pre', 'cinta_fut', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'status')
             ->with(['lotero' => function ($query2) {
                 $query2->with(['empleado' => function ($query2) {
@@ -41,7 +43,10 @@ class EnfundeController extends Controller
                     $query2->orderBy('NOMBRE_CORTO', 'asc');
                 }]);
             }])
-            ->where('status', 1)->paginate(5);
+            ->where([
+                'idhacienda' => $hacienda,
+                'status' => 1
+            ])->paginate(6);
 
         $enfunde_cerrado = ENF_ENFUNDE::select('idhacienda', 'semana', 'periodo', 'cinta_pre', 'cinta_fut', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'status')
             ->with(['lotero' => function ($query2) {
@@ -52,8 +57,9 @@ class EnfundeController extends Controller
             }])
             ->where([
                 'semana' => $this->utilidades->getSemana()[0]->semana,
+                'idhacienda' => $hacienda,
                 'status' => 0
-            ])->paginate(5);
+            ])->paginate(6);
 
         if (view()->exists('enfunde' . '.' . $objeto)) {
             return view('enfunde' . '.' . $objeto, [
@@ -506,10 +512,15 @@ class EnfundeController extends Controller
                     }
                     //Automaticamente borrar el registro de enfunde
                     $enfunde->delete();
+                    return Redirect::back()
+                        ->with('msg', 'Registro eliminado de manera correcta')
+                        ->with('status', 'success');
                 }
             }
         }
-        return response()->json('Registro eliminado con exito', 200);
+        return Redirect::back()
+            ->with('msg', 'Error al eliminar el registro')
+            ->with('status', 'danger');
     }
 
     public function delete_futuro($idlotero, $semana)
@@ -555,9 +566,14 @@ class EnfundeController extends Controller
                 }
                 $enfunde->total_fut = 0;
                 $enfunde->save();
+                return Redirect::back()
+                    ->with('msg', 'Registro eliminado de manera correcta')
+                    ->with('status', 'success');
             }
         }
-        return response()->json('Registro eliminado con exito', 200);
+        return Redirect::back()
+            ->with('msg', 'No se pudo eliminar el registro')
+            ->with('status', 'danger');
     }
 
     public function cerrar_enfunde()

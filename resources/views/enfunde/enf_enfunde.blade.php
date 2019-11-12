@@ -48,7 +48,19 @@
                     </div>
                 </div>
                 <hr>
-                <table class="table table-bordered table-hover">
+                @if(\Session::has('msg'))
+                    @push('scripts')
+                    <script type="text/javascript">
+                    </script>
+                    @endpush
+                    <div class="alert alert-{{\Session::get('status')}} alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle"></i> <a href="javascript:void(0)" class="alert-link">{!! \Session::get('msg') !!}</a>.
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                @endif
+                <table class="table table-hover table-striped" style="width:100%">
                     <thead>
                     <tr class="text-center">
                         <th scope="col">...</th>
@@ -66,7 +78,7 @@
                     <tbody>
                     @foreach($enfundes_pendientes as $enfunde)
                         <tr style="font-size: 16px" class="text-center table-sm">
-                            <th style="width: 5%"><span class="badge badge-primary">P</span></th>
+                            <th style="width: 5%"><span class="badge badge-danger">A</span></th>
                             <th scope="row" style="width: 10%">{{$enfunde->idhacienda}}</th>
                             <td style="width: 5%">{{$enfunde->semana}}</td>
                             <td>{{trim($enfunde->lotero->empleado->nombre)}}</td>
@@ -74,24 +86,41 @@
                                 <input class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
                                        disabled>
                             </td>
-                            <td><b>{{$enfunde->total_pre}}</b></td>
+                            <td style="width: 5%">
+                                <input class="form-control text-center bg-white" type="number"
+                                       value="{{$enfunde->total_pre}}" disabled>
+                            </td>
                             <td style="width: 5%">
                                 <input class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
                                        disabled>
                             </td>
-                            <td><b>{{$enfunde->total_fut}}</b></td>
-                            <td>{{+$enfunde->total_pre + +$enfunde->total_fut}}</td>
+                            <td style="width: 5%">
+                                <input class="form-control text-center bg-white" type="number"
+                                       value="{{$enfunde->total_fut}}" disabled>
+                            </td>
+                            <td style="width: 5%">
+                                <input class="form-control text-center"
+                                       value="{{+$enfunde->total_pre + +$enfunde->total_fut}}" disabled>
+                            </td>
                             <td>
                                 <div class="btn-toolbar justify-content-center" role="toolbar">
                                     <div class="btn-group mr-1" role="group" aria-label="First group">
-                                        <button type="button" class="btn btn-primary">
-                                            <i class="fas fa-trash"></i> Presente
-                                        </button>
-                                        <button type="button" class="btn btn-danger">
-                                            <i class="fas fa-trash"></i> Futuro
-                                        </button>
+                                        {{Form::open(['method' => 'DELETE',
+                                        'onsubmit' => 'return confirm("¿Deseas eliminar el registro Presente?")',
+                                        'route' => ['enfunde.delete_presente',
+                                        $enfunde->idlotero,$enfunde->semana]])}}
+                                        {{Form::button('<i class="fas fa-times"></i> Presente', array('type' => 'submit', 'class' => 'btn btn-primary'))}}
+                                        {{Form::close()}}
                                     </div>
                                     <div class="btn-group mr-1" role="group" aria-label="Second group">
+                                        {{Form::open(['method' => 'DELETE',
+                                            'onsubmit' => 'return confirm("¿Deseas eliminar el registro Futuro?")',
+                                            'route' => ['enfunde.delete_futuro',
+                                            $enfunde->idlotero,$enfunde->semana]])}}
+                                        {{Form::button('<i class="fas fa-times"></i> Futuro', array('type' => 'submit', 'class' => 'btn btn-danger'))}}
+                                        {{Form::close()}}
+                                    </div>
+                                    <div class="btn-group mr-1" role="group" aria-label="Third group">
                                         <button type="button" class="btn btn-success">
                                             <i class="fas fa-lock"></i> Cerrar
                                         </button>
@@ -101,9 +130,9 @@
                             </td>
                         </tr>
                     @endforeach
-                    <tr>
+                    <!--tr>
                         <td colspan="10">Larry the Bird</td>
-                    </tr>
+                    </--tr-->
                     </tbody>
                 </table>
                 <div class="form-row mt-3 justify-content-center">
