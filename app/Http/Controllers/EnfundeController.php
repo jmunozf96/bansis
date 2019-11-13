@@ -24,9 +24,9 @@ class EnfundeController extends Controller
 
     function __construct()
     {
-        /*$this->middleware('auth');
+        $this->middleware('auth');
         $this->middleware('AccesoURL',
-            ['except' => ['getLotero', 'Loteros', 'save']]);*/
+            ['except' => ['getLotero', 'Loteros', 'save']]);
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();

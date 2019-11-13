@@ -19,7 +19,5 @@ class VerifyCsrfToken extends Middleware
      * @var array
      */
     protected $except = [
-        '/sistema/enfunde/despacho/save',
-        '/sistema/axios/enfunde/lotero/{idlotero}/{semana}'
     ];
 }
