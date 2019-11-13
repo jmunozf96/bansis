@@ -26,7 +26,8 @@ class EnfundeController extends Controller
     {
         $this->middleware('auth');
         $this->middleware('AccesoURL',
-            ['except' => ['getLotero', 'Loteros', 'save']]);
+            ['except' => ['getLotero', 'Loteros', 'save', 'getMaterialPresente',
+                'getMaterialFuturo', 'delete_presente', 'delete_futuro']]);
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
@@ -46,7 +47,9 @@ class EnfundeController extends Controller
             ->where([
                 'idhacienda' => $hacienda,
                 'status' => 1
-            ])->paginate(6);
+            ])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(6);
 
         $enfunde_cerrado = ENF_ENFUNDE::select('idhacienda', 'semana', 'periodo', 'cinta_pre', 'cinta_fut', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'status')
             ->with(['lotero' => function ($query2) {
@@ -59,7 +62,9 @@ class EnfundeController extends Controller
                 'semana' => $this->utilidades->getSemana()[0]->semana,
                 'idhacienda' => $hacienda,
                 'status' => 0
-            ])->paginate(6);
+            ])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(6);
 
         if (view()->exists('enfunde' . '.' . $objeto)) {
             return view('enfunde' . '.' . $objeto, [
@@ -254,7 +259,7 @@ class EnfundeController extends Controller
         if (!empty($params) && !empty($params_array)) {
 
             $validacion = \Validator::make($params_array, [
-                'fecha' => 'required|date',
+                'fecha' => 'required',
                 'semana' => 'required',
                 'lotero' => 'required',
                 'detalle_enfunde' => 'required|array',

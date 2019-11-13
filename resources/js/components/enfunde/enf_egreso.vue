@@ -480,27 +480,29 @@
             material_unico: function (presente = true, idmaterial) {
                 let resp = true;
                 let no_es_unico = [];
-                for (var i in this.despachos) {
-                    if (presente) {
-                        if (this.despachos[i].presente) {
-                            if (this.despachos[i].idmaterial != idmaterial) {
-                                no_es_unico.push(false);
+                if (this.despachos.length > 0) {
+                    for (var i in this.despachos) {
+                        if (presente) {
+                            if (this.despachos[i].presente) {
+                                if (this.despachos[i].idmaterial != idmaterial) {
+                                    no_es_unico.push(false);
+                                }
                             }
-                        }
-                    } else {
-                        if (this.despachos[i].futuro) {
-                            if (this.despachos[i].idmaterial != idmaterial) {
-                                no_es_unico.push(false);
+                        } else {
+                            if (this.despachos[i].futuro) {
+                                if (this.despachos[i].idmaterial != idmaterial) {
+                                    no_es_unico.push(false);
+                                }
                             }
                         }
                     }
-
-                    if (no_es_unico.length > 0) {
-                        resp = false;
-                    }
-
-                    return resp;
                 }
+
+                if (no_es_unico.length > 0) {
+                    resp = false;
+                }
+
+                return resp;
             },
             deleteDespacho: function (index) {
                 let self = this;
@@ -518,6 +520,9 @@
                                         $("#nombre-empleado").selectpicker("refresh");
                                         Swal.fire(alerta, response.data.message, response.data.status);
                                         $('#detalle-total').val(this.totalizaDespacho());
+                                        if (self.despachos.length == 0) {
+                                            self.resetForm();
+                                        }
                                     } else {
                                         Swal.fire('Error ' + response.data.code, response.data.message, response.data.status);
                                     }

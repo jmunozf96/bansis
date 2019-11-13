@@ -28,7 +28,12 @@ class EgresoController extends Controller
     {
         $this->middleware('auth');
         $this->middleware('AccesoURL',
-            ['except' => ['save', 'getdespacho', 'deleteDetalle', 'editDetalle', 'respuesta', 'saldopendiente']]);
+            ['except' => ['save',
+                'getdespacho',
+                'deleteDetalle',
+                'editDetalle','renderSelectLotero',
+                'respuesta','Inv_lotero',
+                'saldopendiente']]);
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
@@ -99,12 +104,12 @@ class EgresoController extends Controller
         $resp = [
             'code' => 500,
             'status' => 'error',
-            'message' => 'no se pudo guardar el registro'
+            'message' => $params_array
         ];
 
         if (!empty($params_array) && !empty($params)) {
             $validacion = \Validator::make($params_array, [
-                'fecha' => 'required|date',
+                'fecha' => 'required',
                 'semana' => 'required',
                 'hacienda' => 'required',
                 'idempleado' => 'required',

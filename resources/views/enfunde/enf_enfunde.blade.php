@@ -79,7 +79,7 @@
                     @foreach($enfundes_pendientes as $enfunde)
                         <tr style="font-size: 16px" class="text-center table-sm">
                             <th style="width: 5%"><span class="badge badge-danger">A</span></th>
-                            <th scope="row" style="width: 10%">{{$enfunde->idhacienda}}</th>
+                            <th scope="row" style="width: 10%">{{$enfunde->idhacienda == 1 ? '343' : '344'}}</th>
                             <td style="width: 5%">{{$enfunde->semana}}</td>
                             <td>{{trim($enfunde->lotero->empleado->nombre)}}</td>
                             <td style="width: 5%">
