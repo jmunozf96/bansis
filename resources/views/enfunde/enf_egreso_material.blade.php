@@ -38,14 +38,14 @@
                                 <label>Hacienda</label>
                                 <select class="selectpicker show-tick form-control"
                                         data-live-search="true"
-                                        id="id-hacienda" {{Auth::user()->id_hacienda == 1 || Auth::user()->id_hacienda == 2 ? 'disabled' : ''}}>
+                                        id="id-hacienda" {{Auth::user()->idHacienda == 1 || Auth::user()->idHacienda == 2 ? 'disabled' : ''}}>
                                     <option data-tokens="343"
-                                            value="343" {{Auth::user()->id_hacienda == 1 ? 'selected' : ''}}>
+                                            value="343" {{Auth::user()->idHacienda == 1 ? 'selected' : ''}}>
                                         PRIMO-BANANO
                                     </option>
                                     <option data-divider="true"></option>
                                     <option data-tokens="344"
-                                            value="344" {{Auth::user()->id_hacienda == 2 ? 'selected' : ''}}>
+                                            value="344" {{Auth::user()->idHacienda == 2 ? 'selected' : ''}}>
                                         SOFCA-BANANO
                                     </option>
                                 </select>
@@ -56,7 +56,8 @@
                                         data-live-search="true"
                                         id="bodega" disabled>
                                     @foreach($bodegas as $bodega)
-                                        <option value="{{$bodega->Id_Fila}}" {{$bodega->Id_Fila == 13 ? 'selected' : ''}}>{{$bodega->Nombre}}</option>
+                                        <option
+                                            value="{{$bodega->Id_Fila}}" {{$bodega->Id_Fila == 13 ? 'selected' : ''}}>{{$bodega->Nombre}}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -95,26 +96,35 @@
                                            aria-label="Codigo" aria-describedby="addon-wrapping" disabled>
                                 </div>
                             </div>
-                            <div class="form-group col-md-12">
+                            <div class="form-group col-md-6">
                                 {{--<input type="text" class="form-control  form-control-lg text-dark"
                                        placeholder="Empleado"
                                        id="nombre-empleado"
                                        oninput="this.value = this.value.toUpperCase()">--}}
                                 <select class="selectpicker show-tick form-control form-control-lg"
-                                        data-live-search="true" data-style="btn-outline-dark"
+                                        data-live-search="false" data-style="btn-outline-dark" data-size="10"
                                         id="nombre-empleado">
                                     @include('enfunde.select_lotero')
                                 </select>
                                 <div class="my-1">
                                     <div class="custom-control custom-checkbox mr-sm-2">
                                         <input type="checkbox" class="custom-control-input" id="id-reemplazo">
-                                        <label class="custom-control-label" for="id-reemplazo">Despacho reemplazo</label>
+                                        <label class="custom-control-label" for="id-reemplazo">Despacho
+                                            reemplazo</label>
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group col-md-8  mb-0">
+                            <div class="form-group col-md-6  mb-0">
                                 <input type="hidden" id="codigo-producto">
-                                <input type="text" class="form-control  form-control-lg text-dark"
+                                <select class="selectpicker show-tick form-control form-control-lg"
+                                        data-live-search="false" data-style="btn-outline-dark" style="font-size: 50px"
+                                        id="producto">
+                                    @foreach($materiales as $material)
+                                        <option style="font-size: 18px"
+                                            value="{{$material->codigo}}" {{$material->codigo == 2446 ? 'selected' : ''}}>{{$material->nombre}}</option>
+                                    @endforeach
+                                </select>
+                                <input type="text" class="form-control form-control-lg text-dark d-none"
                                        placeholder="Buscar producto"
                                        id="nombre-producto" style="font-size: 20px"
                                        oninput="this.value = this.value.toUpperCase()">
@@ -130,12 +140,15 @@
                                 </div>
                             </div>
                             <div class="form-group col-md-2 col-8  mb-0">
-                                <input type="number" style="font-size: 20px" class="form-control bg-white form-control-lg" id="cantidad"
+                                <input type="number" style="font-size: 20px"
+                                       class="form-control bg-white form-control-lg" id="cantidad"
                                        placeholder="0.00">
                                 <small>Cantidad</small>
                             </div>
                             <div class="form-group col-md-1 mb-0">
-                                <button type="button" class="btn btn-primary btn-lg" style="font-size: 20px" id="add-despacho">+</button>
+                                <button type="button" class="btn btn-primary btn-lg" style="font-size: 20px"
+                                        id="add-despacho">+
+                                </button>
                             </div>
                         </div>
                     </div>

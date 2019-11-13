@@ -169,6 +169,9 @@
             var self = this;
             moment.locale('es');
 
+            $('#producto').attr('disabled', true);
+            $("#producto").selectpicker("refresh");
+
             $('#nombre-producto').attr('disabled', true);
             $('#cantidad').attr('disabled', true);
             $('#add-despacho').attr('disabled', true);
@@ -196,21 +199,35 @@
 
             if ($('#nombre-empleado').val() != null) {
                 self.empleado = $('#nombre-empleado').val();
+                $('#producto').attr('disabled', false);
+                $("#producto").selectpicker("refresh");
+
                 $('#nombre-producto').attr('disabled', false);
                 $('#nombre-producto').focus();
+                $('#cantidad').attr('disabled', false);
+                $('#cantidad').focus();
 
                 if (self.empleado != '') {
                     self.getDataEmpleado(self.empleado, $('#semana').val(), self.hacienda);
+                    self.getSaldoPendienteEmpleado(self.empleado, $('#producto option:selected').val(), $('#semana').val());
+                    $('#add-despacho').attr('disabled', false);
                 }
             }
 
             $('#nombre-empleado').on('change', function () {
                 self.empleado = $(this).val();
+                $('#producto').attr('disabled', false);
+                $("#producto").selectpicker("refresh");
+
                 $('#nombre-producto').attr('disabled', false);
                 $('#nombre-producto').focus();
+                $('#cantidad').attr('disabled', false);
+                $('#cantidad').focus();
 
                 if (self.empleado != '') {
                     self.getDataEmpleado(self.empleado, $('#semana').val(), self.hacienda);
+                    self.getSaldoPendienteEmpleado(self.empleado, $('#producto option:selected').val(), $('#semana').val());
+                    $('#add-despacho').attr('disabled', false);
                 }
             });
 
@@ -230,6 +247,9 @@
             $('#btn-nuevo').on({
                 click: function (e) {
                     self.resetForm();
+                    $('#producto').attr('disabled', true);
+                    $("#producto").selectpicker("refresh");
+
                     $('#nombre-producto').attr('disabled', true);
                     $('#cantidad').attr('disabled', true);
                     $('#add-despacho').attr('disabled', true);
@@ -237,6 +257,19 @@
                     $('#detalle-total').val(self.totalizaDespacho());
                 }
             });
+
+            $('#producto').on({
+                change: function () {
+                    $('#codigo-producto').val($(this).val());
+                    $('#cantidad').attr('disabled', false);
+                    $('#add-despacho').attr('disabled', false);
+                    $('#cantidad').focus();
+
+                    if (self.empleado != "") {
+                        self.getSaldoPendienteEmpleado(self.empleado, $(this).val(), $('#semana').val());
+                    }
+                }
+            })
 
             $('input[name=status-semana]').on('change', function () {
                 var radios = $(this);
@@ -275,12 +308,12 @@
 
                     fecha = $('#fecha');
                     idmaterial = $('#codigo-producto');
-                    des_material = $('#nombre-producto');
+                    des_material = $('#producto option:selected');
                     cantidad = $('#cantidad');
                     presente = radios.filter('[value=presente]').is(':checked');
                     futuro = radios.filter('[value=futuro]').is(':checked');
 
-                    if (idmaterial.val() == '') {
+                    if (des_material.val() == '') {
                         return;
                     }
 
@@ -290,8 +323,8 @@
 
                     let egreso = {
                         fecha: fecha.val(),
-                        idmaterial: idmaterial.val(),
-                        desmaterial: des_material.val(),
+                        idmaterial: des_material.val(),
+                        desmaterial: des_material.text(),
                         reemplazo: 0,
                         idempleado: 0,
                         empleado: '',
@@ -307,9 +340,7 @@
                         guardaRelevo(egreso);
 
                         idmaterial.val('');
-                        des_material.val('');
                         cantidad.val('');
-                        des_material.focus();
 
                         $('#id-empleado-reemplazo').val('');
                         $('#nombre-empleado-reemplazo').val('');
@@ -317,9 +348,7 @@
                         self.addDespacho(egreso);
                         $('#detalle-total').val(self.totalizaDespacho());
                         idmaterial.val('');
-                        des_material.val('');
                         cantidad.val('');
-                        des_material.focus();
 
                         $('#id-empleado-reemplazo').val('');
                         $('#nombre-empleado-reemplazo').val('');
@@ -330,12 +359,24 @@
 
             function guardaRelevo(egreso) {
                 $('#btn-save-reemplazo').one("click", function () {
-                    egreso.reemplazo = 1;
-                    egreso.idempleado = +$('#id-empleado-reemplazo').val();
-                    egreso.empleado = $('#nombre-empleado-reemplazo').val();
-                    self.addDespacho(egreso);
-                    $('#detalle-total').val(self.totalizaDespacho());
-                    $('#emp-reemplazo').modal('hide');
+                    if ($('#id-empleado-reemplazo').val() != '') {
+                        egreso.reemplazo = 1;
+                        egreso.idempleado = +$('#id-empleado-reemplazo').val();
+                        egreso.empleado = $('#nombre-empleado-reemplazo').val();
+                        self.addDespacho(egreso);
+                        $('#detalle-total').val(self.totalizaDespacho());
+                        $('#emp-reemplazo').modal('hide');
+                    }
+                });
+
+                $('#emp-reemplazo').on('hidden.bs.modal', function (e) {
+                    if ($('#id-empleado-reemplazo').val() != '') {
+                        egreso.reemplazo = 1;
+                        egreso.idempleado = +$('#id-empleado-reemplazo').val();
+                        egreso.empleado = $('#nombre-empleado-reemplazo').val();
+                        self.addDespacho(egreso);
+                        $('#detalle-total').val(self.totalizaDespacho());
+                    }
                 });
             }
 
@@ -387,8 +428,16 @@
         methods: {
             addDespacho: function (data) {
                 if (!this.existeDespacho(data)) {
-                    this.despachos.push(data);
-                    return true;
+                    if (this.material_unico(data.presente, data.idmaterial)) {
+                        this.despachos.push(data);
+                        return true;
+                    } else {
+                        Swal.fire({
+                            type: 'warning',
+                            title: 'Oops...',
+                            text: `Usted ha seleccionado un material diferente al despachado para la cinta ${data.presente ? 'presente' : 'futuro'}`,
+                        })
+                    }
                 } else {
                     return this.editDespacho(data);
                 }
@@ -409,13 +458,14 @@
                 return false;
             },
             editDespacho: function (data) {
+                var enfunde = this.enfunde;
                 for (var i in this.despachos) {
                     let self = this.despachos[i];
                     if (data.idmaterial == self.idmaterial) {
                         if (data.fecha == self.fecha) {
                             if (data.presente == self.presente && data.futuro == self.futuro) {
                                 if (data.reemplazo == self.reemplazo && data.idempleado == self.idempleado) {
-                                    if ((self.presente && !enfunde) || (self.futuro && (enfunde && enfunde.total_fut == 0))) {
+                                    if ((data.presente && !enfunde) || (data.futuro && (enfunde && enfunde.total_fut == 0))) {
                                         self.cantidad = +self.cantidad + +data.cantidad;
                                         $('#detalle-total').val(this.totalizaDespacho());
                                         return true;
@@ -426,6 +476,31 @@
                     }
                 }
                 return false;
+            },
+            material_unico: function (presente = true, idmaterial) {
+                let resp = true;
+                let no_es_unico = [];
+                for (var i in this.despachos) {
+                    if (presente) {
+                        if (this.despachos[i].presente) {
+                            if (this.despachos[i].idmaterial != idmaterial) {
+                                no_es_unico.push(false);
+                            }
+                        }
+                    } else {
+                        if (this.despachos[i].futuro) {
+                            if (this.despachos[i].idmaterial != idmaterial) {
+                                no_es_unico.push(false);
+                            }
+                        }
+                    }
+
+                    if (no_es_unico.length > 0) {
+                        resp = false;
+                    }
+
+                    return resp;
+                }
             },
             deleteDespacho: function (index) {
                 let self = this;
@@ -456,7 +531,8 @@
                     }
                 });
                 return false;
-            },
+            }
+            ,
             totalizar: function () {
                 var total = 0;
                 for (var i in this.despachos) {
@@ -465,7 +541,8 @@
                     }
                 }
                 return total;
-            },
+            }
+            ,
             totalPresente: function () {
                 var total = 0;
                 for (var i in this.despachos) {
@@ -476,7 +553,8 @@
                     }
                 }
                 return total;
-            },
+            }
+            ,
             totalFuturo: function () {
                 var total = 0;
                 for (var i in this.despachos) {
@@ -487,7 +565,8 @@
                     }
                 }
                 return total;
-            },
+            }
+            ,
             totalizaDespacho: function () {
                 let string = 'TOTAL DESPACHO SEMANA ' + $('#semana').val() + ': ';
                 let total = 0;
@@ -504,7 +583,8 @@
                 }
                 total = +presente + +futuro;
                 return string + total + ' / PRESENTE: ' + presente + ' / FUTURO: ' + futuro;
-            },
+            }
+            ,
             editForm: function (index) {
                 this.despacho.fecha = this.despachos[index].fecha;
                 this.despacho.idmaterial = this.despachos[index].idmaterial;
@@ -514,7 +594,8 @@
                 this.despacho.presente = this.despachos[index].presente;
                 this.despacho.futuro = this.despachos[index].futuro;
                 this.statusForm = true;
-            },
+            }
+            ,
             saveForm: function (index) {
                 if (this.despacho.cantidad > 0 && this.despacho.cantidad != '') {
                     this.despachos[index].cantidad = this.despacho.cantidad;
@@ -526,7 +607,8 @@
                 this.despacho.cantidad = 0;
                 this.statusForm = false;
                 $('#detalle-total').val(this.totalizaDespacho());
-            },
+            }
+            ,
             getAutocompleteEmpleadoReemplazo: function () {
                 var object = this;
                 var semana = $('#semana').val();
@@ -564,7 +646,8 @@
                         }
                     }
                 });
-            },
+            }
+            ,
             getAutocompleteProducto: function () {
                 let self = this;
                 var options = {
@@ -624,7 +707,8 @@
                         }
                     }
                 });
-            },
+            }
+            ,
             getDataEmpleado: function (empleado, semana, hacienda) {
                 let self = this;
                 self.despachos = [];
@@ -654,7 +738,7 @@
 
                                 if (self.enfunde) {
                                     $('input[name=status-semana][value=futuro]').prop('checked', true);
-                                    //$('input[name=status-semana][value=presente]').prop('disabled', true);
+                                    $('input[name=status-semana][value=presente]').prop('disabled', true);
                                 }
 
                                 self.dato_enfunde = [];
@@ -664,7 +748,8 @@
                             }
                         });
                 }
-            },
+            }
+            ,
             getSaldoPendienteEmpleado: function (idempleado, idmaterial, semana) {
                 let self = this;
                 self.saldo = null;
@@ -674,7 +759,8 @@
                             self.saldo = response.data;
                         }
                     });
-            },
+            }
+            ,
             getEnfunde: function (enfunde, array) {
                 if (enfunde) {
                     if (parseInt(enfunde.total_pre) > 0) {
@@ -708,13 +794,15 @@
                         array.push(tot_enfunde);
                     }
                 }
-            },
+            }
+            ,
             resetData: function () {
                 this.despacho.fecha = $('#fecha').val();
                 this.despacho.idmaterial = '';
                 this.despacho.des_material = '';
                 this.despacho.cantidad = 0;
-            },
+            }
+            ,
             resetForm: function () {
                 this.empleado = '';
                 this.statusForm = false;
@@ -735,7 +823,8 @@
                 $('#codigo-producto').val('');
                 $('#nombre-producto').val('');
                 $('#cantidad').val('');
-            },
+            }
+            ,
             datasweetalert() {
                 var data = {
                     title: 'Estas seguro de realizar esta acción?',

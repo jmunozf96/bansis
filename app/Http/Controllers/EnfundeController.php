@@ -223,6 +223,7 @@ class EnfundeController extends Controller
             ->with(['empleado' => function ($query) {
                 $query->selectRaw('trim(NOMBRE_CORTO) as nombre, COD_TRABAJ');
                 $query->where('ESTADO', 'A');
+                $query->orderBy('nombre', 'asc');
             }])
             ->with(['fundas' => function ($query3) use ($semana) {
                 $query3->select('id', 'semana', 'idempleado', 'total', 'status');

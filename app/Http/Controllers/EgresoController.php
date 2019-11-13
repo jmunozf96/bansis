@@ -78,6 +78,7 @@ class EgresoController extends Controller
             'recursos' => $this->recursos,
             'semana' => $this->utilidades->getSemana(),
             'bodegas' => $this->utilidades->Bodegas(),
+            'materiales' => $this->utilidades->getcomboProductos(13),
             'loteros' => $this->enfunde->Loteros($hacienda, $this->utilidades->getSemana()[0]->semana)
         ];
         return view('enfunde.enf_egreso_material', $data);
