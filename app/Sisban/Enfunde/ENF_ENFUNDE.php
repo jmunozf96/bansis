@@ -23,12 +23,10 @@ class ENF_ENFUNDE extends Model
 
     public function scopeSearch($q)
     {
-        return empty(request()->search) ? $q : $q->with(['lotero' => function ($query2) {
-            $query2->with(['empleado' => function ($query2) {
-                $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                $query2->orderBy('NOMBRE_CORTO', 'asc');
-                $query2->where('NOMBRE_CORTO n', 'like', '%' . request()->search . '%');
-            }]);
-        }]);
+        $data = request()->search;
+        return empty(request()->search) ? $q : $q->whereHas('lotero', function ($query) use ($data) {
+            $query->where('nombres', 'like', '%' . $data . '%');
+            $query->whereNotNull('nombres');
+        });
     }
 }

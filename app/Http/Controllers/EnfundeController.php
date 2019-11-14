@@ -12,7 +12,9 @@ use App\Sisban\Enfunde\ENF_LOTERO;
 use App\Sisban\Enfunde\INV_LOT_FUND;
 use App\Sisban\Hacienda\SIS_LOTE;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
@@ -35,7 +37,7 @@ class EnfundeController extends Controller
 
     public function scopeSearch($q)
     {
-        return empty(request()->search) ? $q : $q->where('name', 'like', '%'.request()->search.'%');
+        return empty(request()->search) ? $q : $q->where('name', 'like', '%' . request()->search . '%');
     }
 
     public function index($objeto, $recursos)
@@ -43,12 +45,8 @@ class EnfundeController extends Controller
         $this->recursos = $recursos;
         $hacienda = Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda;
         $enfunde_pendiente = ENF_ENFUNDE::select('idhacienda', 'fecha', 'semana', 'periodo', 'cinta_pre', 'cinta_fut', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'status')
-            ->with(['lotero' => function ($query2) {
-                $query2->with(['empleado' => function ($query2) {
-                    $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                    $query2->orderBy('NOMBRE_CORTO', 'asc');
-                }]);
-            }])
+            ->with('lotero')
+            ->whereHas('lotero')
             ->where([
                 'idhacienda' => $hacienda,
                 'status' => 1
@@ -78,7 +76,7 @@ class EnfundeController extends Controller
                 'semana' => $this->utilidades->getSemana(),
                 'enfundes_pendientes' => $enfunde_pendiente,
                 'enfunde_cerrado' => $enfunde_cerrado
-            ]);
+            ])->withInput(Input::all());;
         }
     }
 
