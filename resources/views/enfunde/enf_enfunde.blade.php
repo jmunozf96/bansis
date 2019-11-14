@@ -70,10 +70,6 @@
                             </div>
                             {!! Form::close() !!}
                         </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col p-0">
                         @if(\Session::has('msg'))
                             @push('scripts')
                             <script type="text/javascript">
@@ -88,6 +84,10 @@
                                 </button>
                             </div>
                         @endif
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col p-0">
                         <table class="table table-hover table-striped" style="width:100%">
                             <thead>
                             <tr class="text-center">
