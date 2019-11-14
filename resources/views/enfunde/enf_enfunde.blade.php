@@ -38,107 +38,144 @@
                         </div>
                     </div>
                     <div class="form-row col-4 justify-content-end">
-                        <div class="form-group">
-                            <a class="btn btn-success btn-lg" href="{{route('enfunde',
-                            ['modulo' => Auth::user()->modulo,
-                            'objeto' =>  Auth::user()->objeto,
-                            'idRecurso' => Auth::user()->recursoId,]
-                            )}}"> <i class="fas fa-plus"></i> Nuevo Registro Enfunde</a>
-                        </div>
+
                     </div>
                 </div>
                 <hr>
-                @if(\Session::has('msg'))
-                    @push('scripts')
-                    <script type="text/javascript">
-                    </script>
-                    @endpush
-                    <div class="alert alert-{{\Session::get('status')}} alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-circle"></i> <a href="javascript:void(0)" class="alert-link">{!! \Session::get('msg') !!}</a>.
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                @endif
-                <table class="table table-hover table-striped" style="width:100%">
-                    <thead>
-                    <tr class="text-center">
-                        <th scope="col">...</th>
-                        <th scope="col">Hacienda</th>
-                        <th scope="col">Semana</th>
-                        <th scope="col">Lotero</th>
-                        <th scope="col">Col_pre</th>
-                        <th scope="col">Tot_pre</th>
-                        <th scope="col">Col_fut</th>
-                        <th scope="col">Tot_fut</th>
-                        <th scope="col">Total</th>
-                        <th scope="col">Accion</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($enfundes_pendientes as $enfunde)
-                        <tr style="font-size: 16px" class="text-center table-sm">
-                            <th style="width: 5%"><span class="badge badge-danger">A</span></th>
-                            <th scope="row" style="width: 10%">{{$enfunde->idhacienda == 1 ? '343' : '344'}}</th>
-                            <td style="width: 5%">{{$enfunde->semana}}</td>
-                            <td>{{trim($enfunde->lotero->empleado->nombre)}}</td>
-                            <td style="width: 5%">
-                                <input class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
-                                       disabled>
-                            </td>
-                            <td style="width: 5%">
-                                <input class="form-control text-center bg-white" type="number"
-                                       value="{{$enfunde->total_pre}}" disabled>
-                            </td>
-                            <td style="width: 5%">
-                                <input class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
-                                       disabled>
-                            </td>
-                            <td style="width: 5%">
-                                <input class="form-control text-center bg-white" type="number"
-                                       value="{{$enfunde->total_fut}}" disabled>
-                            </td>
-                            <td style="width: 5%">
-                                <input class="form-control text-center"
-                                       value="{{+$enfunde->total_pre + +$enfunde->total_fut}}" disabled>
-                            </td>
-                            <td>
-                                <div class="btn-toolbar justify-content-center" role="toolbar">
-                                    <div class="btn-group mr-1" role="group" aria-label="First group">
-                                        {{Form::open(['method' => 'DELETE',
-                                        'onsubmit' => 'return confirm("¿Deseas eliminar el registro Presente?")',
-                                        'route' => ['enfunde.delete_presente',
-                                        $enfunde->idlotero,$enfunde->semana]])}}
-                                        {{Form::button('<i class="fas fa-times"></i> Presente', array('type' => 'submit', 'class' => 'btn btn-primary'))}}
-                                        {{Form::close()}}
-                                    </div>
-                                    <div class="btn-group mr-1" role="group" aria-label="Second group">
-                                        {{Form::open(['method' => 'DELETE',
-                                            'onsubmit' => 'return confirm("¿Deseas eliminar el registro Futuro?")',
-                                            'route' => ['enfunde.delete_futuro',
-                                            $enfunde->idlotero,$enfunde->semana]])}}
-                                        {{Form::button('<i class="fas fa-times"></i> Futuro', array('type' => 'submit', 'class' => 'btn btn-danger'))}}
-                                        {{Form::close()}}
-                                    </div>
-                                    <div class="btn-group mr-1" role="group" aria-label="Third group">
-                                        <button type="button" class="btn btn-success">
-                                            <i class="fas fa-lock"></i> Cerrar
-                                        </button>
-
-                                    </div>
+                <div class="row mb-0">
+                    <div class="col mb-0">
+                        <div class="form-group">
+                            {!! Form::open(['method'=>'GET','class'=>'navbar-form navbar-left','role'=>'search'])  !!}
+                            <div class="input-group custom-search-form mb-0">
+                                <div class="input-group-prepend">
+                                    <a class="btn btn-success btn-lg" href="{{route('enfunde',
+                                    ['modulo' => Auth::user()->modulo,
+                                    'objeto' =>  Auth::user()->objeto,
+                                    'idRecurso' => Auth::user()->recursoId,]
+                                    )}}"> <i class="fas fa-plus"></i> Nuevo
+                                    </a>
                                 </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                    <!--tr>
+                                <input type="text" class="form-control form-control-lg mb-0" name="search" placeholder="Buscar por nombre de lotero...">
+                                <span class="input-group-btn">
+                            <button class="btn btn-default-sm btn-lg" type="submit">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </span>
+                            </div>
+                            {!! Form::close() !!}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        @if(\Session::has('msg'))
+                            @push('scripts')
+                                <script type="text/javascript">
+                                </script>
+                            @endpush
+                            <div class="alert alert-{{\Session::get('status')}} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle"></i> <a href="javascript:void(0)"
+                                                                             class="alert-link">{!! \Session::get('msg') !!}</a>.
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        @endif
+                        <table class="table table-hover table-striped" style="width:100%">
+                            <thead>
+                            <tr class="text-center">
+                                <th scope="col">...</th>
+                                <th scope="col">Ir</th>
+                                <th scope="col">Hacienda</th>
+                                <th scope="col">Semana</th>
+                                <th scope="col">Lotero</th>
+                                <th scope="col">Col_pre</th>
+                                <th scope="col">Tot_pre</th>
+                                <th scope="col">...</th>
+                                <th scope="col">Col_fut</th>
+                                <th scope="col">Tot_fut</th>
+                                <th scope="col">...</th>
+                                <th scope="col">Total</th>
+                                <th scope="col">Accion</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach($enfundes_pendientes as $enfunde)
+                                <tr style="font-size: 16px" class="text-center table-sm">
+                                    <th style="width: 5%"><span class="badge badge-warning">A</span></th>
+                                    <th>
+                                        <a class="btn btn-primary text-white">
+                                            <i class="fas fa-folder-open"></i>
+                                        </a>
+                                    </th>
+                                    <th scope="row" style="width: 10%">{{$enfunde->idhacienda == 1 ? '343' : '344'}}</th>
+                                    <td style="width: 5%">{{$enfunde->semana}}</td>
+                                    <td>{{trim($enfunde->lotero->empleado->nombre)}}</td>
+                                    <td style="width: 5%">
+                                        <input
+                                            class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
+                                            disabled>
+                                    </td>
+                                    <td style="width: 5%">
+                                        <input class="form-control text-center bg-white" type="number"
+                                               value="{{$enfunde->total_pre}}" disabled>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group mr-1" role="group" aria-label="First group">
+                                            {{Form::open(['method' => 'DELETE',
+                                            'onsubmit' => 'return confirm("¿Deseas eliminar el registro Presente?")',
+                                            'route' => ['enfunde.delete_presente',
+                                            $enfunde->idlotero,$enfunde->semana]])}}
+                                            {{Form::button('<i class="fas fa-times"></i>', array('type' => 'submit', 'class' => 'btn btn-danger'))}}
+                                            {{Form::close()}}
+                                        </div>
+                                    </td>
+                                    <td style="width: 5%">
+                                        <input
+                                            class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
+                                            disabled>
+                                    </td>
+                                    <td style="width: 5%">
+                                        <input class="form-control text-center bg-white" type="number"
+                                               value="{{$enfunde->total_fut}}" disabled>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group mr-1" role="group" aria-label="Second group">
+                                            {{Form::open(['method' => 'DELETE',
+                                                'onsubmit' => 'return confirm("¿Deseas eliminar el registro Futuro?")',
+                                                'route' => ['enfunde.delete_futuro',
+                                                $enfunde->idlotero,$enfunde->semana]])}}
+                                            {{Form::button('<i class="fas fa-times"></i>', array('type' => 'submit', 'class' => 'btn btn-danger'))}}
+                                            {{Form::close()}}
+                                        </div>
+                                    </td>
+                                    <td style="width: 5%">
+                                        <input class="form-control text-center"
+                                               value="{{+$enfunde->total_pre + +$enfunde->total_fut}}" disabled>
+                                    </td>
+                                    <td>
+                                        <div class="btn-toolbar justify-content-center" role="toolbar">
+                                            <div class="btn-group mr-1" role="group" aria-label="Third group">
+                                                <button type="button" class="btn btn-success">
+                                                    <i class="fas fa-lock"></i> Cerrar
+                                                </button>
+
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            <!--tr>
                         <td colspan="10">Larry the Bird</td>
                     </--tr-->
-                    </tbody>
-                </table>
-                <div class="form-row mt-3 justify-content-center">
-                    {{ $enfundes_pendientes->links() }}
+                            </tbody>
+                        </table>
+                        <hr>
+                        <div class="form-row mt-3 justify-content-center">
+                            {{ $enfundes_pendientes->links() }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 @endsection

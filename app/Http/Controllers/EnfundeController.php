@@ -27,10 +27,15 @@ class EnfundeController extends Controller
         $this->middleware('auth');
         $this->middleware('AccesoURL',
             ['except' => ['getLotero', 'Loteros', 'save', 'getMaterialPresente',
-                'getMaterialFuturo', 'delete_presente', 'delete_futuro']]);
+                'getMaterialFuturo', 'delete_presente', 'delete_futuro', 'scopeSearch']]);
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
+    }
+
+    public function scopeSearch($q)
+    {
+        return empty(request()->search) ? $q : $q->where('name', 'like', '%'.request()->search.'%');
     }
 
     public function index($objeto, $recursos)
@@ -48,8 +53,9 @@ class EnfundeController extends Controller
                 'idhacienda' => $hacienda,
                 'status' => 1
             ])
+            ->search()
             ->orderBy('updated_at', 'desc')
-            ->paginate(6);
+            ->paginate(10);
 
         $enfunde_cerrado = ENF_ENFUNDE::select('idhacienda', 'semana', 'periodo', 'cinta_pre', 'cinta_fut', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'status')
             ->with(['lotero' => function ($query2) {
@@ -64,7 +70,7 @@ class EnfundeController extends Controller
                 'status' => 0
             ])
             ->orderBy('updated_at', 'desc')
-            ->paginate(6);
+            ->paginate(10);
 
         if (view()->exists('enfunde' . '.' . $objeto)) {
             return view('enfunde' . '.' . $objeto, [

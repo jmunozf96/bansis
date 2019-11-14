@@ -184,7 +184,7 @@
 
             $("div.easy-autocomplete").removeAttr('style');
 
-            $('input[name="fecha"]').daterangepicker({
+            /*$('input[name="fecha"]').daterangepicker({
                 opens: 'center',
                 startDate: moment().startOf('day'),
                 singleDatePicker: true,
@@ -195,7 +195,7 @@
                 change: function () {
                     self.fecha = $(this).val();
                 }
-            });
+            });*/
 
             if ($('#nombre-empleado').val() != null) {
                 self.empleado = $('#nombre-empleado').val();
@@ -247,6 +247,7 @@
             $('#btn-nuevo').on({
                 click: function (e) {
                     self.resetForm();
+                    $('#nombre-empleado').val("");
                     $('#producto').attr('disabled', true);
                     $("#producto").selectpicker("refresh");
 
@@ -366,16 +367,6 @@
                         self.addDespacho(egreso);
                         $('#detalle-total').val(self.totalizaDespacho());
                         $('#emp-reemplazo').modal('hide');
-                    }
-                });
-
-                $('#emp-reemplazo').on('hidden.bs.modal', function (e) {
-                    if ($('#id-empleado-reemplazo').val() != '') {
-                        egreso.reemplazo = 1;
-                        egreso.idempleado = +$('#id-empleado-reemplazo').val();
-                        egreso.empleado = $('#nombre-empleado-reemplazo').val();
-                        self.addDespacho(egreso);
-                        $('#detalle-total').val(self.totalizaDespacho());
                     }
                 });
             }
@@ -515,14 +506,8 @@
                                 .then(response => {
                                     if (response.data.code == 200) {
                                         this.despachos.splice(index, 1);
-                                        $('#nombre-empleado').html(response.data.render.html);
-                                        $('#nombre-empleado').val("");
-                                        $("#nombre-empleado").selectpicker("refresh");
                                         Swal.fire(alerta, response.data.message, response.data.status);
                                         $('#detalle-total').val(this.totalizaDespacho());
-                                        if (self.despachos.length == 0) {
-                                            self.resetForm();
-                                        }
                                     } else {
                                         Swal.fire('Error ' + response.data.code, response.data.message, response.data.status);
                                     }
@@ -533,6 +518,10 @@
                             $('#detalle-total').val(this.totalizaDespacho());
                             return true;
                         }
+                    }
+
+                    if (self.despachos.length == 0) {
+                        self.resetForm();
                     }
                 });
                 return false;
@@ -828,6 +817,11 @@
                 $('#codigo-producto').val('');
                 $('#nombre-producto').val('');
                 $('#cantidad').val('');
+
+                $('input[name=status-semana][value=futuro]').prop('checked', false);
+                $('input[name=status-semana][value=presente]').prop('disabled', false);
+                $('input[name=status-semana][value=presente]').prop('checked', true);
+                $('#id-reemplazo').prop('checked', false);
             }
             ,
             datasweetalert() {

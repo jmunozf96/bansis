@@ -13,8 +13,8 @@
         <div class="row justify-content-center">
             <div class="container-fluid col-md-12">
                 <div class="card">
-                    <div class="card-header text-center">
-                        <h3 class="mb-0 mt-0"><i class="fas fa-clipboard-list"></i> Registro de enfunde</h3>
+                    <div class="card-header">
+                        <h5 class="mb-0 mt-0"><i class="fas fa-clipboard-list"></i> Registro de enfunde</h5>
                     </div>
                     <div class="card-body">
                         <div class="form-row mt-0">
