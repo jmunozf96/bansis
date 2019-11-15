@@ -453,6 +453,7 @@
 
             $("#btn-save").on("click", function () {
                 if (self.status) {
+                    $('#btn-save').attr('disabled', true);
                     if (+self.totalEnfunde() > 0) {
                         let enfunde = {
                             idhacienda: self.hacienda,
@@ -488,6 +489,7 @@
                                     $('#lotero').val("");
                                     $("#lotero").selectpicker("refresh");
                                     $("#lotero").focus();
+                                    $('#btn-save').attr('disabled', false);
                                 }
                             })
                             .catch(error => {
