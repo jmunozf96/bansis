@@ -522,6 +522,12 @@
                             if (this.$refs.futuro) {
                                 this.$refs.futuro[0].focus();
                             }
+                        } else {
+                            if (document.activeElement.name != 'desbunche') {
+                                if (this.$refs.futuro) {
+                                    this.$refs.futuro[0].focus();
+                                }
+                            }
                         }
                     });
                 }
