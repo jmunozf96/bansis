@@ -101,7 +101,7 @@
                   <span v-if="statusForm && sec.seccion == lote_enfunde.seccion && presente">
                     <input
                             class="form-control text-center cantidad-despacho"
-                            ref="presente"
+                            ref="presente" name="presente"
                             v-model="lote_enfunde.presente"
                             v-on:keyup.enter="saveForm(index)"
                             type="number"
@@ -113,7 +113,7 @@
                   <span v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
                     <input
                             class="form-control text-center cantidad-despacho"
-                            ref="futuro"
+                            ref="futuro" name="futuro"
                             v-model="lote_enfunde.futuro"
                             v-on:keyup.enter="saveForm(index)"
                             type="number"
@@ -125,7 +125,7 @@
                   <span v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
                     <input
                             class="form-control text-center cantidad-despacho"
-                            ref="desbunche"
+                            ref="desbunche" name="desbunche"
                             v-model="lote_enfunde.desbunche"
                             v-on:keyup.enter="saveForm(index)"
                             type="number"
@@ -511,14 +511,19 @@
             });
         },
         updated: function () {
+            let self = this;
             this.$nextTick(function () {
                 if (this.statusForm) {
                     this.$nextTick(
                         () => this.$refs.presente && this.$refs.presente[0].focus()
                     );
-                    this.$nextTick(
-                        () => this.$refs.futuro && this.$refs.futuro[0].focus()
-                    );
+                    this.$nextTick(function () {
+                        if (self.lote_enfunde.futuro == 0) {
+                            if (this.$refs.futuro) {
+                                this.$refs.futuro[0].focus();
+                            }
+                        }
+                    });
                 }
             });
 
