@@ -185,17 +185,17 @@
             $("div.easy-autocomplete").removeAttr('style');
 
             /*$('input[name="fecha"]').daterangepicker({
-                opens: 'center',
-                startDate: moment().startOf('day'),
-                singleDatePicker: true,
-                showDropdowns: true,
-            });
+             opens: 'center',
+             startDate: moment().startOf('day'),
+             singleDatePicker: true,
+             showDropdowns: true,
+             });
 
-            $('input[name="fecha"]').on({
-                change: function () {
-                    self.fecha = $(this).val();
-                }
-            });*/
+             $('input[name="fecha"]').on({
+             change: function () {
+             self.fecha = $(this).val();
+             }
+             });*/
 
             if ($('#nombre-empleado').val() != null) {
                 self.empleado = $('#nombre-empleado').val();
@@ -705,13 +705,18 @@
             ,
             getDataEmpleado: function (empleado, semana, hacienda) {
                 let self = this;
+
+                $('input[name=status-semana][value=futuro]').prop('checked', false);
+                $('input[name=status-semana][value=presente]').prop('disabled', false);
+                $('input[name=status-semana][value=presente]').prop('checked', true);
+                $('#id-reemplazo').prop('checked', false);
+
                 self.despachos = [];
                 if (empleado != null) {
                     axios.get(`/sistema/enfunde/despacho/${empleado}/${semana}/${hacienda}/1`)
                         .then(response => {
                             if (response.data) {
                                 self.enfunde = response.data.empleado.lotero.enfunde;
-
                                 for (var x in response.data.egresos) {
                                     let egreso = {
                                         id: response.data.egresos[x].idhash,

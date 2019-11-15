@@ -10,8 +10,8 @@
     <title>@yield('title', 'Bansis')</title>
 
     <!-- Scripts -->
-    @stack('scripts')
     <script src="{{ asset('js/app.js') }}" defer></script>
+    @stack('scripts')
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
