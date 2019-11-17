@@ -52,6 +52,10 @@
                                     'idRecurso' => Auth::user()->recursoId,]
                                     )}}"> <i class="fas fa-plus"></i> Nuevo
                                     </a>
+                                    <a class="btn btn-success btn-lg" href="{{route('enfunde.closeAll',
+                                    ['hacienda' => Auth::user()->idHacienda,]
+                                    )}}"> <i class="fas fa-user-lock"></i> Cerrar Enfunde
+                                    </a>
                                     <a href="{{route('url',
                                     ['modulo' => Auth::user()->modulo,
                                     'objeto' =>  Auth::user()->objeto,
@@ -72,8 +76,8 @@
                         </div>
                         @if(\Session::has('msg'))
                             @push('scripts')
-                            <script type="text/javascript">
-                            </script>
+                                <script type="text/javascript">
+                                </script>
                             @endpush
                             <div class="alert alert-{{\Session::get('status')}} alert-dismissible fade show"
                                  role="alert">
@@ -111,8 +115,13 @@
                                 <tr style="font-size: 16px" class="text-center table-sm">
                                     <th style="width: 5%"><span class="badge badge-warning">A</span></th>
                                     <th>
-                                        <a class="btn btn-primary text-white">
-                                            <i class="fas fa-folder-open"></i>
+                                        <a class="btn btn-primary" href="{{route('enfunde',
+                                            ['modulo' => Auth::user()->modulo,
+                                            'objeto' =>  Auth::user()->objeto,
+                                            'idRecurso' => Auth::user()->recursoId,
+                                            'lotero' => $enfunde->idlotero,
+                                            'semana' => $enfunde->semana]
+                                            )}}"><i class="fas fa-folder-open"></i>
                                         </a>
                                     </th>
                                     <th scope="row"
@@ -121,8 +130,8 @@
                                     <td>{{$enfunde->lotero->nombre_1 . ' ' . $enfunde->lotero->apellido_1 . ' ' . $enfunde->lotero->apellido_2}}</td>
                                     <td style="width: 5%">
                                         <input
-                                                class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
-                                                disabled>
+                                            class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
+                                            disabled>
                                     </td>
                                     <td style="width: 5%">
                                         <input class="form-control text-center bg-white" type="number"
@@ -140,8 +149,8 @@
                                     </td>
                                     <td style="width: 5%">
                                         <input
-                                                class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
-                                                disabled>
+                                            class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
+                                            disabled>
                                     </td>
                                     <td style="width: 5%">
                                         <input class="form-control text-center bg-white" type="number"
@@ -164,10 +173,12 @@
                                     <td>
                                         <div class="btn-toolbar justify-content-center" role="toolbar">
                                             <div class="btn-group mr-1" role="group" aria-label="Third group">
-                                                <button type="button" class="btn btn-primary">
-                                                    <i class="fas fa-lock"></i> Cerrar
-                                                </button>
-
+                                                {{Form::open(['method' => 'POST',
+                                                    'onsubmit' => 'return confirm("¿Deseas cerrar el enfunde?")',
+                                                    'route' => ['enfunde.close',
+                                                    $enfunde->idlotero,$enfunde->semana]])}}
+                                                {{Form::button('<i class="fas fa-lock"></i> Cerrar', array('type' => 'submit', 'class' => 'btn btn-primary'))}}
+                                                {{Form::close()}}
                                             </div>
                                         </div>
                                     </td>

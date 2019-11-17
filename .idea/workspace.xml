@@ -4,12 +4,11 @@
     <list default="true" id="5cee9180-0322-49c9-bdf6-8f65153a3011" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/EnfundeController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/EnfundeController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Sisban/Enfunde/ENF_ENFUNDE.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Sisban/Enfunde/ENF_ENFUNDE.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Sisban/Enfunde/ENF_EGRESO.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Sisban/Enfunde/ENF_EGRESO.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/public/js/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/js/components/enfunde/enf_egreso.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/enfunde/enf_egreso.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/enfunde/enf_egreso_material.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/enfunde/enf_egreso_material.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/js/components/enfunde/enf_enfunde.vue" beforeDir="false" afterPath="$PROJECT_DIR$/resources/js/components/enfunde/enf_enfunde.vue" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/views/enfunde/enf_enfunde.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/enfunde/enf_enfunde.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/enfunde/enf_enfunde_registro.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/enfunde/enf_enfunde_registro.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/web.php" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -20,11 +19,20 @@
   <component name="ComposerSettings" doNotAsk="true" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/Http/Controllers/EnfundeController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="594">
-              <caret line="55" column="22" lean-forward="true" selection-start-line="55" selection-start-column="22" selection-end-line="55" selection-end-column="22" />
+            <state relative-caret-position="480">
+              <caret line="707" column="43" selection-start-line="707" selection-start-column="43" selection-end-line="707" selection-end-column="43" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/Http/Controllers/EgresoController.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="605">
+              <caret line="446" column="13" selection-start-line="446" selection-start-column="13" selection-end-line="446" selection-end-column="13" />
               <folding>
                 <element signature="e#40#89#0#PHP" expanded="true" />
               </folding>
@@ -33,51 +41,22 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_DET_EGRESO.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="594">
+              <caret line="23" column="32" selection-start-line="23" selection-start-column="20" selection-end-line="23" selection-end-column="32" />
+              <folding>
+                <element signature="e#38#58#0#PHP" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_egreso_material.blade.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1312">
-              <caret line="132" column="70" selection-start-line="132" selection-start-column="70" selection-end-line="132" selection-end-column="70" />
-              <folding>
-                <element signature="e#901#1235#0#HTML" />
-                <element signature="e#1264#1565#0#HTML" />
-                <element signature="e#1594#1898#0#HTML" />
-                <element signature="e#1920#2991#0#HTML" />
-                <element signature="e#1916#2816#0#HTML" />
-                <element signature="e#3028#3711#0#HTML" />
-                <element signature="e#10251#11222#0#HTML" />
-                <element signature="e#11092#11276#0#HTML" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_enfunde_registro.blade.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="432">
-              <caret line="16" column="66" lean-forward="true" selection-start-line="16" selection-start-column="66" selection-end-line="16" selection-end-column="66" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_enfunde.blade.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="81">
-              <caret line="3" column="19" selection-start-line="3" selection-start-column="19" selection-end-line="3" selection-end-column="19" />
-              <folding>
-                <element signature="e#4371#4378#1#HTML" expanded="true" />
-                <element signature="e#4565#4583#0#HTML" expanded="true" />
-                <element signature="e#5660#5683#0#HTML" expanded="true" />
-                <element signature="e#5754#5771#0#HTML" expanded="true" />
-                <element signature="e#6158#6176#0#HTML" expanded="true" />
-                <element signature="e#6268#6285#0#HTML" expanded="true" />
-                <element signature="e#6442#6459#0#HTML" expanded="true" />
-                <element signature="e#6807#6824#0#HTML" expanded="true" />
-                <element signature="e#7914#7931#0#HTML" expanded="true" />
-                <element signature="e#8279#8296#0#HTML" expanded="true" />
-                <element signature="e#9395#9412#0#HTML" expanded="true" />
-              </folding>
+            <state relative-caret-position="1998">
+              <caret line="74" column="63" selection-start-line="74" selection-start-column="63" selection-end-line="74" selection-end-column="63" />
             </state>
           </provider>
         </entry>
@@ -85,61 +64,44 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Sistema/UtilidadesController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="345">
-              <caret line="43" column="68" selection-start-line="43" selection-start-column="62" selection-end-line="43" selection-end-column="68" />
+            <state relative-caret-position="594">
+              <caret line="27" column="58" selection-start-line="27" selection-start-column="51" selection-end-line="27" selection-end-column="58" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/js/components/enfunde/enf_egreso.vue">
+        <entry file="file://$PROJECT_DIR$/resources/views/enfunde/select_lotero.blade.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="420">
-              <caret line="184" column="21" selection-start-line="184" selection-start-column="21" selection-end-line="184" selection-end-column="21" />
-              <folding>
-                <element signature="n#style#0;n#th#0;n#tr#0;n#thead#0;n#table#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#th#2;n#tr#0;n#thead#0;n#table#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#tr#0;n#tbody#0;n#table#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#th#0;n#tr#0;n#thead#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#th#1;n#tr#0;n#thead#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#th#2;n#tr#0;n#thead#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#th#3;n#tr#0;n#thead#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#th#4;n#tr#0;n#thead#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#th#5;n#tr#0;n#thead#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#td#0;n#tr#0;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#td#1;n#tr#0;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#td#2;n#tr#0;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#td#4;n#tr#0;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#input#0;n#span#0;n#span#0;n#td#4;n#tr#0;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#td#5;n#tr#0;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#input#0;n#span#0;n#span#0;n#td#5;n#tr#0;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#td#0;n#tr#1;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#td#1;n#tr#1;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#td#2;n#tr#1;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#td#4;n#tr#1;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#b#0;n#span#0;n#td#4;n#tr#1;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#td#5;n#tr#1;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#b#0;n#span#0;n#td#5;n#tr#1;n#tbody#0;n#table#1;n#div#0;n#template#0;n#!!top" expanded="true" />
-                <element signature="n#style#0;n#input#0;n#div#0;n#div#0;n#template#0;n#!!top" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_ENFUNDE.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="648">
-              <caret line="29" column="46" selection-start-line="29" selection-start-column="46" selection-end-line="29" selection-end-column="46" />
+            <state relative-caret-position="108">
+              <caret line="4" column="64" selection-start-line="4" selection-start-column="64" selection-end-line="4" selection-end-column="64" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_DET_ENFUNDE.php">
+        <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_enfunde_registro.blade.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="405">
-              <caret line="15" column="5" selection-start-line="15" selection-start-column="5" selection-end-line="15" selection-end-column="5" />
+            <state relative-caret-position="291">
+              <caret line="73" column="70" selection-start-line="73" selection-start-column="70" selection-end-line="73" selection-end-column="70" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_enfunde.blade.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="378">
+              <caret line="54" column="70" lean-forward="true" selection-start-line="54" selection-start-column="70" selection-end-line="54" selection-end-column="70" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/routes/web.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="416">
+              <caret line="50" column="10" selection-start-line="50" selection-start-column="10" selection-end-line="50" selection-end-column="10" />
             </state>
           </provider>
         </entry>
@@ -147,17 +109,12 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/resources/js/components/enfunde/enf_enfunde.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="12042">
-              <caret line="449" column="41" selection-start-line="449" selection-start-column="41" selection-end-line="449" selection-end-column="41" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/database/migrations/2019_11_04_151203_create_inventario_fundas.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="513">
-              <caret line="21" column="32" selection-start-line="21" selection-start-column="32" selection-end-line="21" selection-end-column="32" />
+            <state relative-caret-position="183">
+              <caret line="571" column="17" selection-start-line="571" selection-start-column="17" selection-end-line="571" selection-end-column="17" />
+              <folding>
+                <element signature="n#tr#0;n#tbody#0;n#table#0;n#div#0;n#div#2;n#div#0;n#template#0;n#!!top" />
+                <element signature="e#16791#25581#0" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -166,7 +123,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>tos</find>
       <find>chapeo</find>
       <find>graficarLotes</find>
       <find>upda</find>
@@ -194,6 +150,9 @@
       <find>reem</find>
       <find>$('#nombre-empleado')</find>
       <find>btn-nue</find>
+      <find>cerrar</find>
+      <find>refre</find>
+      <find>btn-n</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -218,30 +177,31 @@
         <option value="$PROJECT_DIR$/config/database.php" />
         <option value="$PROJECT_DIR$/app/Empleado.php" />
         <option value="$PROJECT_DIR$/app/Sisban/Enfunde/ENF_LOTERO.php" />
-        <option value="$PROJECT_DIR$/routes/web.php" />
         <option value="$PROJECT_DIR$/database/migrations/2019_11_04_151203_create_inventario_fundas.php" />
         <option value="$PROJECT_DIR$/app/Http/Kernel.php" />
         <option value="$PROJECT_DIR$/config/app.php" />
         <option value="$PROJECT_DIR$/app/Sisban/Enfunde/ENF_DET_EGRESO.php" />
         <option value="$PROJECT_DIR$/app/Http/Middleware/VerifyCsrfToken.php" />
-        <option value="$PROJECT_DIR$/resources/js/components/enfunde/enf_enfunde.vue" />
         <option value="$PROJECT_DIR$/app/Http/Controllers/Sistema/UtilidadesController.php" />
         <option value="$PROJECT_DIR$/app/Http/Controllers/EgresoController.php" />
         <option value="$PROJECT_DIR$/resources/views/enfunde/select_lotero.blade.php" />
         <option value="$PROJECT_DIR$/resources/views/enfunde/enf_egreso_material.blade.php" />
         <option value="$PROJECT_DIR$/resources/js/components/enfunde/enf_egreso.vue" />
         <option value="$PROJECT_DIR$/resources/views/enfunde/enf_enfunde_registro.blade.php" />
-        <option value="$PROJECT_DIR$/app/Http/Controllers/EnfundeController.php" />
-        <option value="$PROJECT_DIR$/resources/views/enfunde/enf_enfunde.blade.php" />
         <option value="$PROJECT_DIR$/app/Sisban/Enfunde/ENF_ENFUNDE.php" />
+        <option value="$PROJECT_DIR$/app/Sisban/Enfunde/ENF_EGRESO.php" />
+        <option value="$PROJECT_DIR$/resources/js/components/enfunde/enf_enfunde.vue" />
+        <option value="$PROJECT_DIR$/resources/views/enfunde/enf_enfunde.blade.php" />
+        <option value="$PROJECT_DIR$/routes/web.php" />
+        <option value="$PROJECT_DIR$/app/Http/Controllers/EnfundeController.php" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="260" />
-    <option name="y" value="20" />
-    <option name="width" value="1400" />
-    <option name="height" value="1000" />
+  <component name="ProjectFrameBounds" extendedState="7">
+    <option name="x" value="406" />
+    <option name="y" value="31" />
+    <option name="width" value="2188" />
+    <option name="height" value="1563" />
   </component>
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="1" id="Add" />
@@ -283,6 +243,57 @@
               <item name="Http" type="462c0819:PsiDirectoryNode" />
               <item name="Controllers" type="462c0819:PsiDirectoryNode" />
               <item name="Sistema" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Bansis_local" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Bansis_local" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="Http" type="462c0819:PsiDirectoryNode" />
+              <item name="Middleware" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Bansis_local" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Bansis_local" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Bansis_local" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Bansis_local" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="js" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Bansis_local" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Bansis_local" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="js" type="462c0819:PsiDirectoryNode" />
+              <item name="components" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Bansis_local" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Bansis_local" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="js" type="462c0819:PsiDirectoryNode" />
+              <item name="components" type="462c0819:PsiDirectoryNode" />
+              <item name="enfunde" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Bansis_local" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Bansis_local" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="views" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Bansis_local" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Bansis_local" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="views" type="462c0819:PsiDirectoryNode" />
+              <item name="enfunde" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Bansis_local" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Bansis_local" type="462c0819:PsiDirectoryNode" />
+              <item name="routes" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -348,17 +359,19 @@
       <workItem from="1573385032831" duration="50519000" />
       <workItem from="1573595617123" duration="8015000" />
       <workItem from="1573684124913" duration="7543000" />
+      <workItem from="1573907505100" duration="12760000" />
+      <workItem from="1573996090385" duration="4768000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="156232000" />
+    <option name="totallyTimeSpent" value="173760000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="-7" y="-7" width="1294" height="694" extended-state="7" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.18869936" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.10127932" />
       <window_info id="Structure" order="1" weight="0.25" />
       <window_info id="npm" order="2" side_tool="true" />
       <window_info id="Favorites" order="3" side_tool="true" />
@@ -439,13 +452,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_egreso.blade.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="299">
-          <caret line="48" column="24" lean-forward="true" selection-start-line="48" selection-start-column="24" selection-end-line="48" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/Sisban/Hacienda/SIS_LOTE.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="360">
@@ -471,13 +477,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="568">
           <caret line="33" column="3" selection-start-line="33" selection-start-column="3" selection-end-line="33" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_EGRESO.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="15" column="76" selection-start-line="15" selection-start-column="76" selection-end-line="15" selection-end-column="76" />
         </state>
       </provider>
     </entry>
@@ -539,13 +538,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Kernel.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="35" column="14" selection-start-line="35" selection-start-column="14" selection-end-line="35" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Perfil/AccessbyUrlController.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="729">
@@ -567,34 +559,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Middleware/VerifyCsrfToken.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="594">
-          <caret line="22" column="58" selection-start-line="22" selection-start-column="58" selection-end-line="22" selection-end-column="58" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_DET_EGRESO.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="929">
-          <caret line="40" column="75" selection-start-line="40" selection-start-column="39" selection-end-line="40" selection-end-column="75" />
-          <folding>
-            <element signature="e#38#58#0#PHP" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_LOTERO.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="466">
           <caret line="35" column="56" selection-start-line="35" selection-start-column="56" selection-end-line="35" selection-end-column="56" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/routes/web.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="999">
-          <caret line="46" column="12" selection-start-line="46" selection-start-column="12" selection-end-line="46" selection-end-column="12" />
         </state>
       </provider>
     </entry>
@@ -605,47 +573,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/EgresoController.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3942">
-          <caret line="164" column="32" selection-start-line="164" selection-start-column="32" selection-end-line="164" selection-end-column="32" />
-          <folding>
-            <element signature="e#40#89#0#PHP" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resources/views/enfunde/select_lotero.blade.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="4" column="64" selection-start-line="4" selection-start-column="64" selection-end-line="4" selection-end-column="64" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_DET_ENFUNDE.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="15" column="5" selection-start-line="15" selection-start-column="5" selection-end-line="15" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resources/js/components/enfunde/enf_enfunde.vue">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="12042">
-          <caret line="449" column="41" selection-start-line="449" selection-start-column="41" selection-end-line="449" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/database/migrations/2019_11_04_151203_create_inventario_fundas.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="513">
-          <caret line="21" column="32" selection-start-line="21" selection-start-column="32" selection-end-line="21" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/resources/js/components/enfunde/enf_egreso.vue">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
+        <state relative-caret-position="4887">
           <caret line="184" column="21" selection-start-line="184" selection-start-column="21" selection-end-line="184" selection-end-column="21" />
           <folding>
             <element signature="n#style#0;n#th#0;n#tr#0;n#thead#0;n#table#0;n#div#0;n#template#0;n#!!top" expanded="true" />
@@ -676,71 +606,132 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_enfunde_registro.blade.php">
+    <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_DET_ENFUNDE.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="16" column="66" lean-forward="true" selection-start-line="16" selection-start-column="66" selection-end-line="16" selection-end-column="66" />
+        <state relative-caret-position="405">
+          <caret line="15" column="5" selection-start-line="15" selection-start-column="5" selection-end-line="15" selection-end-column="5" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Sistema/UtilidadesController.php">
+    <entry file="file://$PROJECT_DIR$/database/migrations/2019_11_04_151203_create_inventario_fundas.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="43" column="68" selection-start-line="43" selection-start-column="62" selection-end-line="43" selection-end-column="68" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_enfunde.blade.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="81">
-          <caret line="3" column="19" selection-start-line="3" selection-start-column="19" selection-end-line="3" selection-end-column="19" />
-          <folding>
-            <element signature="e#4371#4378#1#HTML" expanded="true" />
-            <element signature="e#4565#4583#0#HTML" expanded="true" />
-            <element signature="e#5660#5683#0#HTML" expanded="true" />
-            <element signature="e#5754#5771#0#HTML" expanded="true" />
-            <element signature="e#6158#6176#0#HTML" expanded="true" />
-            <element signature="e#6268#6285#0#HTML" expanded="true" />
-            <element signature="e#6442#6459#0#HTML" expanded="true" />
-            <element signature="e#6807#6824#0#HTML" expanded="true" />
-            <element signature="e#7914#7931#0#HTML" expanded="true" />
-            <element signature="e#8279#8296#0#HTML" expanded="true" />
-            <element signature="e#9395#9412#0#HTML" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/EnfundeController.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="594">
-          <caret line="55" column="22" lean-forward="true" selection-start-line="55" selection-start-column="22" selection-end-line="55" selection-end-column="22" />
-          <folding>
-            <element signature="e#40#89#0#PHP" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_egreso_material.blade.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1312">
-          <caret line="132" column="70" selection-start-line="132" selection-start-column="70" selection-end-line="132" selection-end-column="70" />
-          <folding>
-            <element signature="e#901#1235#0#HTML" />
-            <element signature="e#1264#1565#0#HTML" />
-            <element signature="e#1594#1898#0#HTML" />
-            <element signature="e#1920#2991#0#HTML" />
-            <element signature="e#1916#2816#0#HTML" />
-            <element signature="e#3028#3711#0#HTML" />
-            <element signature="e#10251#11222#0#HTML" />
-            <element signature="e#11092#11276#0#HTML" />
-          </folding>
+        <state relative-caret-position="513">
+          <caret line="21" column="32" selection-start-line="21" selection-start-column="32" selection-end-line="21" selection-end-column="32" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_ENFUNDE.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="648">
-          <caret line="29" column="46" selection-start-line="29" selection-start-column="46" selection-end-line="29" selection-end-column="46" />
+          <caret line="29" column="11" selection-start-line="29" selection-start-column="11" selection-end-line="29" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Middleware/VerifyCsrfToken.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="594">
+          <caret line="22" column="1" selection-start-line="22" selection-start-column="1" selection-end-line="22" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Kernel.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="378">
+          <caret line="35" column="14" selection-start-line="35" selection-start-column="14" selection-end-line="35" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_egreso.blade.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-268">
+          <caret line="48" column="22" selection-start-line="48" selection-start-column="22" selection-end-line="48" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_EGRESO.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="405">
+          <caret line="15" column="57" selection-start-line="15" selection-start-column="57" selection-end-line="15" selection-end-column="57" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Sisban/Enfunde/ENF_DET_EGRESO.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="594">
+          <caret line="23" column="32" selection-start-line="23" selection-start-column="20" selection-end-line="23" selection-end-column="32" />
+          <folding>
+            <element signature="e#38#58#0#PHP" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_egreso_material.blade.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1998">
+          <caret line="74" column="63" selection-start-line="74" selection-start-column="63" selection-end-line="74" selection-end-column="63" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Sistema/UtilidadesController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="594">
+          <caret line="27" column="58" selection-start-line="27" selection-start-column="51" selection-end-line="27" selection-end-column="58" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/js/components/enfunde/enf_enfunde.vue">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="183">
+          <caret line="571" column="17" selection-start-line="571" selection-start-column="17" selection-end-line="571" selection-end-column="17" />
+          <folding>
+            <element signature="n#tr#0;n#tbody#0;n#table#0;n#div#0;n#div#2;n#div#0;n#template#0;n#!!top" />
+            <element signature="e#16791#25581#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/EgresoController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="605">
+          <caret line="446" column="13" selection-start-line="446" selection-start-column="13" selection-end-line="446" selection-end-column="13" />
+          <folding>
+            <element signature="e#40#89#0#PHP" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/views/enfunde/select_lotero.blade.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="108">
+          <caret line="4" column="64" selection-start-line="4" selection-start-column="64" selection-end-line="4" selection-end-column="64" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_enfunde_registro.blade.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="291">
+          <caret line="73" column="70" selection-start-line="73" selection-start-column="70" selection-end-line="73" selection-end-column="70" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/resources/views/enfunde/enf_enfunde.blade.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="378">
+          <caret line="54" column="70" lean-forward="true" selection-start-line="54" selection-start-column="70" selection-end-line="54" selection-end-column="70" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/web.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="416">
+          <caret line="50" column="10" selection-start-line="50" selection-start-column="10" selection-end-line="50" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/Http/Controllers/EnfundeController.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="480">
+          <caret line="707" column="43" selection-start-line="707" selection-start-column="43" selection-end-line="707" selection-end-column="43" />
         </state>
       </provider>
     </entry>

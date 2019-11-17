@@ -47,6 +47,8 @@ Route::post('/sistema/enfunde/registro/save', 'EnfundeController@save');
 Route::get('/sistema/enfunde/registro/search', 'EnfundeController@search')->name('enfunde.search');
 Route::delete('/sistema/enfunde/presente/delete/{lotero}/{semana}', 'EnfundeController@delete_presente')->name('enfunde.delete_presente');
 Route::delete('/sistema/enfunde/futuro/delete/{lotero}/{semana}', 'EnfundeController@delete_futuro')->name('enfunde.delete_futuro');
+Route::post('/sistema/enfunde/semana/close/{lotero}/{semana}', 'EnfundeController@cerrar_enfunde')->name('enfunde.close');
+Route::get('/sistema/enfunde/semana/close/{idHacienda}', 'EnfundeController@cerrar_enfundeAll')->name('enfunde.closeAll');
 Route::get('/sistema/axios/enfunde/lotero/{idlotero}/{semana}', 'EnfundeController@getLotero')->name('lotero');
 
 Route::get('/api/enfunde/saldo_empleado/{idempleado}/{idmaterial}/{semana}', 'EgresoController@saldopendiente');
