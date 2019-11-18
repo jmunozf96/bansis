@@ -41,7 +41,14 @@
                     </div>
                 </div>
                 <div class="row mb-0">
-                    <div class="col mb-0">
+                    <div class="col-3">
+                        {{Form::open(['method' => 'POST',
+                                                'onsubmit' => 'return confirm("¿Deseas cerrar el enfunde?")',
+                                                'route' => ['enfunde.closeAll',Auth::user()->idHacienda]])}}
+                        {{Form::button('<i class="fas fa-lock"></i> Cerrar Enfunde', array('type' => 'submit', 'class' => 'btn btn-primary btn-lg'))}}
+                        {{Form::close()}}
+                    </div>
+                    <div class="col-9 mb-0">
                         <div class="form-group">
                             {!! Form::open(['method'=>'GET','class'=>'navbar-form navbar-left','role'=>'search'])  !!}
                             <div class="input-group custom-search-form mb-0">
@@ -52,10 +59,7 @@
                                     'idRecurso' => Auth::user()->recursoId,]
                                     )}}"> <i class="fas fa-plus"></i> Nuevo
                                     </a>
-                                    <a class="btn btn-success btn-lg" href="{{route('enfunde.closeAll',
-                                    ['hacienda' => Auth::user()->idHacienda,]
-                                    )}}"> <i class="fas fa-user-lock"></i> Cerrar Enfunde
-                                    </a>
+
                                     <a href="{{route('url',
                                     ['modulo' => Auth::user()->modulo,
                                     'objeto' =>  Auth::user()->objeto,
@@ -74,10 +78,12 @@
                             </div>
                             {!! Form::close() !!}
                         </div>
+                    </div>
+                    <div class="col">
                         @if(\Session::has('msg'))
                             @push('scripts')
-                                <script type="text/javascript">
-                                </script>
+                            <script type="text/javascript">
+                            </script>
                             @endpush
                             <div class="alert alert-{{\Session::get('status')}} alert-dismissible fade show"
                                  role="alert">
@@ -130,8 +136,8 @@
                                     <td>{{$enfunde->lotero->nombre_1 . ' ' . $enfunde->lotero->apellido_1 . ' ' . $enfunde->lotero->apellido_2}}</td>
                                     <td style="width: 5%">
                                         <input
-                                            class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
-                                            disabled>
+                                                class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
+                                                disabled>
                                     </td>
                                     <td style="width: 5%">
                                         <input class="form-control text-center bg-white" type="number"
@@ -149,8 +155,8 @@
                                     </td>
                                     <td style="width: 5%">
                                         <input
-                                            class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
-                                            disabled>
+                                                class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
+                                                disabled>
                                     </td>
                                     <td style="width: 5%">
                                         <input class="form-control text-center bg-white" type="number"
