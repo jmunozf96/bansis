@@ -38,14 +38,14 @@
                                 <label>Hacienda</label>
                                 <select class="selectpicker show-tick form-control"
                                         data-live-search="true"
-                                        id="id-hacienda" {{Auth::user()->id_hacienda == 1 || Auth::user()->id_hacienda == 2 ? 'disabled' : ''}}>
+                                        id="id-hacienda" {{Auth::user()->idHacienda == 1 || Auth::user()->idHacienda == 2 ? 'disabled' : ''}}>
                                     <option data-tokens="343"
-                                            value="343" {{Auth::user()->id_hacienda == 1 ? 'selected' : ''}}>
+                                            value="343" {{Auth::user()->idHacienda == 1 ? 'selected' : ''}}>
                                         PRIMO-BANANO
                                     </option>
                                     <option data-divider="true"></option>
                                     <option data-tokens="344"
-                                            value="344" {{Auth::user()->id_hacienda == 2 ? 'selected' : ''}}>
+                                            value="344" {{Auth::user()->idHacienda == 2 ? 'selected' : ''}}>
                                         SOFCA-BANANO
                                     </option>
                                 </select>
