@@ -172,6 +172,7 @@ class EnfundeController extends Controller
 
             if ($material_presente == $material_futuro) {
                 $inventario = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
+                    'semana' => $semana,
                     'idmaterial' => $material_presente,
                     'idlotero' => $idlotero])->first();
 
