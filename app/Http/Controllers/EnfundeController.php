@@ -171,7 +171,7 @@ class EnfundeController extends Controller
             }
 
             if ($material_presente == $material_futuro) {
-                $inventario = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
+                $inventario = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo', 'semana')->where([
                     'semana' => $semana,
                     'idmaterial' => $material_presente,
                     'idlotero' => $idlotero])->first();
@@ -186,13 +186,13 @@ class EnfundeController extends Controller
 
             } else {
                 if (!empty($material_futuro)) {
-                    $inventario_pre = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
+                    $inventario_pre = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo', 'semana')->where([
                         'idmaterial' => $material_presente,
                         'idlotero' => $idlotero,
                         'semana' => $semana
                     ])->first();
 
-                    $inventario_fut = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
+                    $inventario_fut = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo', 'semana')->where([
                         'idmaterial' => $material_futuro,
                         'idlotero' => $idlotero,
                         'semana' => $semana
@@ -209,7 +209,8 @@ class EnfundeController extends Controller
                         ]
                     ];
                 } else {
-                    $inventario = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo')->where([
+                    $inventario = INV_LOT_FUND::select('id', 'idlotero', 'idmaterial', 'saldo', 'semana')->where([
+                        'semana' => $semana,
                         'idmaterial' => $material_presente,
                         'idlotero' => $idlotero])->first();
 
