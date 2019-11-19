@@ -50,6 +50,7 @@ Route::delete('/sistema/enfunde/futuro/delete/{lotero}/{semana}', 'EnfundeContro
 Route::post('/sistema/enfunde/semana/close/{lotero}/{semana}', 'EnfundeController@cerrar_enfunde')->name('enfunde.close');
 Route::post('/sistema/enfunde/semana/close/{idHacienda}', 'EnfundeController@cerrar_enfundeAll')->name('enfunde.closeAll');
 Route::get('/sistema/axios/enfunde/lotero/{idlotero}/{semana}', 'EnfundeController@getLotero')->name('lotero');
+Route::post('/sistema/enfunde/reporte/semanal', 'RepEnfundeController@getEnfunde')->name('enfunde.reporte.semanal');
 
 Route::get('/api/enfunde/saldo_empleado/{idempleado}/{idmaterial}/{semana}', 'EgresoController@saldopendiente');
 Route::get('/api/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');

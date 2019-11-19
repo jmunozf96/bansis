@@ -87,6 +87,7 @@ class EnfundeController extends Controller
         $current_params = Route::current()->parameters();
 
         $this->recursos = $this->perfil->getRecursos(Auth::user()->ID);
+
         Auth::user()->modulo = $current_params['modulo'];
         Auth::user()->objeto = $current_params['objeto'];
         Auth::user()->recursoId = $current_params['idRecurso'];
@@ -97,7 +98,6 @@ class EnfundeController extends Controller
             'semana' => $this->utilidades->getSemana(),
             'loteros' => $this->Loteros($hacienda, $this->utilidades->getSemana()[0]->semana),
         ];
-
 
         return view('enfunde.enf_enfunde_registro', $data);
     }

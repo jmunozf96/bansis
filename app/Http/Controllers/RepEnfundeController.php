@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Perfil\PerfilController;
 use App\Http\Controllers\Sistema\UtilidadesController;
+use App\Sisban\Enfunde\ENF_ENFUNDE;
+use App\Sisban\Enfunde\ENF_LOTERO;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Redirect;
+use PhpParser\Node\Expr\Cast\Object_;
 
 class RepEnfundeController extends Controller
 {
@@ -28,13 +32,76 @@ class RepEnfundeController extends Controller
     {
         $this->recursos = $recursos;
         $hacienda = Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda;
+        //return response()->json($this->comboLoteros($hacienda), 200);
         if (view()->exists('enfunde.reporte' . '.' . $objeto)) {
             return view('enfunde.reporte' . '.' . $objeto, [
                 'recursos' => $this->recursos,
-                'semana' => $this->utilidades->getSemana()
+                'semana' => $this->utilidades->getSemana(),
+                'combosemanas' => $this->comboSemanas(),
+                'comboloteros' => $this->comboLoteros($hacienda)
             ])->withInput(Input::all());
         } else {
             return redirect('/');
         }
+    }
+
+    public function getEnfunde()
+    {
+        $params = Input::all();
+        $enfunde = ENF_ENFUNDE::query();
+
+        //$enfunde = $enfunde->select('id','semana','periodo','cinta_pre','cinta_fut','idlotero');
+
+        if (!is_null($params['semana']) || !empty($params['semana'])):
+            $enfunde = $enfunde->where('semana', $params['semana']);
+        endif;
+
+        if (!is_null($params['lotero']) || !empty($params['lotero'])):
+            $enfunde = $enfunde->where('idlotero', $params['lotero']);
+        endif;
+
+        $enfunde = $enfunde->with(['lotero' => function ($query) {
+            $query->select('id', 'nombres');
+        }]);;
+
+        $enfunde = $enfunde->paginate(10);
+
+        //return response()->json($enfunde, 200);
+        return Redirect::back()
+            ->with([
+                'data_enfunde' => $enfunde
+            ]);
+    }
+
+    public function comboSemanas()
+    {
+        $periodo = array();
+        $periodo[''] = 'Todas las semanas';
+
+        $c = 1;
+        for ($x = 1; $x <= 13; $x++) {
+            $semana = array();
+            for ($y = 1; $y <= 4; $y++) {
+                $semana[$c] = "Semana $c";
+                $c++;
+            }
+            $periodo["Periodo $x"] = $semana;
+        }
+
+        return (Object)$periodo;
+    }
+
+    public function comboLoteros($hacienda)
+    {
+        $comboLoteros = array();
+        $comboLoteros[''] = 'Todos los loteros';
+        $loteros = ENF_LOTERO::select('id', 'nombres')
+            ->where(['idhacienda' => $hacienda])
+            ->get();
+        foreach ($loteros as $lotero) {
+            $comboLoteros[$lotero->id] = $lotero->nombres;
+        }
+
+        return (Object)$comboLoteros;
     }
 }
