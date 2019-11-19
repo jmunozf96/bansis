@@ -375,6 +375,21 @@
                 click: function (e) {
                     e.preventDefault();
 
+                    if (self.empleado == '') {
+                        alert('Seleccione un empleado');
+                        return;
+                    }
+
+                    if (self.fecha == '') {
+                        alert("Debe registrar una fecha");
+                        return;
+                    }
+
+                    if (self.despachos.length == 0) {
+                        alert("Debe registrar algun despacho");
+                        return;
+                    }
+
                     let data = {
                         fecha: self.fecha,
                         semana: $('#semana').val(),
@@ -822,6 +837,12 @@
                 $('#codigo-producto').val('');
                 $('#nombre-producto').val('');
                 $('#cantidad').val('');
+
+
+                // Extract the value of the first option.
+                let sVal = $('#producto option:first').val();
+                $('#producto').val(sVal);
+                $('#producto').selectpicker('refresh');
 
                 $('input[name=status-semana][value=futuro]').prop('checked', false);
                 $('input[name=status-semana][value=presente]').prop('disabled', false);
