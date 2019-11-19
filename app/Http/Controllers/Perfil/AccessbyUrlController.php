@@ -31,13 +31,23 @@ class AccessbyUrlController extends Controller
         Auth::user()->recursoId = $idRecurso;
         Auth::user()->objeto = $objeto;
 
+        $no_existe = array();
+
 
         foreach ($recursos as $recurso) {
             if ($recurso->Controlador &&
                 trim(strtolower($recurso->objeto)) == trim(strtolower($objeto)) &&
-                trim(strtolower($recurso->modulo)) == trim(strtolower($modulo))
-            )
+                trim(strtolower($recurso->modulo)) == trim(strtolower($modulo)) &&
+                trim(strtolower($recurso->ID)) == trim(strtolower($idRecurso))
+            ) {
                 return app('App\Http\Controllers\\' . $recurso->Controlador)->index($objeto, $recursos);
+            } else {
+                array_push($no_existe, true);
+            }
+        }
+
+        if (count($no_existe) > 0) {
+            return redirect('/');
         }
 
     }

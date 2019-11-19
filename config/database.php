@@ -103,6 +103,18 @@ return [
             'prefix_indexes' => true,
         ],
 
+        'xass_sofca' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => env('xass_sofca_HOST', 'localhost'),
+            'database' => env('xass_sofca_DATABASE', 'forge'),
+            'username' => env('xass_sofca_USERNAME', 'forge'),
+            'password' => env('xass_sofca_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
+
     ],
 
     /*

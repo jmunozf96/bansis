@@ -90,7 +90,7 @@
                                         id="bodega" disabled>
                                     @foreach($bodegas as $bodega)
                                         <option
-                                            value="{{$bodega->Id_Fila}}" {{$bodega->Id_Fila == 13 ? 'selected' : ''}}>{{$bodega->Nombre}}</option>
+                                                value="{{$bodega->Id_Fila}}" {{$bodega->Id_Fila == 13 ? 'selected' : ''}}>{{$bodega->Nombre}}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -111,7 +111,9 @@
                                         id="producto">
                                     @foreach($materiales as $material)
                                         <option style="font-size: 18px"
-                                            value="{{$material->codigo}}" {{$material->codigo == 2446 ? 'selected' : ''}}>{{$material->nombre}}</option>
+                                                value="{{$material->codigo}}"
+                                                data-subtext="Stock: {{number_format(round($material->stock))}}"
+                                                {{$material->codigo == 2446 ? 'selected' : ''}}>{{$material->nombre}}</option>
                                     @endforeach
                                 </select>
                                 <input type="text" class="form-control form-control-lg text-dark d-none"

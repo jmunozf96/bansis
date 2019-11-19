@@ -31,8 +31,8 @@ class EgresoController extends Controller
             ['except' => ['save',
                 'getdespacho',
                 'deleteDetalle',
-                'editDetalle','renderSelectLotero',
-                'respuesta','Inv_lotero',
+                'editDetalle', 'renderSelectLotero',
+                'respuesta', 'Inv_lotero',
                 'saldopendiente']]);
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
@@ -66,6 +66,8 @@ class EgresoController extends Controller
                 'semana' => $this->utilidades->getSemana(),
                 'egresos' => $egresos
             ]);
+        } else {
+            return redirect('/');
         }
     }
 

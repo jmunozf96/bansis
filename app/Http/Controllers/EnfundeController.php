@@ -75,7 +75,9 @@ class EnfundeController extends Controller
                 'semana' => $this->utilidades->getSemana(),
                 'enfundes_pendientes' => $enfunde_pendiente,
                 'enfunde_cerrado' => $enfunde_cerrado
-            ])->withInput(Input::all());;
+            ])->withInput(Input::all());
+        } else {
+            return redirect('/');
         }
     }
 
