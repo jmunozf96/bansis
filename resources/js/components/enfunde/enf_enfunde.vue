@@ -13,7 +13,7 @@
                     style="font-size: 20px"
                 >
                     <optgroup label="Loteros con saldo de fundas" data-max-options="2">
-                        <option
+                        <option style="font-size: 18px"
                             v-for="lotero in this.loteros"
                             v-if="lotero.fundas"
                             :data-subtext="lotero.fundas ? ' - Tiene fundas despachadas' : ''"
@@ -22,7 +22,7 @@
                         </option>
                     </optgroup>
                     <optgroup label="Loteros pendientes despacho" data-max-options="2">
-                        <option
+                        <option style="font-size: 18px"
                             v-for="lotero in this.loteros"
                             v-if="!lotero.fundas"
                             :value="lotero.id"
