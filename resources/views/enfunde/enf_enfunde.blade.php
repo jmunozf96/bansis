@@ -36,16 +36,13 @@
                             <small class="ml-1">Seleccionar hacienda</small>
                         </div>
                     </div>
-                    <div class="form-row col-4 justify-content-end">
-
-                    </div>
                 </div>
                 <div class="row mb-0">
                     <div class="col-3">
                         {{Form::open(['method' => 'POST',
                                                 'onsubmit' => 'return confirm("¿Deseas cerrar el enfunde?")',
                                                 'route' => ['enfunde.closeAll',Auth::user()->idHacienda]])}}
-                        {{Form::button('<i class="fas fa-lock"></i> Cerrar Enfunde', array('type' => 'submit', 'class' => 'btn btn-primary btn-lg'))}}
+                        {{Form::button('<i class="fas fa-lock"></i> Cerrar Todo', array('type' => 'submit', 'class' => 'btn btn-primary btn-lg'))}}
                         {{Form::close()}}
                     </div>
                     <div class="col-9 mb-0">
@@ -190,9 +187,6 @@
                                     </td>
                                 </tr>
                             @endforeach
-                            <!--tr>
-                        <td colspan="10">Larry the Bird</td>
-                    </--tr-->
                             </tbody>
                         </table>
                         <hr>
@@ -200,7 +194,51 @@
                             {{ $enfundes_pendientes->links() }}
                         </div>
                     </div>
+                    <div class="col-12">
+                        <div class="form-row">
+                            <button type="button" class="btn btn-warning"
+                                    data-toggle="modal" data-target="#exampleModal">
+                                <i class="fas fa-eye"></i> Loteros pendientes <span class="badge badge-light">{{count($loteros_pendientes)}}</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Loteros pendiente de enfunde</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Nombres</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($loteros_pendientes as $lotero)
+                            <tr>
+                                <th scope="row">{{$lotero->idempleado}}</th>
+                                <td>{{$lotero->nombres}}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection

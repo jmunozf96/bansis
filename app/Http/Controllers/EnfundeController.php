@@ -74,7 +74,8 @@ class EnfundeController extends Controller
                 'recursos' => $this->recursos,
                 'semana' => $this->utilidades->getSemana(),
                 'enfundes_pendientes' => $enfunde_pendiente,
-                'enfunde_cerrado' => $enfunde_cerrado
+                'enfunde_cerrado' => $enfunde_cerrado,
+                'loteros_pendientes' => $this->getLoteroPendientes($hacienda, $this->utilidades->getSemana()[0]->semana)
             ])->withInput(Input::all());
         } else {
             return redirect('/');
@@ -230,6 +231,28 @@ class EnfundeController extends Controller
 
         $lotero->push(['materiales' => $materiales]);
         return $lotero;
+    }
+
+    public function getLoteroPendientes($hacienda, $semana)
+    {
+        $loteros = array();
+        $enf_loteros = ENF_ENFUNDE::select('id', 'idlotero')
+            ->where([
+                'idhacienda' => $hacienda,
+                'semana' => $semana
+            ])->get();
+
+        foreach ($enf_loteros as $lot) {
+            array_push($loteros, $lot->idlotero);
+        }
+
+        $loteros_pendiente = ENF_LOTERO::select('id', 'idhacienda', 'idempleado', 'status', 'nombres', 'labor')
+            ->where('idhacienda', $hacienda)
+            ->whereNotIn('id', $loteros)
+            ->orderBy('nombres', 'asc')
+            ->get();
+
+        return $loteros_pendiente;
     }
 
     public function Loteros($hacienda, $semana)
@@ -708,7 +731,8 @@ class EnfundeController extends Controller
 
         $enfunde_open = ENF_ENFUNDE::select('id', 'semana', 'idlotero')
             ->where([
-                'idhacienda' => $idhacienda
+                'idhacienda' => $idhacienda,
+                'status' => 1
             ])
             ->get();
 

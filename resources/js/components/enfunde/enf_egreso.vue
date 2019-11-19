@@ -216,6 +216,8 @@
 
             $('#nombre-empleado').on('change', function () {
                 self.empleado = $(this).val();
+                let sVal = $('#producto option:first').val();
+                $('#producto').val(sVal);
                 $('#producto').attr('disabled', false);
                 $("#producto").selectpicker("refresh");
 
@@ -838,8 +840,6 @@
                 $('#nombre-producto').val('');
                 $('#cantidad').val('');
 
-
-                // Extract the value of the first option.
                 let sVal = $('#producto option:first').val();
                 $('#producto').val(sVal);
                 $('#producto').selectpicker('refresh');
