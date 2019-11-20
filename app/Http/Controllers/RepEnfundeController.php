@@ -51,20 +51,27 @@ class RepEnfundeController extends Controller
         $enfunde = ENF_ENFUNDE::query();
 
         //$enfunde = $enfunde->select('id','semana','periodo','cinta_pre','cinta_fut','idlotero');
+        if (!is_null($params['hacienda']) || !empty($params['hacienda'])):
+            $enfunde = $enfunde->where('idhacienda', $params['hacienda']);
+        endif;
 
         if (!is_null($params['semana']) || !empty($params['semana'])):
             $enfunde = $enfunde->where('semana', $params['semana']);
         endif;
 
-        if (!is_null($params['lotero']) || !empty($params['lotero'])):
-            $enfunde = $enfunde->where('idlotero', $params['lotero']);
+        if (is_null($params['lotero'][0])) {
+            unset($params['lotero'][0]);
+        }
+
+        if (count($params['lotero']) > 0):
+            $enfunde = $enfunde->wherein('idlotero', $params['lotero']);
         endif;
 
         $enfunde = $enfunde->with(['lotero' => function ($query) {
             $query->select('id', 'nombres');
         }]);;
 
-        $enfunde = $enfunde->paginate(10);
+        $enfunde = $enfunde->get();
 
         //return response()->json($enfunde, 200);
         return Redirect::back()
@@ -95,9 +102,17 @@ class RepEnfundeController extends Controller
     {
         $comboLoteros = array();
         $comboLoteros[''] = 'Todos los loteros';
-        $loteros = ENF_LOTERO::select('id', 'nombres')
-            ->where(['idhacienda' => $hacienda])
-            ->get();
+        $loteros = ENF_LOTERO::query();
+
+        $loteros = $loteros->select('id', 'nombres');
+
+        if (!is_null($hacienda) && !empty($hacienda)) {
+            if ($hacienda == 1 || $hacienda == 2) {
+                $loteros = $loteros->where(['idhacienda' => $hacienda]);
+            }
+        }
+
+        $loteros = $loteros->get();
         foreach ($loteros as $lotero) {
             $comboLoteros[$lotero->id] = $lotero->nombres;
         }
