@@ -358,7 +358,6 @@ class EnfundeController extends Controller
                         } else {
                             $rep_fut_backup += $detalle->cantidad;
                         }
-
                     } else {
                         $detalle = new ENF_DET_ENFUNDE();
                         $detalle->idenfunde = $enfunde->id;
@@ -445,18 +444,14 @@ class EnfundeController extends Controller
                             if (count($material_presente) == 1) {
                                 if (count($material_futuro) == 1) {
                                     if ($material_presente[0]->idmaterial == $material_futuro[0]->idmaterial) {
-                                        if (+$totaliza_futuro > 0) {
-                                            $inventario->Inv_lotero($params_array['semana'], $lotero->id, $material_presente[0]->idmaterial,
-                                                $totaliza_futuro,
-                                                $rep_fut_backup > 0 ? $rep_fut_backup : 0,
-                                                $options);
-                                        }
+                                        $inventario->Inv_lotero($params_array['semana'], $lotero->id, $material_presente[0]->idmaterial,
+                                            $totaliza_futuro,
+                                            $rep_fut_backup > 0 ? $rep_fut_backup : 0,
+                                            $options);
                                     } else {
-                                        if (+$totaliza_futuro > 0) {
-                                            $inventario->Inv_lotero($params_array['semana'], $lotero->id, $material_futuro[0]->idmaterial,
-                                                $totaliza_futuro,
-                                                $rep_fut_backup > 0 ? $rep_fut_backup : 0, $options);
-                                        }
+                                        $inventario->Inv_lotero($params_array['semana'], $lotero->id, $material_futuro[0]->idmaterial,
+                                            $totaliza_futuro,
+                                            $rep_fut_backup > 0 ? $rep_fut_backup : 0, $options);
                                     }
                                 }
                             }
