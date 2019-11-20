@@ -110,6 +110,7 @@ class EnfundeController extends Controller
                 $query->whereHas('lote', function ($query2) {
                     $query2->where('estado', 1);
                 });
+                $query->where('status', 1);
             }, 'seccion.lote'])
             ->with(['empleado' => function ($query2) {
                 $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
@@ -284,6 +285,7 @@ class EnfundeController extends Controller
     {
         $resp = false;
         $edit = false;
+        $delete = false;
 
         $json = $request->input('json');
         $params = json_decode($json);
@@ -338,46 +340,77 @@ class EnfundeController extends Controller
                 $rep_fut_backup = 0;
 
                 foreach ($params->detalle_enfunde as $item) {
-                    if (($params_array['presente'] && $item->presente > 0) || ($params_array['futuro'] && $item->futuro > 0)) {
-                        $existe_detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'cantidad', 'desbunchado', 'presente', 'futuro')
-                            ->where([
-                                'idenfunde' => $enfunde->id,
-                                'idseccion' => $item->seccion,
-                                'presente' => $params_array['presente'],
-                                'futuro' => $params_array['futuro']
-                            ])->first();
+                    $delete = false;
+                    $existe_detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'cantidad', 'desbunchado', 'presente', 'futuro')
+                        ->where([
+                            'idenfunde' => $enfunde->id,
+                            'idseccion' => $item->seccion,
+                            'presente' => $params_array['presente'],
+                            'futuro' => $params_array['futuro']
+                        ])->first();
 
-                        if ($existe_detalle) {
-                            $detalle = $existe_detalle;
-                            $edit = true;
+                    if ($existe_detalle) {
+                        $detalle = $existe_detalle;
+                        $edit = true;
 
-                            if ($detalle->presente) {
-                                $rep_presente_backup += $detalle->cantidad;
+                        if ($detalle->presente) {
+                            $rep_presente_backup += $detalle->cantidad;
+                        } else {
+                            $rep_fut_backup += $detalle->cantidad;
+                        }
+
+                    } else {
+                        $detalle = new ENF_DET_ENFUNDE();
+                        $detalle->idenfunde = $enfunde->id;
+                        $detalle->idseccion = $item->seccion;
+                        $detalle->presente = $params_array['presente'];
+                        $detalle->futuro = $params_array['futuro'];
+                        $edit = false;
+                    }
+
+                    if ($params_array['presente']) {
+                        if ($edit) {
+                            if ($item->presente == 0) {
+                                $detalle->delete();
+                                $delete = true;
                             } else {
-                                $rep_fut_backup += $detalle->cantidad;
+                                $detalle->cantidad = $item->presente;
+                            }
+                        } else {
+                            if ($item->presente == 0) {
+                                $delete = true;
+                            } else {
+                                $detalle->cantidad = $item->presente;
                             }
 
-                        } else {
-                            $detalle = new ENF_DET_ENFUNDE();
-                            $detalle->idenfunde = $enfunde->id;
-                            $detalle->idseccion = $item->seccion;
-                            $detalle->presente = $params_array['presente'];
-                            $detalle->futuro = $params_array['futuro'];
-                            $edit = false;
                         }
-
-                        if ($params_array['presente']) {
-                            $detalle->cantidad = $item->presente;
+                    } else {
+                        if ($edit) {
+                            if ($item->futuro == 0) {
+                                $detalle->delete();
+                                $delete = true;
+                            } else {
+                                $detalle->cantidad = $item->futuro;
+                                $detalle->desbunchado = $item->desbunche;
+                            }
                         } else {
-                            $detalle->cantidad = $item->futuro;
-                            $detalle->desbunchado = $item->desbunche;
-                        }
+                            if ($item->futuro == 0) {
+                                $delete = true;
+                            } else {
+                                $detalle->cantidad = $item->futuro;
+                                $detalle->desbunchado = $item->desbunche;
+                            }
 
-                        $totaliza_presente += $item->presente;
-                        $totaliza_futuro += $item->futuro;
-                        $totaliza_desbunche += $item->desbunche;
-                        $detalle->save();
+                        }
                     }
+
+                    $totaliza_presente += $item->presente;
+                    $totaliza_futuro += $item->futuro;
+                    $totaliza_desbunche += $item->desbunche;
+
+                    if (!$delete)
+                        $detalle->save();
+
                 }
 
                 $despacho = ENF_EGRESO::select('id', 'idempleado', 'semana')
