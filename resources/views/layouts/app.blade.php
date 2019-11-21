@@ -10,8 +10,8 @@
     <title>@yield('title', 'Bansis')</title>
 
     <!-- Scripts -->
+    <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('js/app.js') }}" defer></script>
-    @stack('scripts')
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
@@ -133,5 +133,6 @@
         @include('layouts.modal')
     </main>
 </div>
+@stack('scripts')
 </body>
 </html>
