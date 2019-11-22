@@ -146,8 +146,6 @@ class LiquidacionController extends Controller
                 'status' => 'success',
                 'liquidacion' => $liquidacion
             ];
-            return response()->json($liquidacion, 200);
-            die;
             return redirect()->back()->with($data)->withInput(Input::all());
         } else {
             return redirect()->back()->withInput(Input::all())->withErrors($validator);
