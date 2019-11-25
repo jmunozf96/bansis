@@ -129,8 +129,9 @@ class LiquidacionController extends Controller
                     foreach ($cajas as $key2 => $caja) {
                         $idbono = strtolower(str_replace(" ", "", $caja[0]));
                         $cod_caja = trim($caja[2]);
+                        $cantidad = intval(trim($caja[4]));
                         foreach ($bono as $key3 => $add_bono) {
-                            if ($add_bono['cod_caja'] == $cod_caja && $idbono != 'bonodeempaque') {
+                            if ($add_bono['cod_caja'] == $cod_caja && $idbono != 'bonodeempaque' && $cantidad == intval($add_bono['cantidad'])) {
                                 $tabla_data[$key]['Detalle'][$key2][7] = $bono[$key3];
                             }
                         }
@@ -146,6 +147,8 @@ class LiquidacionController extends Controller
                 'status' => 'success',
                 'liquidacion' => $liquidacion
             ];
+            /*return response()->json($liquidacion, 200);
+            die;*/
             return redirect()->back()->with($data)->withInput(Input::all());
         } else {
             return redirect()->back()->withInput(Input::all())->withErrors($validator);
