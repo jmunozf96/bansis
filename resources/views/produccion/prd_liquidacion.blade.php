@@ -108,6 +108,13 @@
                             </div>
                         </div>
                         <liquidacion-registro
+                                v-bind:cabecera="{{json_encode([
+                                'documento' => $liquidacion->numero,
+                                'finca' => $liquidacion->codFinca,
+                                'RucFinca' => $liquidacion->rucFinda,
+                                'semana' => \Session::get('semana'),
+                                'token' => csrf_token()
+                                ])}}"
                                 v-bind:liquidaciones="{{json_encode($liquidacion->cajas)}}"></liquidacion-registro>
                     </div>
                 @endif

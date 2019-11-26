@@ -6,6 +6,7 @@ use App\Http\Controllers\Perfil\PerfilController;
 use App\Http\Controllers\Sistema\UtilidadesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Input;
 
@@ -145,6 +146,7 @@ class LiquidacionController extends Controller
                 'code' => 202,
                 'message' => 'Se cargo la informacion correctamente',
                 'status' => 'success',
+                'semana' => $request->input('semana'),
                 'liquidacion' => $liquidacion
             ];
             /*return response()->json($liquidacion, 200);
@@ -153,6 +155,54 @@ class LiquidacionController extends Controller
         } else {
             return redirect()->back()->withInput(Input::all())->withErrors($validator);
         }
+    }
+
+    public function getCajasSemana(Request $request)
+    {
+
+        $json = $request->input('json');
+        $params = json_decode($json);
+        $params_array = json_decode($json, true);
+        $validation = \Validator::make($params_array, [
+            'semana' => 'required',
+            'hacienda' => 'required',
+            'tipo_caja' => 'required'
+        ]);
+
+        if (!$validation->fails()) {
+            $liquidacion_cajas = DB::connection('bansis')
+                ->table('PRD_DET_DISTRIBUCION as distribucion')
+                ->join('CAJ_CODIGOS_COLE as cod_dole', 'cod_dole.id_cjubesa', '=', 'distribucion.id_cjubesa')
+                ->join('PRD_DET_PRODUCCION_DIARIA as detalle', 'distribucion.id_det_prod', '=', 'detalle.id_detprod')
+                ->join('PRD_PRODUCCION_DIARIA as produccion', 'detalle.id_prod', '=', 'produccion.id_prod')
+                ->select([
+                    'produccion.sem_prod',
+                    'produccion.per_prod',
+                    'produccion.id_hacienda',
+                    'produccion.fecha_prod',
+                    'detalle.des_detprod',
+                    'detalle.cant_prod',
+                    'detalle.ptotal_detprod',
+                    'cod_dole.ds_cjubes',
+                    'distribucion.des_distrib',
+                    'distribucion.cant_distrib',
+                    'distribucion.cod_trans_distrib'
+
+                ])
+                ->where([
+                    'produccion.id_hacienda' => $params_array['hacienda'],
+                    'produccion.sem_prod' => $params_array['semana'],
+                    'cod_dole.ds_cjubes' => $params_array['tipo_caja']
+                ])
+                ->get();
+
+            return response()->json([
+                'code' => 202,
+                'liquidacion_semana' => $liquidacion_cajas
+            ], 202);
+        }
+
+        return 'hola';
     }
 
 }

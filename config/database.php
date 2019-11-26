@@ -91,6 +91,18 @@ return [
             'prefix_indexes' => true,
         ],
 
+        'bansis' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => env('bansis_HOST', 'localhost'),
+            'database' => env('bansis_DATABASE', 'forge'),
+            'username' => env('bansis_USERNAME', 'forge'),
+            'password' => env('bansis_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
+
         'xass' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),

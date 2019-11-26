@@ -37,6 +37,7 @@
         "get-google-fonts": "^1.2.0",
         "jsrender": "^1.0.5",
         "moment": "^2.24.0",
+        "numeral": "^2.0.6",
         "portal-vue": "^2.1.6",
         "react-bootstrap-daterangepicker": "^4.1.0",
         "sweetalert2": "^8.18.3",

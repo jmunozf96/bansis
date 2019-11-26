@@ -53,6 +53,7 @@ Route::get('/sistema/axios/enfunde/lotero/{idlotero}/{semana}', 'EnfundeControll
 Route::post('/sistema/enfunde/reporte/semanal', 'RepEnfundeController@getEnfunde')->name('enfunde.reporte.semanal');
 
 Route::post('/sistema/produccion/liquidacion/semana/upload', 'LiquidacionController@uploadFile')->name('produccion.liquid.upload');
+Route::post('/sistema/produccion/liquidacion/cajas/semana', 'LiquidacionController@getCajasSemana')->name('produccion.liquid.bansis');
 
 Route::get('/api/enfunde/saldo_empleado/{idempleado}/{idmaterial}/{semana}', 'EgresoController@saldopendiente');
 Route::get('/api/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');
