@@ -70,7 +70,7 @@
                                        oninput="this.value = this.value.toUpperCase()">--}}
                                 <label>Lotero</label>
                                 <select class="selectpicker show-tick form-control form-control-lg"
-                                        data-live-search="true" data-style="btn-outline-dark" data-size="10"
+                                        data-live-search="false" data-style="btn-outline-dark" data-size="15"
                                         id="nombre-empleado">
                                     @include('enfunde.select_lotero')
                                 </select>

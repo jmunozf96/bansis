@@ -18,7 +18,7 @@
                             v-if="lotero.fundas"
                             :data-subtext="lotero.fundas ? ' - Tiene fundas despachadas' : ''"
                             :value="lotero.id"
-                        >{{lotero.empleado.nombre}}
+                        >{{lotero.nombres}}
                         </option>
                     </optgroup>
                     <optgroup label="Loteros pendientes despacho" data-max-options="2">
@@ -26,7 +26,7 @@
                             v-for="lotero in this.loteros"
                             v-if="!lotero.fundas"
                             :value="lotero.id"
-                        >{{lotero.empleado.nombre}}
+                        >{{lotero.nombres}}
                         </option>
                     </optgroup>
                 </select>

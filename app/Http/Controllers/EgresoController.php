@@ -58,7 +58,8 @@ class EgresoController extends Controller
                     $query1->selectRaw('id_fila,rtrim(codigo) codigo,nombre,bodegacompra');
                 }]);
             }])
-            ->paginate(6);
+            ->orderBy('updated_at', 'desc')
+            ->paginate(5);
 
         if (view()->exists('enfunde' . '.' . $objeto)) {
             return view('enfunde' . '.' . $objeto, [
@@ -86,7 +87,7 @@ class EgresoController extends Controller
             'semana' => $this->utilidades->getSemana(),
             'bodegas' => $this->utilidades->Bodegas(),
             'materiales' => $this->utilidades->getcomboProductos(13),
-            'loteros' => $this->enfunde->Loteros($hacienda, $this->utilidades->getSemana()[0]->semana)
+            'loteros' => $this->enfunde->Loteros_nw($hacienda, $this->utilidades->getSemana()[0]->semana)
         ];
         return view('enfunde.enf_egreso_material', $data);
     }
@@ -385,7 +386,7 @@ class EgresoController extends Controller
     public function saldopendiente($idempleado, $idmaterial, $semana)
     {
         $idlotero = ENF_LOTERO::select('id', 'idempleado')->where('idempleado', $idempleado)->first();
-        $inventario = INV_LOT_FUND::select('idlotero', 'semana', 'saldo', 'idmaterial', 'status')
+        $inventario = INV_LOT_FUND::select('idlotero', 'semana', 'saldo_inicial', 'salida', 'saldo', 'idmaterial', 'status')
             ->where([
                 'idlotero' => $idlotero->id,
                 'idmaterial' => $idmaterial,

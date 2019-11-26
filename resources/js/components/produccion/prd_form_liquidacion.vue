@@ -65,6 +65,7 @@
                 <thead>
                 <tr class="text-center">
                     <th scope="col">Caja</th>
+                    <th scope="col">Fecha Prod.</th>
                     <th scope="col">Codigo Coorp.</th>
                     <th scope="col">Cantidad</th>
                     <th scope="col">Accion</th>
@@ -74,6 +75,7 @@
                 <template v-for="(liquidacion, index) in liquidacion_dole.liquidacion_semanal">
                     <tr>
                         <td class="text-center">{{liquidacion.des_detprod}}</td>
+                        <td class="text-center">{{liquidacion.fecha_prod.toString("dd/MM/yyyy")}}</td>
                         <td class="text-center">{{liquidacion.ds_cjubes}}</td>
                         <td class="text-center">{{liquidacion.cant_distrib}}</td>
                         <td class="text-center">

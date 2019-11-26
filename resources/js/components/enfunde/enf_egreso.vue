@@ -1,11 +1,13 @@
 <template>
     <div class="container-fluid p-0">
-        <table class="table table-bordered table-hover" v-if="saldo">
+        <table class="table table-bordered table-hover table-sm" v-if="saldo">
             <thead>
             <tr class="text-center">
                 <th style="width: 5%">...</th>
-                <th style="width: 15%; font-size: 18px">Saldo</th>
-                <th style="width: 15%; font-size: 18px">Status</th>
+                <th style="width: 25%; font-size: 18px">SaldoIni</th>
+                <th style="width: 25%; font-size: 18px">SaldoEnf</th>
+                <th style="width: 25%; font-size: 18px">SaldoFin</th>
+                <th style="width: 20%; font-size: 18px">Status</th>
             </tr>
             </thead>
             <tbody class="table-sm">
@@ -15,6 +17,8 @@
                         <span class="sr-only">Loading...</span>
                     </div>
                 </td>
+                <td><b style="color: red; font-size: 20px">{{saldo.saldo_inicial}} fundas.</b></td>
+                <td><b style="color: red; font-size: 20px">{{saldo.salida}}</b></td>
                 <td><b style="color: red; font-size: 20px">{{saldo.saldo}} fundas.</b></td>
                 <td v-if="saldo.status == 1">
                     <div class="custom-control custom-switch">

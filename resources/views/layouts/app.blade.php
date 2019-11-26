@@ -16,6 +16,7 @@
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <link href="{{ asset('css/colores_banano.css') }}" rel="stylesheet">
+
 </head>
 <body>
 <div id="app">
@@ -127,7 +128,6 @@
             </div>
         </div>
     </nav>
-
     <main class="py-4">
         @yield('content')
         @include('layouts.modal')
