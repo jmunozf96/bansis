@@ -51,6 +51,10 @@ Route::post('/sistema/enfunde/semana/close/{lotero}/{semana}', 'EnfundeControlle
 Route::post('/sistema/enfunde/semana/close/{idHacienda}', 'EnfundeController@cerrar_enfundeAll')->name('enfunde.closeAll');
 Route::get('/sistema/axios/enfunde/lotero/{idlotero}/{semana}', 'EnfundeController@getLotero')->name('lotero');
 Route::post('/sistema/enfunde/reporte/semanal', 'RepEnfundeController@getEnfunde')->name('enfunde.reporte.semanal');
+Route::get('/sistema/enfunde/reporte/semanal/pdf', 'RepEnfundeController@repEnfundeSemanal')->name('enfunde.rep_semanal_pdf');
+
+$loteros = \App\Sisban\Enfunde\ENF_LOTERO::all();
+Route::view('/pdf', 'enfunde.reporte.pdf.enf_rep_semanal_data', compact('loteros'));
 
 Route::post('/sistema/produccion/liquidacion/semana/upload', 'LiquidacionController@uploadFile')->name('produccion.liquid.upload');
 Route::post('/sistema/produccion/liquidacion/cajas/semana', 'LiquidacionController@getCajasSemana')->name('produccion.liquid.bansis');

@@ -8,9 +8,11 @@ use App\Sisban\Enfunde\ENF_ENFUNDE;
 use App\Sisban\Enfunde\ENF_LOTERO;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Redirect;
 use PhpParser\Node\Expr\Cast\Object_;
+use PDF;
 
 class RepEnfundeController extends Controller
 {
@@ -118,5 +120,41 @@ class RepEnfundeController extends Controller
         }
 
         return (Object)$comboLoteros;
+    }
+
+    //REPORTES
+
+
+    public function repEnfundeSemanal()
+    {
+        PDF::SetTitle('Enfunde Semanal');
+        PDF::AddPage('P','A4');
+
+        $loteros = ENF_LOTERO::where(['idhacienda' => 1])
+            ->with(['enfunde' => function ($query) {
+                $query->select('id', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'cinta_pre', 'cinta_fut');
+                $query->with(['detalle' => function ($query) {
+                    $query->select('id', 'idenfunde', 'idseccion', 'cantidad', 'desbunchado', 'presente', 'futuro');
+                    $query->with(['seccion' => function ($query) {
+                        $query->select('id', 'idlote', 'has');
+                        $query->with(['lote' => function ($query) {
+                            $query->select('id', 'lote', 'has', 'variedad');
+                        }]);
+                    }]);
+                }]);
+                $query->where([
+                    'semana' => 47
+                ]);
+            }])
+            ->get();
+
+
+        //return $loteros;
+
+        $html = view('enfunde.reporte.pdf.enf_rep_semanal_data', compact('loteros'));
+
+        PDF::writeHTML($html, true, false, false, false, '');
+
+        PDF::Output('hello_world.pdf');
     }
 }
