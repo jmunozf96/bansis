@@ -319,7 +319,7 @@ class EgresoController extends Controller
     {
         $hacienda = Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda;
         $html = view('enfunde.select_lotero', compact('view'))->with([
-            'loteros' => $this->enfunde->Loteros($hacienda, $this->utilidades->getSemana()[0]->semana)
+            'loteros' => $this->enfunde->Loteros_nw($hacienda, $this->utilidades->getSemana()[0]->semana)
         ])->render();
 
         return compact('html');
