@@ -2,6 +2,7 @@
 
 namespace App\Sisban\Enfunde;
 
+use App\XASS_InvProductos;
 use Hashids\Hashids;
 use Illuminate\Database\Eloquent\Model;
 

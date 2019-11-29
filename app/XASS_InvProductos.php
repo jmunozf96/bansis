@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 
 class XASS_InvProductos extends Model
 {
-    protected $connection = '';
+    protected $connection = 'xass';
     protected $table = 'SGI_Inv_Productos';
     protected $primaryKey = 'id_fila';
 
@@ -24,5 +24,10 @@ class XASS_InvProductos extends Model
     public function bodega()
     {
         return $this->hasOne('App\XASS_InvBodegas', 'Id_Fila', 'bodegacompra');
+    }
+
+    public function changeConnection()
+    {
+        $this->connection = 'xass_sofca';
     }
 }

@@ -45,4 +45,8 @@ class ENF_LOTERO extends Model
     {
         return $this->hasOne('App\Sisban\Enfunde\INV_LOT_FUND', 'idlotero', 'id');
     }
+
+    public function saldos_semana(){
+        return $this->hasMany('App\Sisban\Enfunde\INV_LOT_FUND', 'idlotero', 'id');
+    }
 }
