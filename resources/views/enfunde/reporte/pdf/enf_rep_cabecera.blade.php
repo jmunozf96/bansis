@@ -31,6 +31,7 @@
         background-color: #5d29e1;
     }
 </style>
+@inject('utilidades', 'App\Http\Controllers\Sistema\UtilidadesController')
 {!! $pdf_head_subtitle !!}
 <table border="0">
     <tr style="text-align: center">

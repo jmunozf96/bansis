@@ -23,6 +23,15 @@ class UtilidadesController extends Controller
         return $data;
     }
 
+    public static function getColorCodigo($codigo)
+    {
+        $color = DB::table('SIS_CALENDARIO_DOLE')->select('idcalendar', 'color')
+            ->where('idcalendar', $codigo)
+            ->first();
+
+        return $color;
+    }
+
     public function getProductos($bodega, $criterio)
     {
         $productos = XASS_InvProductos::selectRaw("id_fila as codigo, RTRIM(nombre) as nombre, unidad, 'Stock: ' + convert(varchar,convert(integer,stock)) as stock_det, stock, bodegacompra")
@@ -82,5 +91,23 @@ class UtilidadesController extends Controller
             unset($array[$key]);
         }
         return $array;
+    }
+
+    public function comboSemanas()
+    {
+        $periodo = array();
+        $periodo[''] = 'Todas las semanas';
+
+        $c = 1;
+        for ($x = 1; $x <= 13; $x++) {
+            $semana = array();
+            for ($y = 1; $y <= 4; $y++) {
+                $semana[$c] = "Semana $c";
+                $c++;
+            }
+            $periodo["Periodo $x"] = $semana;
+        }
+
+        return (Object)$periodo;
     }
 }

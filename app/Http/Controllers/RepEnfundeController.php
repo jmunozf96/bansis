@@ -43,7 +43,7 @@ class RepEnfundeController extends Controller
             return view('enfunde.reporte' . '.' . $objeto, [
                 'recursos' => $this->recursos,
                 'semana' => $this->utilidades->getSemana(),
-                'combosemanas' => $this->comboSemanas(),
+                'combosemanas' => $this->utilidades->comboSemanas(),
                 'comboloteros' => $this->comboLoteros($hacienda)
             ])->withInput(Input::all());
         } else {
@@ -86,24 +86,6 @@ class RepEnfundeController extends Controller
             ]);
     }
 
-    public function comboSemanas()
-    {
-        $periodo = array();
-        $periodo[''] = 'Todas las semanas';
-
-        $c = 1;
-        for ($x = 1; $x <= 13; $x++) {
-            $semana = array();
-            for ($y = 1; $y <= 4; $y++) {
-                $semana[$c] = "Semana $c";
-                $c++;
-            }
-            $periodo["Periodo $x"] = $semana;
-        }
-
-        return (Object)$periodo;
-    }
-
     public function comboLoteros($hacienda)
     {
         $comboLoteros = array();
@@ -126,126 +108,5 @@ class RepEnfundeController extends Controller
         return (Object)$comboLoteros;
     }
 
-    //REPORTES
 
-
-    public function repEnfundeSemanal(Request $request)
-    {
-        $json = $request->input('json');
-        $params = json_decode($json);
-        $params_array = json_decode($json, true);
-        $html = '';
-
-        $params_array = [
-            'semana' => 47,
-            'hacienda' => 1
-        ];
-
-        //SILVIO SOLORZANO ID ENFUNDE 5 -> SE GUARDARON LOS LOTES DOS VECES
-
-        $validation = \Validator::make($params_array, [
-            'semana' => 'required',
-            'hacienda' => 'required'
-        ]);
-
-        if (!$validation->fails()) {
-
-            $loteros = ENF_LOTERO::on('sqlsrv')->where(['idhacienda' => $params_array['hacienda']])
-                ->with(['enfunde' => function ($query) use ($params_array) {
-                    $query->select('id', 'idlotero', 'fecha', 'total_pre', 'total_fut', 'chapeo', 'cinta_pre', 'cinta_fut');
-                    $query->with(['detalle' => function ($query) {
-                        $query->select('id', 'idenfunde', 'idseccion', 'cantidad', 'desbunchado', 'presente', 'futuro');
-                        $query->with(['seccion' => function ($query) {
-                            $query->select('id', 'idlote', 'has');
-                            $query->with(['lote' => function ($query) {
-                                $query->select('id', 'lote', 'has', 'variedad');
-                            }]);
-                        }]);
-                    }]);
-                    $query->where([
-                        'semana' => $params_array['semana']
-                    ]);
-                }])
-                ->with(['saldos_semana' => function ($query) use ($params_array) {
-                    $query->select('idlotero', 'semana', 'idmaterial', 'saldo_inicial', 'entrada', 'salida', 'saldo', 'status');
-                    $query->with(['material' => function ($query) {
-                        $query->select('id_fila', 'nombre');
-                    }]);
-                    $query->where([
-                        'semana' => $params_array['semana']
-                    ]);
-                }])
-                ->with(['fundas' => function ($query) use ($params_array) {
-                    $query->select('id', 'semana', 'idempleado', 'total', 'status');
-                    $query->with(['egresos' => function ($query) {
-                        $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'idempleado', 'cantidad', 'presente', 'futuro');
-                        $query->with(['get_material' => function ($query) {
-                            $query->select('id_fila', 'nombre');
-                        }]);
-                        $query->with(['nom_reemplazo' => function ($query) {
-                            $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                        }]);
-                    }]);
-                    $query->where([
-                        'semana' => $params_array['semana']
-                    ]);
-                }])
-                ->orderBy('nombres')
-                ->get();
-
-            $semana_color = [
-                'presente' => $this->utilidades->getSemana($loteros[0]->enfunde->fecha)[0]->des_color,
-                'futuro' => $this->utilidades->getSemana($loteros[0]->enfunde->fecha)[1]->des_color,
-            ];
-
-            //return $loteros;
-
-            $html = view('enfunde.reporte.pdf.enf_rep_semanal_data', compact('loteros', 'semana_color'));
-
-            // Custom Header
-
-            PDF::setHeaderCallback(function ($pdf) use ($loteros, $params_array) {
-                $semana_color = [
-                    'presente' => $this->utilidades->getSemana($loteros[0]->enfunde->fecha)[0]->des_color,
-                    'futuro' => $this->utilidades->getSemana($loteros[0]->enfunde->fecha)[1]->des_color,
-                ];
-
-                $pdf_head_subtitle = 'Usuario: ' . Auth::user()->Nombre . "<br>Fecha de creación: " . Date('d/m/Y') .
-                    "<br><b>REPORTE DE ENFUNDE - PRIMOBANANO</b> | Enfunde correspondiente a la semana {$params_array['semana']}<hr>";
-                // Set font
-                $pdf->SetFont('helvetica', 'B', 10);
-                // Title
-                $tbl = view('enfunde.reporte.pdf.enf_rep_cabecera', compact('pdf_head_subtitle', 'semana_color'));
-                $pdf->writeHTML($tbl, true, false, false, false, '');
-
-            });
-
-            // Custom Footer
-            PDF::setFooterCallback(function ($pdf) {
-
-                // Position at 15 mm from bottom
-                $pdf->SetY(-10);
-                // Set font
-                $pdf->SetFont('helvetica', 'I', 8);
-                // Page number
-                $pdf->Cell(0, 10, 'Página ' . $pdf->getAliasNumPage() . '/' . $pdf->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
-
-            });
-
-            PDF::SetMargins(PDF_MARGIN_LEFT, 22.5, PDF_MARGIN_RIGHT);
-            PDF::SetHeaderMargin(PDF_MARGIN_HEADER);
-            PDF::SetFooterMargin(PDF_MARGIN_FOOTER);
-        } else {
-            $html = 'No existe informacion para los parametros establecidos!!';
-        }
-
-
-        PDF::AddPage('P', 'A4');
-        PDF::SetTitle('Enfunde Semanal');
-
-        PDF::writeHTML($html, true, false, false, false, '');
-
-        PDF::Output('hello_world.pdf');
-        exit;
-    }
 }

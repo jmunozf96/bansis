@@ -88,6 +88,10 @@
                 <?php $saldo_presente += intval($lotero->enfunde->total_pre)?>
                 <?php $saldo_futuro += intval($lotero->enfunde->total_fut)?>
                 <?php $saldo_desbunche += intval($lotero->enfunde->chapeo)?>
+            @else
+                <tr>
+                    <th colspan="11" style="text-align: center">No tiene dato de enfunde</th>
+                </tr>
             @endif
             @if($lotero->saldos_semana)
                 @foreach($lotero->saldos_semana as $saldo)
