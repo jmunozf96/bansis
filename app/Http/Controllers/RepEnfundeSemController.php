@@ -135,8 +135,10 @@ class RepEnfundeSemController extends Controller
                     'futuro' => $params_array['color_fut'],
                 ];
 
+                $hacienda = $params_array['hacienda'] == 0 || $params_array['hacienda'] == 1 ? 'PRIMOBANANO' : 'SOFCABANANO';
+
                 $pdf_head_subtitle = 'Usuario: ' . Auth::user()->Nombre . "<br>Fecha de creación: " . Date('d/m/Y') .
-                    "<br><b>REPORTE DE ENFUNDE - PRIMOBANANO</b> | Enfunde correspondiente a la semana {$params_array['semana']}<hr>";
+                    "<br><b>REPORTE DE ENFUNDE - {$hacienda}</b> | Enfunde correspondiente a la semana {$params_array['semana']}<hr>";
                 // Set font
                 $pdf->SetFont('helvetica', 'B', 10);
                 // Title
