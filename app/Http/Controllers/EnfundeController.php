@@ -105,7 +105,10 @@ class EnfundeController extends Controller
     public function getLotero($idlotero, $semana)
     {
         $lotero = ENF_LOTERO::select('id', 'idempleado')
-            ->where('id', $idlotero)
+            ->where([
+                'id' => $idlotero,
+                'status' => 1
+            ])
             ->with(['seccion' => function ($query) {
                 $query->whereHas('lote', function ($query2) {
                     $query2->where('estado', 1);
@@ -248,7 +251,10 @@ class EnfundeController extends Controller
         }
 
         $loteros_pendiente = ENF_LOTERO::select('id', 'idhacienda', 'idempleado', 'status', 'nombres', 'labor')
-            ->where('idhacienda', $hacienda)
+            ->where([
+                'idhacienda' => $hacienda,
+                'status' => 1
+            ])
             ->whereNotIn('id', $loteros)
             ->orderBy('nombres', 'asc')
             ->get();
@@ -275,7 +281,10 @@ class EnfundeController extends Controller
                     }]);
                 }]);
             }])
-            ->where('idhacienda', $hacienda)
+            ->where([
+                'idhacienda' => $hacienda,
+                'status' => 1
+            ])
             ->get();
 
         return $empleado;
@@ -296,7 +305,10 @@ class EnfundeController extends Controller
                 }]);
             }])
             ->orderBy('nombres')
-            ->where('idhacienda', $hacienda)
+            ->where([
+                'idhacienda' => $hacienda,
+                'status' => 1
+            ])
             ->get();
 
         return $empleado;
