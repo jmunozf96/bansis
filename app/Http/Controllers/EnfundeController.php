@@ -713,7 +713,8 @@ class EnfundeController extends Controller
                         ->first();
                     if ($despachos) {
                         $despachos->status = 0;
-                        $despachos->saldo = intval($despachos->total) - +$total_enfunde;
+                        //$despachos->saldo = intval($despachos->total) - +$total_enfunde;
+                        $despachos->saldo = 0;
                         $despachos->save();
 
                         $despacho_detalles = ENF_DET_EGRESO::select('id', 'id_egreso', 'status')

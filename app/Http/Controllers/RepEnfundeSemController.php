@@ -35,8 +35,8 @@ class RepEnfundeSemController extends Controller
         $enfunde_semana = ENF_ENFUNDE::selectRaw('semana, periodo, idhacienda, cinta_pre, cinta_fut, sum(total_pre) as presente, sum(total_fut) as futuro, (sum(total_pre)+sum(total_fut)) as enfunde')
             ->where(['idhacienda' => $hacienda])
             ->distinct('semana')
-            ->groupBy('semana', 'periodo', 'idhacienda','cinta_pre', 'cinta_fut')
-            ->orderBy('semana','desc')
+            ->groupBy('semana', 'periodo', 'idhacienda', 'cinta_pre', 'cinta_fut')
+            ->orderBy('semana', 'desc')
             ->paginate(10);
 
         if (view()->exists('enfunde.reporte' . '.' . $objeto)) {
@@ -172,7 +172,7 @@ class RepEnfundeSemController extends Controller
 
         PDF::writeHTML($html, true, false, false, false, '');
 
-        PDF::Output('hello_world.pdf');
+        PDF::Output('Enfunde_semana_' . $params_array['semana'] . '.pdf');
         exit;
     }
 }

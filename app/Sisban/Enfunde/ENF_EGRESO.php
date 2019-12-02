@@ -9,7 +9,7 @@ class ENF_EGRESO extends Model
     protected $connection = 'sqlsrv';
     protected $table = 'ENF_EGRESOS';
     protected $primaryKey = 'id';
-    protected $dateFormat = 'M j Y h:i:s';
+    protected $dateFormat = 'd-m-Y H:i:s';
 
     public function egresos()
     {

@@ -11,7 +11,7 @@ class ENF_DET_EGRESO extends Model
     protected $connection = 'sqlsrv';
     protected $table = 'ENF_DET_EGRESOS';
     protected $primaryKey = 'id';
-    protected $dateFormat = 'M j Y h:i:s';
+    protected $dateFormat = 'd-m-Y H:i:s';
     protected $appends = ['idhash'];
     //public $timestamps = false;
 
