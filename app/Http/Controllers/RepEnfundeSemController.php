@@ -75,7 +75,18 @@ class RepEnfundeSemController extends Controller
 
         if (!$validation->fails()) {
 
-            $loteros = ENF_LOTERO::on('sqlsrv')->where(['idhacienda' => $params_array['hacienda']])
+            $enfunde_semana_loteros = ENF_ENFUNDE::where([
+                    'idhacienda' => $params_array['hacienda'],
+                    'semana' => $params_array['semana'],
+                ])
+                ->get(['idlotero']);
+
+
+            $loteros = ENF_LOTERO::on('sqlsrv')
+                ->where([
+                    'idhacienda' => $params_array['hacienda'],
+                ])
+                ->whereIn('id', $enfunde_semana_loteros)
                 ->with(['enfunde' => function ($query) use ($params_array) {
                     $query->select('id', 'idlotero', 'fecha', 'total_pre', 'total_fut', 'chapeo', 'cinta_pre', 'cinta_fut');
                     $query->with(['detalle' => function ($query) {
@@ -123,7 +134,7 @@ class RepEnfundeSemController extends Controller
                 'futuro' => $params_array['color_fut'],
             ];
 
-            //return $loteros;
+            //return $enfunde_semana_loteros;
 
             $html = view('enfunde.reporte.pdf.enf_rep_semanal_data', compact('loteros', 'semana_color'));
 
