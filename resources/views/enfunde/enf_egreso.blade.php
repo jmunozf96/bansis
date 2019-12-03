@@ -54,7 +54,7 @@
                                 <th class="text-center" colspan="2" style="vertical-align: inherit; font-size: 20px">
                                     Lotero</th>
                                 <th>
-                                    <a class="btn btn-success btn-lg btn-block" href="{{route('despacho',
+                                    <a class="btn btn-dark btn-lg btn-block" href="{{route('despacho',
                                     ['modulo' => Auth::user()->modulo,
                                     'objeto' =>  Auth::user()->objeto,
                                     'idRecurso' => Auth::user()->recursoId,]
@@ -68,7 +68,7 @@
                                                 'objeto' =>  Auth::user()->objeto,
                                                 'idRecurso' => Auth::user()->recursoId,
                                                 'lotero' => $egreso->idempleado]
-                                                )}}" class="btn btn-primary"><i class="fas fa-folder-open"></i></a>
+                                                )}}" class="btn btn-success"><i class="fas fa-eye"></i></a>
                                         </td>
                                         <td class="text-center w-auto mt-auto mb-auto" style="vertical-align: inherit; font-size: 18px">
                                             @if(!$egreso->status)

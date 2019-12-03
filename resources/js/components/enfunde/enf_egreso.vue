@@ -437,6 +437,11 @@
                 }
             })
         },
+        updated: function () {
+            var self = this;
+
+
+        },
         methods: {
             addDespacho: function (data) {
                 if (!this.existeDespacho(data)) {
@@ -726,7 +731,6 @@
             ,
             getDataEmpleado: function (empleado, semana, hacienda) {
                 let self = this;
-
                 $('input[name=status-semana][value=futuro]').prop('checked', false);
                 $('input[name=status-semana][value=presente]').prop('disabled', false);
                 $('input[name=status-semana][value=presente]').prop('checked', true);
@@ -763,8 +767,14 @@
 
                                 self.dato_enfunde = [];
                                 self.getEnfunde(self.enfunde, self.dato_enfunde);
-
-                                $('#detalle-total').val(self.totalizaDespacho());
+                            } else {
+                                Swal.fire({
+                                    position: 'center',
+                                    type: 'info',
+                                    title: 'Lotero no tiene despachos',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
                             }
                         });
                 }

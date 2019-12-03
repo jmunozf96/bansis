@@ -59,13 +59,15 @@
                                         <th scope="col">Cinta_Fut</th>
                                         <th scope="col">Total_Pre</th>
                                         <th scope="col">Total_Fut</th>
-                                        <th scope="col">Enfunde Semana</th>
+                                        <th scope="col">Total</th>
                                         <th scope="col">Reporte</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     @if(isset($enfunde_semanal))
                                         @inject('utilidades', 'App\Http\Controllers\Sistema\UtilidadesController')
+                                        <?php $total_pre = 0 ?>
+                                        <?php $total_fut = 0 ?>
                                         @foreach($enfunde_semanal as $enfunde)
                                             <tr class="text-center table-sm" style="font-size: 16px">
                                                 <td style="width: 10%">
@@ -75,11 +77,11 @@
                                                     <span class="badge badge-pill badge-primary">{{$enfunde->periodo}}</span>
                                                 </td>
                                                 <td style="width: 10%">{{$enfunde->semana}}</td>
-                                                <td style="width: 15%">
+                                                <td style="width: 7%">
                                                     <input class="form-control {{$utilidades::getColorCodigo($enfunde->cinta_pre)->color}}1"
                                                            disabled>
                                                 </td>
-                                                <td style="width: 15%">
+                                                <td style="width: 7%">
                                                     <input class="form-control {{$utilidades::getColorCodigo($enfunde->cinta_fut)->color}}1"
                                                            disabled>
                                                 </td>
@@ -98,13 +100,23 @@
                                                             'color_pre' => $utilidades::getColorCodigo($enfunde->cinta_pre)->color,
                                                             'color_fut' => $utilidades::getColorCodigo($enfunde->cinta_fut)->color
                                                             ]))}}
-                                                            {{Form::button('<i class="fas fa-file-pdf"></i>', array('type' => 'submit', 'class' => 'btn btn-danger'))}}
+                                                            {{Form::button('<i class="fas fa-file-pdf"></i>', array('type' => 'submit', 'class' => 'btn btn-success'))}}
                                                             {{Form::close()}}
                                                         </div>
                                                     </div>
                                                 </td>
                                             </tr>
+                                            <?php $total_pre += +$enfunde->presente?>
+                                            <?php $total_fut += +$enfunde->futuro?>
                                         @endforeach
+                                        <tr class="bg-light">
+                                            <td colspan="5"><h2><b></b></h2></td>
+                                            <td class="text-center"><h3><b>{{number_format($total_pre)}}</b></h3></td>
+                                            <td class="text-center"><h3><b>{{number_format($total_fut)}}</b></h3></td>
+                                            <td class="text-center"><h3>
+                                                    <b>{{number_format(+$total_pre + +$total_fut)}}</b></h3></td>
+                                            <td class="text-center"><h3><b></b></h3></td>
+                                        </tr>
                                     @else
                                         <tr>
                                             <th colspan="7">No hay datos que mostrar...</th>

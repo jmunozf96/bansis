@@ -349,6 +349,7 @@
                         $('#lotero').val("");
                         $("#lotero").selectpicker("refresh");
                         $("#lotero").focus();
+                        $('#btn-save').attr('disabled', false);
                     }
                 }
             });

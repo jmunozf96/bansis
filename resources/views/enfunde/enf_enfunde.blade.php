@@ -118,13 +118,13 @@
                                 <tr style="font-size: 16px" class="text-center table-sm">
                                     <th style="width: 5%"><span class="badge badge-warning">A</span></th>
                                     <th>
-                                        <a class="btn btn-primary" href="{{route('enfunde',
+                                        <a class="btn btn-success" href="{{route('enfunde',
                                             ['modulo' => Auth::user()->modulo,
                                             'objeto' =>  Auth::user()->objeto,
                                             'idRecurso' => Auth::user()->recursoId,
                                             'lotero' => $enfunde->idlotero,
                                             'semana' => $enfunde->semana]
-                                            )}}"><i class="fas fa-folder-open"></i>
+                                            )}}"><i class="fas fa-eye"></i>
                                         </a>
                                     </th>
                                     <th scope="row"

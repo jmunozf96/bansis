@@ -13,6 +13,7 @@ use Hashids\Hashids;
 use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -327,50 +328,54 @@ class EgresoController extends Controller
 
     public function getdespacho($empleado, $semana, $hacienda, $axios = 0)
     {
-        $despacho = ENF_EGRESO::select('id', 'fecha', 'idempleado', 'semana', 'idhacienda')
-            ->where('idempleado', $empleado)
-            ->where('semana', $semana)
-            ->where('idhacienda', $hacienda == '343' ? 1 : 2)
-            ->where('status', 1)
-            ->with(['empleado' => function ($query) use ($semana) {
-                $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                $query->with(['lotero' => function ($query3) use ($semana) {
-                    $query3->with(['enfunde' => function ($query) use ($semana) {
-                        $query->select('id', 'total_pre', 'total_fut', 'idlotero', 'status', 'count')
-                            ->where('semana', $semana);
+        if (!empty($empleado) && !empty($semana) && !empty($hacienda)):
+            $despacho = ENF_EGRESO::select('id', 'fecha', 'idempleado', 'semana', 'idhacienda')
+                ->where('idempleado', $empleado)
+                ->where('semana', $semana)
+                ->where('idhacienda', $hacienda == '343' ? 1 : 2)
+                ->where('status', 1)
+                ->with(['empleado' => function ($query) use ($semana) {
+                    $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
+                    $query->with(['lotero' => function ($query3) use ($semana) {
+                        $query3->with(['enfunde' => function ($query) use ($semana) {
+                            $query->select('id', 'total_pre', 'total_fut', 'idlotero', 'status', 'count')
+                                ->where('semana', $semana);
+                        }]);
                     }]);
-                }]);
-            }])
-            ->with(['egresos' => function ($query) {
-                $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'reemplazo', 'idempleado', 'cantidad', 'presente', 'futuro', 'status');
-                $query->with(['get_material' => function ($query1) {
-                    $query1->selectRaw('id_fila,rtrim(codigo) codigo,nombre,bodegacompra');
-                }]);
-                $query->with(['nom_reemplazo' => function ($query2) {
-                    $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                }]);
-                $query->orderBy('fecha');
-            }])
-            ->first();
+                }])
+                ->with(['egresos' => function ($query) {
+                    $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'reemplazo', 'idempleado', 'cantidad', 'presente', 'futuro', 'status');
+                    $query->with(['get_material' => function ($query1) {
+                        $query1->selectRaw('id_fila,rtrim(codigo) codigo,nombre,bodegacompra');
+                    }]);
+                    $query->with(['nom_reemplazo' => function ($query2) {
+                        $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
+                    }]);
+                    $query->orderBy('fecha');
+                }])
+                ->first();
 
-        if ($despacho) {
-            $hashid = new Hashids('', 50, '0123456789abcdefghijklmnopqrstuvwxyz');
-            $id = $hashid->encode($despacho->id);
-            unset($despacho->id);
-            $despacho->idhash = $id;
-            $despacho->decode = $hashid->decode($id)[0];
-        }
+            if ($despacho) {
+                $hashid = new Hashids('', 50, '0123456789abcdefghijklmnopqrstuvwxyz');
+                $id = $hashid->encode($despacho->id);
+                unset($despacho->id);
+                $despacho->idhash = $id;
+                $despacho->decode = $hashid->decode($id)[0];
+            }
 
-        //Si es una peticion desde el lado del cliente
-        if ($axios && $despacho) {
-            $despacho->toArray();
-            $despacho->fecha = date("d/m/Y", strtotime($despacho->fecha));
-            foreach ($despacho->egresos as $egreso):
-                $egreso->fecha = date("d/m/Y", strtotime($egreso->fecha));
-            endforeach;
-        }
+            //Si es una peticion desde el lado del cliente
+            if ($axios && $despacho) {
+                $despacho->toArray();
+                $despacho->fecha = date("d/m/Y", strtotime($despacho->fecha));
+                foreach ($despacho->egresos as $egreso):
+                    $egreso->fecha = date("d/m/Y", strtotime($egreso->fecha));
+                endforeach;
+            }
 
-        return $despacho;
+            return $despacho;
+        else:
+            return null;
+        endif;
     }
 
     public function respuesta($status, $messagge)
@@ -403,51 +408,62 @@ class EgresoController extends Controller
         'update' => false,
         'salida' => false])
     {
+        try {
+            if (!is_null($lotero) && !is_null($material) && !is_null($cantidad)) {
+                DB::beginTransaction();
+                $inventario = INV_LOT_FUND::select('id', 'idlotero', 'semana', 'idmaterial', 'saldo_inicial', 'entrada', 'salida', 'saldo', 'status')
+                    ->where([
+                        'idlotero' => $lotero,
+                        'idmaterial' => $material,
+                        'semana' => $semana
+                    ])->first();
 
-        if (!is_null($lotero) && !is_null($material) && !is_null($cantidad)) {
-            $inventario = INV_LOT_FUND::select('id', 'idlotero', 'semana', 'idmaterial', 'saldo_inicial', 'entrada', 'salida', 'saldo', 'status')
-                ->where([
-                    'idlotero' => $lotero,
-                    'idmaterial' => $material,
-                    'semana' => $semana
-                ])->first();
+                if (!$inventario) {
+                    $inventario = new INV_LOT_FUND();
+                    $inventario->semana = $semana;
+                    $inventario->idlotero = $lotero;
+                    $inventario->idmaterial = $material;
+                    $inventario->saldo_inicial = 0;
+                    $inventario->status = 1;
+                }
 
-            if (!$inventario) {
-                $inventario = new INV_LOT_FUND();
-                $inventario->semana = $semana;
-                $inventario->idlotero = $lotero;
-                $inventario->idmaterial = $material;
-                $inventario->saldo_inicial = 0;
-                $inventario->status = 1;
-            }
-
-            switch ($options) {
-                case $options['new']:
-                    $inventario->entrada += $cantidad;
-                    $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
-                    return $inventario->save();
-                case $options['update']:
-                    $inventario->entrada = $inventario->entrada - $cant_anterior;
-                    $inventario->entrada += $cantidad;
-                    $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
-                    return $inventario->save();
-                case $options['delete']:
-                    $inventario->entrada = $inventario->entrada - $cantidad;
-                    $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
-                    $inventario->save();
-                    if ($inventario->entrada == 0) {
-                        return $inventario->delete();
-                    } else {
+                switch ($options) {
+                    case $options['new']:
+                        $inventario->entrada += $cantidad;
+                        $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
+                        $inventario->save();
+                        DB::commit();
                         return true;
-                    }
-                case $options['salida']:
-                    if ($cant_anterior > 0) {
-                        $inventario->salida = $inventario->salida - $cant_anterior;
-                    }
-                    $inventario->salida += $cantidad;
-                    $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
-                    return $inventario->save();
+                    case $options['update']:
+                        $inventario->entrada = $inventario->entrada - $cant_anterior;
+                        $inventario->entrada += $cantidad;
+                        $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
+                        $inventario->save();
+                        DB::commit();
+                        return true;
+                    case $options['delete']:
+                        $inventario->entrada = $inventario->entrada - $cantidad;
+                        $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
+                        $inventario->save();
+                        if ($inventario->saldo == 0) {
+                            $inventario->delete();
+                        }
+                        DB::commit();
+                        return true;
+                    case $options['salida']:
+                        if ($cant_anterior > 0) {
+                            $inventario->salida = $inventario->salida - $cant_anterior;
+                        }
+                        $inventario->salida += $cantidad;
+                        $inventario->saldo = ($inventario->saldo_inicial + $inventario->entrada) - $inventario->salida;
+                        $inventario->save();
+                        DB::commit();
+                        return true;
+                }
             }
+        } catch (\PDOException $ex) {
+            DB::rollBack();
+            return false;
         }
     }
 }
