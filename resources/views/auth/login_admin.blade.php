@@ -7,12 +7,12 @@
 @section('content')
     <div class="container-fluid">
         <div class="row no-gutter">
-            <div class="d-none d-lg-block d-md-block col-md-5 col-lg-7 bg-image" id="bg-image"></div>
+            <div class="d-none d-lg-block d-md-block col-md-5 col-lg-7 bg-image" style="min-height: 93.8vh;" id="bg-image"></div>
             <div class="col-md-7 col-lg-5">
                 <div class="login d-flex align-items-center">
                     <div class="container">
                         <div class="row justify-content-center">
-                            <div class="col-md-9" style="margin-top: -35%;">
+                            <div class="col-md-9 mt-5" style="">
                                 <div class="card" style="border-radius: 1rem;">
                                     <h5 style="margin-left: 1.2rem; margin-top: 1rem; margin-bottom: -1%;"><b>{{ __('Login') }} a Bansis</b></h5>
                                     <hr style="margin-bottom: -0.5em">
