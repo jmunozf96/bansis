@@ -449,42 +449,6 @@ class EnfundeController extends Controller
 
                     }
 
-
-                    /*$material_presente = $this->getMaterialPresente($lotero->idempleado, $params_array['semana']);
-                    $material_futuro = $this->getMaterialFuturo($lotero->idempleado, $params_array['semana']);
-
-                    $options = [
-                        'new' => false,
-                        'delete' => false,
-                        'update' => false,
-                        'salida' => true];
-
-                    $inventario = new EgresoController();
-
-                    if ($totaliza_presente > 0) {
-                        if ($totaliza_futuro > 0 || $params_array['futuro']) {
-                            if (count($material_presente) == 1) {
-                                if (count($material_futuro) == 1) {
-                                    if ($material_presente[0]->idmaterial == $material_futuro[0]->idmaterial) {
-                                        $inventario->Inv_lotero($params_array['semana'], $lotero->id, $material_presente[0]->idmaterial,
-                                            $totaliza_futuro,
-                                            $rep_fut_backup > 0 ? $rep_fut_backup : 0,
-                                            $options);
-                                    } else {
-                                        $inventario->Inv_lotero($params_array['semana'], $lotero->id, $material_futuro[0]->idmaterial,
-                                            $totaliza_futuro,
-                                            $rep_fut_backup > 0 ? $rep_fut_backup : 0, $options);
-                                    }
-                                }
-                            }
-                        } else {
-                            $inventario->Inv_lotero($params_array['semana'], $lotero->id, $material_presente[0]->idmaterial,
-                                $totaliza_presente,
-                                $rep_presente_backup > 0 ? $rep_presente_backup : 0, $options);
-                        }
-
-                    }*/
-
                     if ($totaliza_presente > 0):
                         $this->updateInventarioEnfunde($lotero->id, $params_array['semana'], $totaliza_futuro, $rep_fut_backup,
                             $params = ['save' => ($totaliza_futuro > 0 || $params_array['futuro']), 'presente' => $totaliza_presente, 'presente_backup' => $rep_presente_backup]);
@@ -769,7 +733,7 @@ class EnfundeController extends Controller
                         $total_enfunde = intval($enfunde->total_pre) + intval($enfunde->total_fut);
                         $enfunde->count = 2;
                         $enfunde->status = 0;
-                        $enfunde->save();
+                        $status = $enfunde->save();
 
                         $lotero_empleado = ENF_LOTERO::select('id', 'idempleado')->where('id', $lotero)->first();
                         //Cerramos el despacho de semana
@@ -783,7 +747,7 @@ class EnfundeController extends Controller
                             $despachos->status = 0;
                             //$despachos->saldo = intval($despachos->total) - +$total_enfunde;
                             $despachos->saldo = 0;
-                            $despachos->save();
+                            $status = $despachos->save();
 
                             $despacho_detalles = ENF_DET_EGRESO::select('id', 'id_egreso', 'status')
                                 ->where('id_egreso', $despachos->id)->update(array("status" => 0));
@@ -808,7 +772,7 @@ class EnfundeController extends Controller
                                         $inventario->salida = 0;
                                         $inventario->saldo = $item->saldo;
                                         $inventario->status = 1;
-                                        $inventario->save();
+                                        $status = $inventario->save();
                                     endif;
                                 }
 
@@ -818,12 +782,15 @@ class EnfundeController extends Controller
                                 ])->update(array("status" => 0));
 
                                 if ($update_inventario) {
+                                    $status = true;
                                     $resp['code'] = 200;
                                     $resp['status'] = 'success';
                                     $resp['message'] = 'Enfunde cerrado correctamente';
                                 }
                             }
                         }
+                    } else {
+                        throw new Exception('Falta dato de enfunde Futuro', 404);
                     }
                 } else {
                     throw new Exception('Enfunde ya se encuentra cerrado', 404);
