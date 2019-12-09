@@ -710,7 +710,7 @@ class EnfundeController extends Controller
         }
     }
 
-    public function cerrar_enfunde($lotero, $semana, $status = true)
+    public function cerrar_enfunde($lotero, $semana, $status = true, $cerrar_todo = false)
     {
         try {
             DB::beginTransaction();
@@ -743,6 +743,7 @@ class EnfundeController extends Controller
                                 'semana' => $semana
                             ])
                             ->first();
+
                         if ($despachos) {
                             $despachos->status = 0;
                             //$despachos->saldo = intval($despachos->total) - +$total_enfunde;
@@ -759,7 +760,7 @@ class EnfundeController extends Controller
                                     'semana' => $semana
                                 ])->get();
 
-                            if (count($inventario_lotero) > 0 && !empty($inventario_lotero)) {
+                            if (count($inventario_lotero) > 0) {
                                 $inventario_lotero->status = 0;
                                 foreach ($inventario_lotero as $item) {
                                     if (intval($item->saldo) > 0):
@@ -782,6 +783,7 @@ class EnfundeController extends Controller
                                 ])->update(array("status" => 0));
 
                                 if ($update_inventario) {
+                                    DB::commit();
                                     $status = true;
                                     $resp['code'] = 200;
                                     $resp['status'] = 'success';
@@ -790,15 +792,16 @@ class EnfundeController extends Controller
                             }
                         }
                     } else {
-                        throw new Exception('Falta dato de enfunde Futuro', 404);
+                        if (!$cerrar_todo)
+                            throw new Exception('Falta dato de enfunde Futuro', 404);
                     }
                 } else {
-                    throw new Exception('Enfunde ya se encuentra cerrado', 404);
+                    if (!$cerrar_todo)
+                        throw new Exception('Enfunde ya se encuentra cerrado', 404);
                 }
             }
 
-            if ($status) {
-                DB::commit();
+            if ($status && !$cerrar_todo) {
                 return Redirect::back()
                     ->with('msg', $resp['message'])
                     ->with('status', $resp['status']);
@@ -835,7 +838,7 @@ class EnfundeController extends Controller
             ->get();
 
         foreach ($enfunde_open as $enfunde) {
-            $resp = $this->cerrar_enfunde($enfunde->idlotero, $enfunde->semana, false);
+            $resp = $this->cerrar_enfunde($enfunde->idlotero, $enfunde->semana, true, true);
             if ($resp['code'] == 200 || $resp['code'] == 404) {
                 array_push($cerrados, true);
             } else {
@@ -850,7 +853,8 @@ class EnfundeController extends Controller
             ->with('status', 'warning');
     }
 
-    public function respuesta($status, $messagge)
+    public
+    function respuesta($status, $messagge)
     {
         $data = [
             'status' => $status,
