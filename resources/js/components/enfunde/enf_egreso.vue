@@ -445,16 +445,8 @@
         methods: {
             addDespacho: function (data) {
                 if (!this.existeDespacho(data)) {
-                    if (this.material_unico(data.presente, data.idmaterial)) {
-                        this.despachos.push(data);
-                        return true;
-                    } else {
-                        Swal.fire({
-                            type: 'warning',
-                            title: 'Oops...',
-                            text: `Usted ha seleccionado un material diferente al despachado para la cinta ${data.presente ? 'presente' : 'futuro'}`,
-                        })
-                    }
+                    this.despachos.push(data);
+                    return true;
                 } else {
                     return this.editDespacho(data);
                 }
@@ -473,7 +465,8 @@
                     }
                 }
                 return false;
-            },
+            }
+            ,
             editDespacho: function (data) {
                 var enfunde = this.enfunde;
                 for (var i in this.despachos) {
@@ -493,7 +486,8 @@
                     }
                 }
                 return false;
-            },
+            }
+            ,
             material_unico: function (presente = true, idmaterial) {
                 let resp = true;
                 let no_es_unico = [];
@@ -520,7 +514,8 @@
                 }
 
                 return resp;
-            },
+            }
+            ,
             deleteDespacho: function (index) {
                 let self = this;
                 let alerta = 'Eliminado!';

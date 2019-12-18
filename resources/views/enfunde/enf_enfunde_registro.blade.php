@@ -52,13 +52,13 @@
                             </div>
                             <div class="form-group col-md-2 offset-md-1 col-6">
                                 <input type="text" class="form-control {{$semana[0]->des_color}}1"
-                                       id="exampleFormControlInput1"
+                                       id="color_presente"
                                        disabled>
                                 <small>Presente</small>
                             </div>
                             <div class="form-group col-md-2 col-6">
                                 <input type="text" class="form-control {{$semana[1]->des_color}}1"
-                                       id="exampleFormControlInput1"
+                                       id="color_futuro"
                                        disabled>
                                 <small>Futuro</small>
                             </div>

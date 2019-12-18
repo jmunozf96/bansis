@@ -155,7 +155,7 @@ class EnfundeController extends Controller
                 'semana' => $semana
             ])->first();
 
-        if ($despacho) {
+        /*if ($despacho) {
 
             $despacho_detalle_pre = ENF_DET_EGRESO::select('id', 'id_egreso', 'idmaterial', 'cantidad', 'presente', 'futuro')
                 ->where('presente', true)
@@ -167,6 +167,7 @@ class EnfundeController extends Controller
 
             $material_presente = '';
             $material_futuro = '';
+
             if ($despacho_detalle_pre) {
                 $material_presente = $this->utilidades->unique_multidim_array($despacho_detalle_pre, 'idmaterial');
                 if (count($material_presente) > 0) {
@@ -234,9 +235,23 @@ class EnfundeController extends Controller
                 }
             };
 
+        }*/
+
+        if ($despacho) {
+            $materiales = INV_LOT_FUND::selectRaw('id, idlotero, semana, idmaterial, saldo, status, 0 as cantidad')
+                ->where([
+                    'semana' => $semana,
+                    'idlotero' => $idlotero,
+                    'status' => true
+                ])
+                ->with(['material' => function ($query) {
+                    $query->select('id_fila', 'nombre');
+                }])
+                ->get();
         }
 
         $lotero->push(['materiales' => $materiales]);
+
         return $lotero;
     }
 

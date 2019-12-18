@@ -14,18 +14,18 @@
                 >
                     <optgroup label="Loteros con saldo de fundas" data-max-options="2">
                         <option style="font-size: 18px"
-                            v-for="lotero in this.loteros"
-                            v-if="lotero.fundas"
-                            :data-subtext="lotero.fundas ? ' - Tiene fundas despachadas' : ''"
-                            :value="lotero.id"
+                                v-for="lotero in this.loteros"
+                                v-if="lotero.fundas"
+                                :data-subtext="lotero.fundas ? ' - Tiene fundas despachadas' : ''"
+                                :value="lotero.id"
                         >{{lotero.nombres}}
                         </option>
                     </optgroup>
                     <optgroup label="Loteros pendientes despacho" data-max-options="2">
                         <option style="font-size: 18px"
-                            v-for="lotero in this.loteros"
-                            v-if="!lotero.fundas"
-                            :value="lotero.id"
+                                v-for="lotero in this.loteros"
+                                v-if="!lotero.fundas"
+                                :value="lotero.id"
                         >{{lotero.nombres}}
                         </option>
                     </optgroup>
@@ -47,14 +47,37 @@
             </div>
         </div>
         <hr class="mt-0"/>
+
+        <div class="modal fade" id="id-material-usado" tabindex="-1" role="dialog"
+             aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="id-titulo">Modal title</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <enf_material_usado :materiales="saldo_semana"
+                                            :datosenfunde="lote_enfunde"></enf_material_usado>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" id="btn-save-items">Guardar cambios</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="form-row mt-0">
             <div class="col-md-6">
                 <div class="col-12 table-responsive">
                     <div class="alert alert-success" role="alert" v-if="statusEnfunde()">
-                        <b>Saldo: {{saldoEnfunde()}}</b>, puede reportar enfunde
+                        <b>Saldo: {{saldoMaterialesSemana}}</b>, puede reportar enfunde
                     </div>
                     <div class="alert alert-danger" role="alert" v-else>
-                        <b>Saldo: {{saldoEnfunde()}}</b>, no puede reportar enfunde
+                        <b>Saldo: {{saldoMaterialesSemana}}</b>, no puede reportar enfunde
                     </div>
                     <p class="mb-1">Lotes asignados:</p>
                     <table class="table table-bordered table-hover" id="enfunde-items">
@@ -98,39 +121,39 @@
                                 </b-progress>
                             </td>
                             <td style="width: 15%">
-                  <span v-if="statusForm && sec.seccion == lote_enfunde.seccion && presente">
-                    <input
-                        class="form-control text-center cantidad-despacho"
-                        ref="presente" name="presente"
-                        v-model="lote_enfunde.presente"
-                        v-on:keyup.enter="saveForm(index)"
-                        type="number"
-                    />
-                  </span>
-                                <span v-else>{{sec.presente}}</span>
+                                <template v-if="statusForm && sec.seccion == lote_enfunde.seccion && presente">
+                                    <input
+                                        class="form-control text-center cantidad-despacho"
+                                        ref="presente" name="presente"
+                                        v-model="lote_enfunde.presente.cantidad"
+                                        v-on:keyup.enter="saveForm(index)"
+                                        type="number"
+                                    />
+                                </template>
+                                <span v-else>{{sec.presente.cantidad}}</span>
                             </td>
                             <td style="width: 15%">
-                  <span v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
-                    <input
-                        class="form-control text-center cantidad-despacho"
-                        ref="futuro" name="futuro"
-                        v-model="lote_enfunde.futuro"
-                        v-on:keyup.enter="saveForm(index)"
-                        type="number"
-                    />
-                  </span>
-                                <span v-else>{{sec.futuro}}</span>
+                                <template v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
+                                    <input
+                                        class="form-control text-center cantidad-despacho"
+                                        ref="futuro" name="futuro"
+                                        v-model="lote_enfunde.futuro.cantidad"
+                                        v-on:keyup.enter="saveForm(index)"
+                                        type="number"
+                                    />
+                                </template>
+                                <span v-else>{{sec.futuro.cantidad}}</span>
                             </td>
                             <td style="width: 15%">
-                  <span v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
-                    <input
-                        class="form-control text-center cantidad-despacho"
-                        ref="desbunche" name="desbunche"
-                        v-model="lote_enfunde.desbunche"
-                        v-on:keyup.enter="saveForm(index)"
-                        type="number"
-                    />
-                  </span>
+                                <template v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
+                                    <input
+                                        class="form-control text-center cantidad-despacho"
+                                        ref="desbunche" name="desbunche"
+                                        v-model="lote_enfunde.desbunche"
+                                        v-on:keyup.enter="saveForm(index)"
+                                        type="number"
+                                    />
+                                </template>
                                 <span v-else>{{sec.desbunche}}</span>
                             </td>
                         </tr>
@@ -168,12 +191,12 @@
                     <canvas id="dato_enfunde" width="100"></canvas>
                 </div>
                 <div class="form-row p-1">
-                    <p v-if="saldo_semana && saldo_semana.semana" style="font-size: 18px">El lotero tiene un saldo
+                    <!--<p v-if="saldo_semana.length > 0  && saldo_semana.semana" style="font-size: 18px">El lotero tiene un saldo
                         pendiente de <b>{{saldo_semana.semana.saldo}} fundas.</b></p>
                     <p v-else-if="saldo_semana && saldo_semana.presente && saldo_semana.futuro" style="font-size: 18px">
                         El lotero tiene un saldo pendiente en la cinta presente de <b>{{saldo_semana.presente.saldo}}
                         fundas</b> y en la cinta futuro tiene un saldo pendiente de <b>{{saldo_semana.futuro.saldo}}
-                        fundas.</b></p>
+                        fundas.</b></p>-->
                 </div>
             </div>
         </div>
@@ -231,6 +254,7 @@
     import moment from "moment/moment";
     import SweetAlert from "sweetalert2/src/sweetalert2";
     import BootstrapVue from "bootstrap-vue";
+    import enf_material_usado from "./enf_material_usado"
 
     Vue.use(BootstrapVue);
 
@@ -238,6 +262,9 @@
 
     export default {
         props: ["loteros"],
+        components: {
+            enf_material_usado
+        },
         data() {
             return {
                 fecha: $("#fecha").val(),
@@ -248,7 +275,7 @@
                 seccion: [],
                 total_pre: 0,
                 total_fut: 0,
-                saldo_semana: null,
+                saldo_semana: [],
                 desbunche: 0,
                 fundas: [],
                 reemplazos: [],
@@ -257,14 +284,21 @@
                 lote_enfunde: {
                     seccion: 0,
                     idlote: 0,
-                    presente: 0,
-                    futuro: 0,
+                    presente: {
+                        cantidad: 0,
+                        materiales: []
+                    },
+                    futuro: {
+                        cantidad: 0,
+                        materiales: []
+                    },
                     desbunche: 0
                 },
                 presente: 1,
                 futuro: 0,
                 status: 1,
-                edicion: 0
+                edicion: 0,
+                item_used: []
             };
         },
 
@@ -353,6 +387,41 @@
                     }
                 }
             });
+
+            $("#btn-save-items").on('click', function () {
+                var total = 0;
+
+                for (let lotero_fundas of self.saldo_semana) {
+
+                    let materiales_usados = {
+                        idmaterial: lotero_fundas.idmaterial,
+                        cantidad: lotero_fundas.cantidad,
+                        presente: self.presente,
+                        futuro: self.futuro
+                    };
+
+                    total += +lotero_fundas.cantidad;
+
+                    lotero_fundas.cantidad = 0;
+
+                    if (+materiales_usados.cantidad > 0) {
+                        self.item_used.push(materiales_usados);
+                    }
+
+                    lotero_fundas.saldo = (+lotero_fundas.saldo - materiales_usados.cantidad);
+                }
+
+                if (self.presente) {
+                    self.lote_enfunde.presente.cantidad = total;
+                    self.lote_enfunde.presente.materiales = self.item_used;
+                } else {
+                    self.lote_enfunde.futuro.cantidad = total;
+                    self.lote_enfunde.futuro.materiales = self.item_used;
+                }
+
+
+                $('#id-material-usado').modal('hide');
+            });
         },
         updated: function () {
             let self = this;
@@ -362,7 +431,7 @@
                         () => this.$refs.presente && this.$refs.presente[0].focus()
                     );
                     this.$nextTick(function () {
-                        if (self.lote_enfunde.futuro == 0) {
+                        if (self.lote_enfunde.futuro.cantidad == 0) {
                             if (this.$refs.futuro) {
                                 this.$refs.futuro[0].focus();
                             }
@@ -400,6 +469,7 @@
 
                 axios.get(`/sistema/axios/enfunde/lotero/${id}/${self.semana}`)
                     .then(response => {
+                        console.log(response.data);
                         if (response.data) {
                             let datos4 = response.data[0].enfunde;
                             self.saldo_semana = response.data[1].materiales;
@@ -414,12 +484,16 @@
                                     lote: datos[i].lote.lote,
                                     has: parseFloat(datos[i].has).toFixed(2),
                                     hasTotal: parseFloat(datos[i].lote.has).toFixed(2),
-                                    presente: 0,
-                                    futuro: 0,
+                                    presente: {
+                                        cantidad: 0,
+                                        materiales: []
+                                    },
+                                    futuro: {
+                                        cantidad: 0,
+                                        materiales: []
+                                    },
                                     desbunche: 0,
-                                    porcentaje: (
-                                        parseFloat(datos[i].has) / parseFloat(datos[i].lote.has)
-                                    ).toFixed(2)
+                                    porcentaje: (parseFloat(datos[i].has) / parseFloat(datos[i].lote.has)).toFixed(2)
                                 };
 
                                 if (datos4) {
@@ -436,11 +510,9 @@
                                         $("#btn-save").attr("disabled", true);
                                     }
 
+                                    //Ojo con este proceso
                                     for (var y in datos4.detalle) {
-                                        if (
-                                            datos4.detalle[y].presente == 1 &&
-                                            datos4.detalle[y].idseccion == seccion.seccion
-                                        ) {
+                                        if (datos4.detalle[y].presente == 1 && datos4.detalle[y].idseccion == seccion.seccion) {
                                             seccion.iddet_pre = datos4.detalle[y].id;
                                             seccion.presente = datos4.detalle[y].cantidad;
                                             presente.push(true);
@@ -470,7 +542,7 @@
                                             fecha: datos3.egresos[i].fecha.toString("dd/MM/yyyy"),
                                             cantidad: parseInt(datos3.egresos[i].cantidad),
                                             material: datos3.egresos[i].get_material.nombre,
-                                            status: datos3.egresos[i].presente == 1 ? "Presente" : "Futuro"
+                                            status: datos3.egresos[i].presente === 1 ? "Presente" : "Futuro"
                                         };
                                         self.fundas.push(despacho);
                                     } else {
@@ -480,14 +552,14 @@
                                             nombre: datos3.egresos[i].nom_reemplazo.nombre,
                                             cantidad: parseInt(datos3.egresos[i].cantidad),
                                             material: datos3.egresos[i].get_material.nombre,
-                                            status: datos3.egresos[i].presente == 1 ? "Presente" : "Futuro"
+                                            status: datos3.egresos[i].presente === 1 ? "Presente" : "Futuro"
                                         };
                                         self.reemplazos.push(reemplazo);
                                     }
 
                                     self.totalfundas += parseInt(datos3.egresos[i].cantidad);
 
-                                    if (datos3.egresos[i].futuro == 1 && presente.length > 0) {
+                                    if (datos3.egresos[i].futuro === 1 && presente.length > 0) {
                                         self.presente = 0;
                                         self.futuro = 1;
                                     }
@@ -566,48 +638,77 @@
                 }
             },
             editForm: function (index, b = false) {
-                let tabla = document.getElementById('enfunde-items');
+                /*let tabla = document.getElementById('enfunde-items');
                 for (var i = 0; i < tabla.rows.length; i++) {
                     tabla.rows[i].classList.remove("bg-success");
                     tabla.rows[i].classList.remove("text-white");
                 }
                 tabla.rows[index + 1].classList.add("bg-success");
-                tabla.rows[index + 1].classList.add("text-white");
+                tabla.rows[index + 1].classList.add("text-white");*/
+
                 this.lote_enfunde.seccion = this.seccion[index].seccion;
                 this.lote_enfunde.idlote = this.seccion[index].idlote;
-                this.lote_enfunde.presente = this.seccion[index].presente;
-                this.lote_enfunde.futuro = this.seccion[index].futuro;
+                this.lote_enfunde.presente.cantidad = this.seccion[index].presente.cantidad;
+                this.lote_enfunde.presente.materiales = this.seccion[index].presente.materiales;
+                this.lote_enfunde.futuro.cantidad = this.seccion[index].futuro.cantidad;
+                this.lote_enfunde.futuro.materiales = this.seccion[index].futuro.materiales;
                 this.lote_enfunde.desbunche = this.seccion[index].desbunche;
+
+                var array = [];
+
+                if (this.presente) {
+                    array = this.lote_enfunde.presente.materiales;
+                } else {
+                    array = this.lote_enfunde.futuro.materiales;
+                }
+
+                if (array.length > 0) {
+                    for (let saldos of array) {
+                        for (let saldo_sem of this.saldo_semana) {
+                            if (saldos.idmaterial === saldo_sem.idmaterial) {
+                                saldo_sem.cantidad += +saldos.cantidad;
+                            }
+                        }
+                    }
+                }
+
+                $('#id-material-usado').modal('show');
 
                 if (!b) {
                     if (this.presente) {
-                        this.saldoEnfunde(0, true, +this.seccion[index].presente);
+                        //this.saldoEnfunde(0, true, +this.seccion[index].presente);
                     } else {
-                        this.saldoEnfunde(0, true, +this.seccion[index].futuro);
+                        //this.saldoEnfunde(0, true, +this.seccion[index].futuro);
                     }
                 }
 
                 this.statusForm = true;
             },
             saveForm: function (index) {
-                let tabla = document.getElementById('enfunde-items');
+                /*let tabla = document.getElementById('enfunde-items');
                 tabla.rows[index + 1].classList.remove("bg-success");
-                tabla.rows[index + 1].classList.remove("text-white");
+                tabla.rows[index + 1].classList.remove("text-white");*/
 
                 this.lote_enfunde.seccion = this.seccion[index].seccion;
                 this.seccion[index].idlote = this.lote_enfunde.idlote;
-                this.seccion[index].presente = this.lote_enfunde.presente;
-                this.seccion[index].futuro = this.lote_enfunde.futuro;
+                this.seccion[index].presente.cantidad = this.lote_enfunde.presente.cantidad;
+                this.seccion[index].presente.materiales = this.lote_enfunde.presente.materiales;
+                this.seccion[index].futuro.cantidad = this.lote_enfunde.futuro.cantidad;
+                this.seccion[index].futuro.materiales = this.lote_enfunde.futuro.materiales;
                 this.seccion[index].desbunche = this.lote_enfunde.desbunche;
 
-                let saldo = this.presente ? this.lote_enfunde.presente : this.lote_enfunde.futuro;
+                //Saldo_semana
+
+                let saldo = this.presente ? this.lote_enfunde.presente.cantidad : this.lote_enfunde.futuro.cantidad;
 
                 if (this.saldoEnfunde(saldo) < 0) {
                     this.editForm(index, false);
                     if (this.presente) {
-                        this.seccion[index].presente = 0;
+                        this.seccion[index].presente.cantidad = 0;
+                        this.seccion[index].presente.materiales = [];
                     } else {
-                        this.seccion[index].futuro = 0;
+                        this.seccion[index].futuro.cantidad = 0;
+                        this.seccion[index].futuro.materiales = [];
                         this.seccion[index].desbunche = 0;
                     }
                     Swal.fire({
@@ -619,16 +720,19 @@
                     });
                 } else {
                     this.lote_enfunde.idlote = 0;
-                    this.lote_enfunde.presente = 0;
-                    this.lote_enfunde.futuro = 0;
-                    this.lote_enfunde.futuro = 0;
+                    this.lote_enfunde.presente.cantidad = 0;
+                    this.lote_enfunde.presente.materiales = [];
+                    this.lote_enfunde.futuro.cantidad = 0;
+                    this.lote_enfunde.futuro.materiales = [];
+                    this.lote_enfunde.desbunche = 0;
                     this.statusForm = false;
+                    this.lote_enfunde.material = [];
                 }
             },
             totalPresente: function () {
                 let total = 0;
                 for (var i in this.seccion) {
-                    total += +this.seccion[i].presente;
+                    total += +this.seccion[i].presente.cantidad;
                 }
 
                 return total;
@@ -636,7 +740,7 @@
             totalFuturo: function () {
                 let total = 0;
                 for (var i in this.seccion) {
-                    total += +this.seccion[i].futuro;
+                    total += +this.seccion[i].futuro.cantidad;
                 }
 
                 return total;
@@ -646,14 +750,13 @@
                 for (var i in this.seccion) {
                     total += +this.seccion[i].desbunche;
                 }
-
                 return total;
             },
             totalEnfunde: function () {
                 return this.totalPresente() + this.totalFuturo();
             },
             saldoEnfunde: function (actualiza_saldo = 0, edicion = false, saldo_edicion = 0) {
-                let saldos = this.saldo_semana;
+                let saldos = this.saldoMaterialesSemana;
                 if (saldos) {
                     if (saldos.semana) {
                         if (edicion) {
@@ -753,7 +856,7 @@
                 this.total_fut = 0;
                 this.desbunche = 0;
                 this.fundas = [];
-                this.saldo_semana = null;
+                this.saldo_semana = [];
                 this.reemplazos = [];
                 this.totalfundas = 0;
                 this.statusForm = false;
@@ -769,6 +872,17 @@
                 this.status = 1;
                 this.edicion = 0;
             }
+        },
+        computed: {
+            saldoMaterialesSemana: function () {
+                let saldo = 0;
+                if (this.saldo_semana.length > 0) {
+                    for (var materiales of this.saldo_semana) {
+                        saldo += +materiales.saldo;
+                    }
+                }
+                return saldo;
+            },
         }
     };
 </script>
