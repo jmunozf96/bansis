@@ -238,7 +238,7 @@ class EnfundeController extends Controller
         }*/
 
         if ($despacho) {
-            $materiales = INV_LOT_FUND::selectRaw('id, idlotero, semana, idmaterial, saldo, status, 0 as cantidad')
+            $materiales = INV_LOT_FUND::selectRaw('id, idlotero, semana, idmaterial, saldo, status, 0 as cantidad, 0 as cant_ocupada, saldo as saldo_backup')
                 ->where([
                     'semana' => $semana,
                     'idlotero' => $idlotero,

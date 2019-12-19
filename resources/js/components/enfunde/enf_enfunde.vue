@@ -53,17 +53,13 @@
             <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="id-titulo">Modal title</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <h5 class="modal-title" id="id-titulo">Fundas utilizadas</h5>
                     </div>
                     <div class="modal-body">
                         <enf_material_usado :materiales="saldo_semana"
                                             :datosenfunde="lote_enfunde"></enf_material_usado>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                         <button type="button" class="btn btn-primary" id="btn-save-items">Guardar cambios</button>
                     </div>
                 </div>
@@ -115,16 +111,16 @@
                             <td width="15%">
                                 <b-progress :max="100">
                                     <b-progress-bar
-                                        :value="sec.porcentaje * 100"
-                                        :label="`${(sec.porcentaje * 100).toFixed(2)}%`"
+                                        :value="(sec.porcentaje * 100)"
+                                        :label="`${(sec.porcentaje * 100).toFixed(0)}%`"
                                     ></b-progress-bar>
                                 </b-progress>
                             </td>
                             <td style="width: 15%">
                                 <template v-if="statusForm && sec.seccion == lote_enfunde.seccion && presente">
                                     <input
-                                        class="form-control text-center cantidad-despacho"
-                                        ref="presente" name="presente"
+                                        class="form-control text-center cantidad-despacho bg-white"
+                                        ref="presente" name="presente" style="cursor: pointer"
                                         v-model="lote_enfunde.presente.cantidad"
                                         v-on:keyup.enter="saveForm(index)"
                                         type="number"
@@ -135,7 +131,7 @@
                             <td style="width: 15%">
                                 <template v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
                                     <input
-                                        class="form-control text-center cantidad-despacho"
+                                        class="form-control text-center cantidad-despacho bg-white"
                                         ref="futuro" name="futuro"
                                         v-model="lote_enfunde.futuro.cantidad"
                                         v-on:keyup.enter="saveForm(index)"
@@ -147,7 +143,7 @@
                             <td style="width: 15%">
                                 <template v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
                                     <input
-                                        class="form-control text-center cantidad-despacho"
+                                        class="form-control text-center cantidad-despacho bg-white"
                                         ref="desbunche" name="desbunche"
                                         v-model="lote_enfunde.desbunche"
                                         v-on:keyup.enter="saveForm(index)"
@@ -282,15 +278,18 @@
                 totalfundas: 0,
                 statusForm: false,
                 lote_enfunde: {
+                    index: 0,
                     seccion: 0,
                     idlote: 0,
                     presente: {
                         cantidad: 0,
-                        materiales: []
+                        materiales: [],
+                        status: false
                     },
                     futuro: {
                         cantidad: 0,
-                        materiales: []
+                        materiales: [],
+                        status: false
                     },
                     desbunche: 0
                 },
@@ -390,6 +389,7 @@
 
             $("#btn-save-items").on('click', function () {
                 var total = 0;
+                self.item_used = [];
 
                 for (let lotero_fundas of self.saldo_semana) {
 
@@ -402,13 +402,14 @@
 
                     total += +lotero_fundas.cantidad;
 
+                    //lotero_fundas.cant_ocupada = +lotero_fundas.cant_ocupada + +lotero_fundas.cantidad;
                     lotero_fundas.cantidad = 0;
 
                     if (+materiales_usados.cantidad > 0) {
                         self.item_used.push(materiales_usados);
                     }
 
-                    lotero_fundas.saldo = (+lotero_fundas.saldo - materiales_usados.cantidad);
+                    //lotero_fundas.saldo_backup = lotero_fundas.saldo;
                 }
 
                 if (self.presente) {
@@ -419,7 +420,7 @@
                     self.lote_enfunde.futuro.materiales = self.item_used;
                 }
 
-
+                self.saveForm(self.lote_enfunde.index);
                 $('#id-material-usado').modal('hide');
             });
         },
@@ -427,9 +428,16 @@
             let self = this;
             this.$nextTick(function () {
                 if (this.statusForm) {
-                    this.$nextTick(
-                        () => this.$refs.presente && this.$refs.presente[0].focus()
-                    );
+                    this.$nextTick(() => {
+                        if (this.$refs.presente) {
+                            this.$refs.presente[0].focus();
+                            $(this.$refs.presente[0]).attr('readonly', true);
+                            $(this.$refs.presente[0]).click(function () {
+                                $('#id-material-usado').modal({backdrop: 'static', keyboard: false});
+                            })
+                        }
+
+                    });
                     this.$nextTick(function () {
                         if (self.lote_enfunde.futuro.cantidad == 0) {
                             if (this.$refs.futuro) {
@@ -646,6 +654,7 @@
                 tabla.rows[index + 1].classList.add("bg-success");
                 tabla.rows[index + 1].classList.add("text-white");*/
 
+                this.lote_enfunde.index = index;
                 this.lote_enfunde.seccion = this.seccion[index].seccion;
                 this.lote_enfunde.idlote = this.seccion[index].idlote;
                 this.lote_enfunde.presente.cantidad = this.seccion[index].presente.cantidad;
@@ -653,6 +662,8 @@
                 this.lote_enfunde.futuro.cantidad = this.seccion[index].futuro.cantidad;
                 this.lote_enfunde.futuro.materiales = this.seccion[index].futuro.materiales;
                 this.lote_enfunde.desbunche = this.seccion[index].desbunche;
+                this.lote_enfunde.presente.status = this.presente;
+                this.lote_enfunde.futuro.status = this.futuro;
 
                 var array = [];
 
@@ -666,13 +677,16 @@
                     for (let saldos of array) {
                         for (let saldo_sem of this.saldo_semana) {
                             if (saldos.idmaterial === saldo_sem.idmaterial) {
+                                saldo_sem.cantidad = 0;
                                 saldo_sem.cantidad += +saldos.cantidad;
                             }
                         }
                     }
+                } else {
+                    for (let saldo_sem of this.saldo_semana) {
+                        saldo_sem.cantidad = 0;
+                    }
                 }
-
-                $('#id-material-usado').modal('show');
 
                 if (!b) {
                     if (this.presente) {
@@ -812,11 +826,11 @@
 
 
                 for (var x in this.seccion) {
-                    Presente.data.push(+this.seccion[x].presente);
+                    Presente.data.push(+this.seccion[x].presente.cantidad);
                     Presente.backgroundColor.push("rgba(255, 99, 132, 0.2)");
                     Presente.borderColor.push("rgba(255, 99, 132, 1)");
 
-                    Futuro.data.push(+this.seccion[x].futuro);
+                    Futuro.data.push(+this.seccion[x].futuro.cantidad);
                     Futuro.backgroundColor.push("rgba(54, 162, 235, 0.2)");
                     Futuro.borderColor.push("rgba(54, 162, 235, 1)");
                     labels.push(this.seccion[x].lote);
