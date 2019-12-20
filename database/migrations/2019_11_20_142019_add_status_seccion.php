@@ -30,7 +30,7 @@ class AddStatusSeccion extends Migration
     public function down()
     {
         Schema::table('ENF_SEC_LOTEROS', function (Blueprint $table) {
-            //
+            $table->dropColumn('status');
         });
     }
 }

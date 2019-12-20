@@ -57,6 +57,7 @@
                     </div>
                     <div class="modal-body">
                         <enf_material_usado :materiales="saldo_semana"
+                                            :presente="presente != 0" :futuro="futuro != 0"
                                             :datosenfunde="lote_enfunde"></enf_material_usado>
                     </div>
                     <div class="modal-footer">
@@ -132,7 +133,7 @@
                                 <template v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
                                     <input
                                         class="form-control text-center cantidad-despacho bg-white"
-                                        ref="futuro" name="futuro"
+                                        ref="futuro" name="futuro" style="cursor: pointer"
                                         v-model="lote_enfunde.futuro.cantidad"
                                         v-on:keyup.enter="saveForm(index)"
                                         type="number"
@@ -144,7 +145,7 @@
                                 <template v-if="statusForm && sec.seccion == lote_enfunde.seccion && futuro">
                                     <input
                                         class="form-control text-center cantidad-despacho bg-white"
-                                        ref="desbunche" name="desbunche"
+                                        ref="desbunche" name="desbunche" style="cursor: not-allowed"
                                         v-model="lote_enfunde.desbunche"
                                         v-on:keyup.enter="saveForm(index)"
                                         type="number"
@@ -281,6 +282,7 @@
                     index: 0,
                     seccion: 0,
                     idlote: 0,
+                    lote: '',
                     presente: {
                         cantidad: 0,
                         materiales: [],
@@ -405,14 +407,16 @@
                     //lotero_fundas.cant_ocupada = +lotero_fundas.cant_ocupada + +lotero_fundas.cantidad;
                     lotero_fundas.cantidad = 0;
 
-                    if (+materiales_usados.cantidad > 0) {
+                    /*if (+materiales_usados.cantidad > 0) {
                         self.item_used.push(materiales_usados);
-                    }
+                    }*/
+
+                    self.item_used.push(materiales_usados);
 
                     //lotero_fundas.saldo_backup = lotero_fundas.saldo;
                 }
 
-                if (self.presente) {
+                if (self.presente == 1) {
                     self.lote_enfunde.presente.cantidad = total;
                     self.lote_enfunde.presente.materiales = self.item_used;
                 } else {
@@ -438,17 +442,14 @@
                         }
 
                     });
-                    this.$nextTick(function () {
-                        if (self.lote_enfunde.futuro.cantidad == 0) {
-                            if (this.$refs.futuro) {
-                                this.$refs.futuro[0].focus();
-                            }
-                        } else {
-                            if (document.activeElement.name != 'desbunche') {
-                                if (this.$refs.futuro) {
-                                    this.$refs.futuro[0].focus();
-                                }
-                            }
+                    this.$nextTick(() => {
+                        if (this.$refs.futuro) {
+                            this.$refs.futuro[0].focus();
+                            $(this.$refs.futuro[0]).attr('readonly', true);
+                            $(this.$refs.desbunche[0]).attr('readonly', true);
+                            $(this.$refs.futuro[0]).click(function () {
+                                $('#id-material-usado').modal({backdrop: 'static', keyboard: false});
+                            })
                         }
                     });
                 }
@@ -520,19 +521,42 @@
 
                                     //Ojo con este proceso
                                     for (var y in datos4.detalle) {
-                                        if (datos4.detalle[y].presente == 1 && datos4.detalle[y].idseccion == seccion.seccion) {
-                                            seccion.iddet_pre = datos4.detalle[y].id;
-                                            seccion.presente = datos4.detalle[y].cantidad;
-                                            presente.push(true);
-                                        }
-                                        if (
-                                            datos4.detalle[y].futuro == 1 &&
-                                            datos4.detalle[y].idseccion == seccion.seccion
-                                        ) {
-                                            seccion.iddet_fut = datos4.detalle[y].id;
-                                            seccion.futuro = datos4.detalle[y].cantidad;
-                                            seccion.desbunche = datos4.detalle[y].desbunchado;
-                                            futuro.push(true);
+                                        if (datos4.detalle[y].idseccion == seccion.seccion) {
+                                            seccion.iddet = datos4.detalle[y].id;
+                                            seccion.presente.cantidad += +datos4.detalle[y].cant_presente;
+                                            seccion.futuro.cantidad += +datos4.detalle[y].cant_futuro;
+                                            seccion.desbunche += +datos4.detalle[y].desbunchado;
+
+                                            var material_presente = {
+                                                idmaterial: datos4.detalle[y].id_material,
+                                                cantidad: datos4.detalle[y].cant_presente,
+                                                presente: true,
+                                                futuro: false
+                                            };
+
+                                            if (!self.item_existe(seccion.presente.materiales, material_presente)) {
+                                                seccion.presente.materiales.push(material_presente);
+                                                presente.push(true);
+                                            } else {
+                                                self.edit_item_existe(seccion.presente.materiales, material_presente,)
+                                            }
+
+
+                                            if (datos4.detalle[y].cant_futuro != null) {
+                                                var material_futuro = {
+                                                    idmaterial: datos4.detalle[y].id_material,
+                                                    cantidad: datos4.detalle[y].cant_futuro,
+                                                    futuro: true,
+                                                    presente: false
+                                                };
+
+                                                if (!self.item_existe(seccion.futuro.materiales, material_futuro)) {
+                                                    seccion.futuro.materiales.push(material_futuro);
+                                                    futuro.push(true);
+                                                } else {
+                                                    self.edit_item_existe(seccion.futuro.materiales, material_futuro,)
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -550,7 +574,7 @@
                                             fecha: datos3.egresos[i].fecha.toString("dd/MM/yyyy"),
                                             cantidad: parseInt(datos3.egresos[i].cantidad),
                                             material: datos3.egresos[i].get_material.nombre,
-                                            status: datos3.egresos[i].presente === 1 ? "Presente" : "Futuro"
+                                            status: datos3.egresos[i].presente == 1 ? "Presente" : "Futuro"
                                         };
                                         self.fundas.push(despacho);
                                     } else {
@@ -560,14 +584,14 @@
                                             nombre: datos3.egresos[i].nom_reemplazo.nombre,
                                             cantidad: parseInt(datos3.egresos[i].cantidad),
                                             material: datos3.egresos[i].get_material.nombre,
-                                            status: datos3.egresos[i].presente === 1 ? "Presente" : "Futuro"
+                                            status: datos3.egresos[i].presente == 1 ? "Presente" : "Futuro"
                                         };
                                         self.reemplazos.push(reemplazo);
                                     }
 
                                     self.totalfundas += parseInt(datos3.egresos[i].cantidad);
 
-                                    if (datos3.egresos[i].futuro === 1 && presente.length > 0) {
+                                    if (datos3.egresos[i].futuro == 1 && presente.length > 0) {
                                         self.presente = 0;
                                         self.futuro = 1;
                                     }
@@ -645,6 +669,23 @@
                     $('#btn-nuevo').attr('disabled', true);
                 }
             },
+            item_existe(array, item_duda) {
+                for (var item of array) {
+                    if (item.idmaterial == item_duda.idmaterial) {
+                        return true;
+                    }
+                }
+
+                return false;
+            },
+            edit_item_existe(array, item_duda) {
+                for (var item of array) {
+                    if (item.idmaterial == item_duda.idmaterial) {
+                        item.cantidad += +item_duda.cantidad;
+                    }
+                }
+                return true;
+            },
             editForm: function (index, b = false) {
                 /*let tabla = document.getElementById('enfunde-items');
                 for (var i = 0; i < tabla.rows.length; i++) {
@@ -664,14 +705,17 @@
                 this.lote_enfunde.desbunche = this.seccion[index].desbunche;
                 this.lote_enfunde.presente.status = this.presente;
                 this.lote_enfunde.futuro.status = this.futuro;
+                this.lote_enfunde.lote = this.seccion[index].lote;
 
                 var array = [];
 
-                if (this.presente) {
+
+                if (this.presente == 1) {
                     array = this.lote_enfunde.presente.materiales;
                 } else {
                     array = this.lote_enfunde.futuro.materiales;
                 }
+
 
                 if (array.length > 0) {
                     for (let saldos of array) {
@@ -688,13 +732,6 @@
                     }
                 }
 
-                if (!b) {
-                    if (this.presente) {
-                        //this.saldoEnfunde(0, true, +this.seccion[index].presente);
-                    } else {
-                        //this.saldoEnfunde(0, true, +this.seccion[index].futuro);
-                    }
-                }
 
                 this.statusForm = true;
             },
@@ -711,37 +748,15 @@
                 this.seccion[index].futuro.materiales = this.lote_enfunde.futuro.materiales;
                 this.seccion[index].desbunche = this.lote_enfunde.desbunche;
 
-                //Saldo_semana
-
-                let saldo = this.presente ? this.lote_enfunde.presente.cantidad : this.lote_enfunde.futuro.cantidad;
-
-                if (this.saldoEnfunde(saldo) < 0) {
-                    this.editForm(index, false);
-                    if (this.presente) {
-                        this.seccion[index].presente.cantidad = 0;
-                        this.seccion[index].presente.materiales = [];
-                    } else {
-                        this.seccion[index].futuro.cantidad = 0;
-                        this.seccion[index].futuro.materiales = [];
-                        this.seccion[index].desbunche = 0;
-                    }
-                    Swal.fire({
-                        position: "top-end",
-                        type: 'error',
-                        title: 'Saldo insuficiente',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                } else {
-                    this.lote_enfunde.idlote = 0;
-                    this.lote_enfunde.presente.cantidad = 0;
-                    this.lote_enfunde.presente.materiales = [];
-                    this.lote_enfunde.futuro.cantidad = 0;
-                    this.lote_enfunde.futuro.materiales = [];
-                    this.lote_enfunde.desbunche = 0;
-                    this.statusForm = false;
-                    this.lote_enfunde.material = [];
-                }
+                this.lote_enfunde.idlote = 0;
+                this.lote_enfunde.presente.cantidad = 0;
+                this.lote_enfunde.presente.materiales = [];
+                this.lote_enfunde.futuro.cantidad = 0;
+                this.lote_enfunde.futuro.materiales = [];
+                this.lote_enfunde.desbunche = 0;
+                this.statusForm = false;
+                this.lote_enfunde.material = [];
+                this.lote_enfunde.lote = '';
             },
             totalPresente: function () {
                 let total = 0;
@@ -805,7 +820,7 @@
                 var labels = [];
 
                 var Presente = {
-                    label: ['Enfunde Presente'],
+                    label: ['Enfunde Presente (Rac/Has.)'],
                     data: [],
                     backgroundColor: [],
                     borderColor: [],
@@ -815,7 +830,7 @@
                 };
 
                 var Futuro = {
-                    label: ['Enfunde Futuro'],
+                    label: ['Enfunde Futuro (Rac/Has.)'],
                     data: [],
                     backgroundColor: [],
                     borderColor: [],
@@ -824,24 +839,21 @@
                     borderWidth: 1
                 };
 
-
                 for (var x in this.seccion) {
-                    Presente.data.push(+this.seccion[x].presente.cantidad);
+                    Presente.data.push(parseFloat(+this.seccion[x].presente.cantidad / +this.seccion[x].has).toFixed(0));
                     Presente.backgroundColor.push("rgba(255, 99, 132, 0.2)");
                     Presente.borderColor.push("rgba(255, 99, 132, 1)");
 
-                    Futuro.data.push(+this.seccion[x].futuro.cantidad);
+                    Futuro.data.push(parseFloat(+this.seccion[x].futuro.cantidad / +this.seccion[x].has).toFixed(0));
                     Futuro.backgroundColor.push("rgba(54, 162, 235, 0.2)");
                     Futuro.borderColor.push("rgba(54, 162, 235, 1)");
                     labels.push(this.seccion[x].lote);
                 }
 
                 document.getElementById("data_canvas").innerHTML = "";
-                document.getElementById("data_canvas").innerHTML =
-                    ' <canvas id="dato_enfunde" width="100"></canvas>';
+                document.getElementById("data_canvas").innerHTML = ' <canvas id="dato_enfunde" width="100"></canvas>';
 
                 var ctx = document.getElementById("dato_enfunde");
-
 
                 var myChart = new Chart(ctx, {
                     type: "bar",
@@ -875,10 +887,20 @@
                 this.totalfundas = 0;
                 this.statusForm = false;
                 this.lote_enfunde = {
+                    index: 0,
                     seccion: 0,
                     idlote: 0,
-                    presente: 0,
-                    futuro: 0,
+                    lote: '',
+                    presente: {
+                        cantidad: 0,
+                        materiales: [],
+                        status: false
+                    },
+                    futuro: {
+                        cantidad: 0,
+                        materiales: [],
+                        status: false
+                    },
                     desbunche: 0
                 };
                 this.presente = 1;

@@ -140,7 +140,7 @@ class EnfundeController extends Controller
                 $query9->select('id', 'idlotero', 'semana', 'total_pre', 'total_fut', 'count', 'status');
                 $query9->where('semana', $semana);
                 $query9->with(['detalle' => function ($query10) {
-                    $query10->select('id', 'idenfunde', 'idseccion', 'cantidad', 'desbunchado', 'presente', 'futuro');
+                    $query10->select('id', 'idenfunde', 'idseccion', 'id_material', 'cant_presente', 'cant_futuro', 'desbunchado', 'presente', 'futuro');
                 }]);
             }])
             ->
@@ -388,86 +388,115 @@ class EnfundeController extends Controller
                     $totaliza_futuro = 0;
                     $totaliza_desbunche = 0;
 
-                    $rep_presente_backup = 0;
-                    $rep_fut_backup = 0;
-
                     foreach ($params->detalle_enfunde as $item) {
-                        $delete = false;
-                        $existe_detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'cantidad', 'desbunchado', 'presente', 'futuro')
-                            ->where([
-                                'idenfunde' => $enfunde->id,
-                                'idseccion' => $item->seccion,
-                                'presente' => $params_array['presente'],
-                                'futuro' => $params_array['futuro']
-                            ])->first();
-
-                        if ($existe_detalle) {
-                            $detalle = $existe_detalle;
-                            $edit = true;
-
-                            if ($detalle->presente) {
-                                $rep_presente_backup += $detalle->cantidad;
-                            } else {
-                                $rep_fut_backup += $detalle->cantidad;
-                            }
-                        } else {
-                            $detalle = new ENF_DET_ENFUNDE();
-                            $detalle->idenfunde = $enfunde->id;
-                            $detalle->idseccion = $item->seccion;
-                            $detalle->presente = $params_array['presente'];
-                            $detalle->futuro = $params_array['futuro'];
-                            $edit = false;
-                        }
+                        $desbunchado = $item->desbunche;
+                        $materiales = array();
 
                         if ($params_array['presente']) {
-                            if ($edit) {
-                                if ($item->presente == 0) {
-                                    $detalle->delete();
-                                    $delete = true;
-                                } else {
-                                    $detalle->cantidad = $item->presente;
-                                }
-                            } else {
-                                if ($item->presente == 0) {
-                                    $delete = true;
-                                } else {
-                                    $detalle->cantidad = $item->presente;
-                                }
-
-                            }
+                            $materiales = $item->presente->materiales;
                         } else {
-                            if ($edit) {
-                                if ($item->futuro == 0) {
-                                    $detalle->delete();
-                                    $delete = true;
-                                } else {
-                                    $detalle->cantidad = $item->futuro;
-                                    $detalle->desbunchado = $item->desbunche;
-                                }
-                            } else {
-                                if ($item->futuro == 0) {
-                                    $delete = true;
-                                } else {
-                                    $detalle->cantidad = $item->futuro;
-                                    $detalle->desbunchado = $item->desbunche;
-                                }
-
-                            }
+                            $materiales = $item->futuro->materiales;
                         }
 
-                        $totaliza_presente += $item->presente;
-                        $totaliza_futuro += $item->futuro;
-                        $totaliza_desbunche += $item->desbunche;
+                        foreach ($materiales as $material) {
+                            $delete = false;
+                            $rep_presente_backup = 0;
+                            $rep_fut_backup = 0;
 
-                        if (!$delete)
-                            $detalle->save();
+                            $existe_detalle = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'idseccion', 'id_material', 'cant_presente', 'cant_futuro', 'desbunchado')
+                                ->where([
+                                    'idenfunde' => $enfunde->id,
+                                    'idseccion' => $item->seccion,
+                                    'id_material' => $material->idmaterial
+                                ])->first();
 
+                            if ($existe_detalle) {
+                                $detalle = $existe_detalle;
+                                $edit = true;
+
+                                //Respaldar cantidad para editar en inventario de lotero funda saldo
+                                $rep_presente_backup += +$detalle->cant_presente;
+                                $rep_fut_backup += +$detalle->cant_futuro;
+                            } else {
+                                //En caso de que no exista el registro, se agrega uno nuevo
+                                $detalle = new ENF_DET_ENFUNDE();
+                                $detalle->idenfunde = $enfunde->id;
+                                $detalle->id_material = $material->idmaterial;
+                                $detalle->idseccion = $item->seccion;
+                                $detalle->presente = $params_array['presente'];
+                                $detalle->futuro = $params_array['futuro'];
+                                $edit = false;
+                            }
+
+                            if ($params_array['presente']) {
+                                if ($material->cantidad == 0 && $material->presente) {
+                                    if ($edit) {
+                                        if ($detalle->cant_futuro == 0) {
+                                            $detalle->delete();
+                                            $delete = true;
+                                        } else {
+                                            $detalle->cant_presente = $material->cantidad;
+                                        }
+                                    } else {
+                                        $delete = true;
+                                    }
+                                } else {
+                                    $detalle->cant_presente = $material->cantidad;
+                                }
+                            } else {
+                                if ($material->cantidad == 0 && $material->futuro) {
+                                    if ($edit) {
+                                        if ($detalle->cant_presente == 0) {
+                                            $detalle->delete();
+                                            $delete = true;
+                                        } else {
+                                            $detalle->cant_futuro = $material->cantidad;
+                                        }
+                                    } else {
+                                        $delete = true;
+                                    }
+                                } else {
+                                    $detalle->cant_futuro = $material->cantidad;
+                                    $detalle->desbunchado = +$desbunchado;
+                                    $desbunchado = 0;
+                                }
+
+                            }
+
+                            if ($material->presente) {
+                                $totaliza_presente += $material->cantidad;
+                            } elseif ($material->futuro) {
+                                $totaliza_futuro += $material->cantidad;
+                                $totaliza_desbunche += $item->desbunche;
+                            }
+
+
+                            $inventario = INV_LOT_FUND::select('id', 'idmaterial', 'idlotero', 'semana', 'saldo_inicial', 'entrada', 'salida', 'saldo')
+                                ->where([
+                                    'idmaterial' => $material->idmaterial,
+                                    'idlotero' => $params_array['lotero'],
+                                    'semana' => $params_array['semana']
+                                ])->first();
+
+                            if (!$edit) {
+                                $inventario->salida = +$inventario->salida + +$material->cantidad;
+                                $inventario->saldo = (+$inventario->saldo_inicial + +$inventario->entrada) - +$inventario->salida;
+                            } else {
+                                if ($material->presente) {
+                                    $inventario->salida = (+$inventario->salida - +$rep_presente_backup) + +$material->cantidad;
+                                } else {
+                                    $inventario->salida = (+$inventario->salida - +$rep_fut_backup) + +$material->cantidad;
+                                }
+                                $inventario->saldo = (+$inventario->saldo_inicial + +$inventario->entrada) - +$inventario->salida;
+                            }
+
+                            $inventario->save();
+
+                            if (!$delete)
+                                $detalle->save();
+                        }
                     }
 
-                    if ($totaliza_presente > 0):
-                        $this->updateInventarioEnfunde($lotero->id, $params_array['semana'], $totaliza_futuro, $rep_fut_backup,
-                            $params = ['save' => ($totaliza_futuro > 0 || $params_array['futuro']), 'presente' => $totaliza_presente, 'presente_backup' => $rep_presente_backup]);
-                    endif;
 
                     //Totalizar cabecera
                     $existe = ENF_ENFUNDE::select('id', 'total_pre', 'total_fut', 'chapeo')->where([
@@ -604,7 +633,7 @@ class EnfundeController extends Controller
                         //Siempre y cuando no hayan despachos para la futuro
                         $reg_futuro = ENF_DET_ENFUNDE::where([
                             'idenfunde' => $enfunde->id,
-                            'futuro' => 1
+                            ['cant_futuro', '>', 0],
                         ])->get();
 
                         $despachos_futuro = [];
@@ -628,27 +657,32 @@ class EnfundeController extends Controller
 
                         if (count($reg_futuro) == 0):
                             if (count($despachos_futuro) == 0):
-                                $reg_presente = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'presente')->where([
+                                $reg_presente = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'cant_presente')->where([
                                     'idenfunde' => $enfunde->id,
-                                    'presente' => 1
+                                    ['cant_presente', '>', 0],
                                 ])->get();
 
-                                if (count($reg_presente) > 0) :
 
+                                if (count($reg_presente) > 0) :
                                     foreach ($reg_presente as $presente):
+                                        $update_inventario = INV_LOT_FUND::select('id', 'idlotero', 'semana', 'idmaterial', 'saldo_inicial', 'entrada', 'salida', 'saldo')
+                                            ->where([
+                                                ['idlotero', $idlotero],
+                                                ['semana', $semana]
+                                            ])
+                                            ->first();
+
+                                        $update_inventario->salida = $update_inventario->salida - $presente->cant_presente;
+                                        $update_inventario->saldo = (+$update_inventario->saldo_inicial + +$update_inventario->entrada) - +$update_inventario->salida;
+                                        $update_inventario->save();
                                         $presente->delete();
                                     endforeach;
 
-                                    if ($this->updateInventarioEnfunde($idlotero, $semana, 0, $enfunde->total_pre)):
-                                        //Automaticamente borrar el registro de enfunde
-                                        $enfunde->delete();
-                                        DB::commit();
-                                        return Redirect::back()
-                                            ->with('msg', 'Registro eliminado de manera correcta')
-                                            ->with('status', 'success');
-                                    else:
-                                        throw new \Exception("No se pudo actualizar el inventario.", 500);
-                                    endif;
+                                    $enfunde->delete();
+                                    DB::commit();
+                                    return Redirect::back()
+                                        ->with('msg', 'Registro eliminado de manera correcta')
+                                        ->with('status', 'success');
                                 endif;
                             else:
                                 throw new \Exception("Ya tiene despachos para cinta futuro.");
@@ -687,22 +721,32 @@ class EnfundeController extends Controller
 
                 if ($enfunde) {
                     if ($enfunde->total_fut > 0) {
-                        $reg_futuro = ENF_DET_ENFUNDE::where([
+                        $reg_futuro = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'cant_futuro')
+                            ->where([
                             'idenfunde' => $enfunde->id,
-                            'futuro' => 1
-                        ])->delete();
+                            ['cant_futuro', '>', '0'],
+                        ])->get();
 
-                        if ($this->updateInventarioEnfunde($idlotero, $semana, 0, $enfunde->total_fut)):
-                            //Automaticamente borrar el registro de enfunde
-                            $enfunde->total_fut = 0;
-                            $enfunde->save();
+                        if (count($reg_futuro) > 0) :
+                            foreach ($reg_futuro as $futuro):
+                                $update_inventario = INV_LOT_FUND::select('id', 'idlotero', 'semana', 'idmaterial', 'saldo_inicial', 'entrada', 'salida', 'saldo')
+                                    ->where([
+                                        ['idlotero', $idlotero],
+                                        ['semana', $semana]
+                                    ])
+                                    ->first();
 
+                                $update_inventario->salida = $update_inventario->salida - $futuro->cant_futuro;
+                                $update_inventario->saldo = (+$update_inventario->saldo_inicial + +$update_inventario->entrada) - +$update_inventario->salida;
+                                $update_inventario->save();
+                                $futuro->delete();
+                            endforeach;
+
+                            $enfunde->delete();
                             DB::commit();
                             return Redirect::back()
                                 ->with('msg', 'Registro eliminado de manera correcta')
                                 ->with('status', 'success');
-                        else:
-                            throw new \Exception("No se pudo actualizar el inventario.", 500);
                         endif;
 
                     } else {

@@ -42,6 +42,24 @@
             </tr>
             </tbody>
         </table>
+        <template v-if="futuro">
+            <hr>
+            <div class="row">
+                <div class="col-12">
+                    <label for="racimosDesbunchados">Racimos Desbunchados</label>
+                    <input type="number" id="racimosDesbunchados" class="form-control" v-model="desbunchados"
+                           @change="datosenfunde.desbunche = desbunchados"
+                           aria-describedby="racimosDesbunchados" value="0" min="0" max="50">
+                    <small id="racimosDesbunchados-det" class="form-text text-muted">
+                        <b v-if="+datosenfunde.desbunche > 0">Lotero tiene registrado {{datosenfunde.desbunche}} racimos
+                            desbunchados.</b>
+                        En caso de haber desbunchado racimos en el lote {{datosenfunde.lote}}, detallar la cantidad en
+                        este componente, caso contrario puede dejarlo como está.
+                    </small>
+                </div>
+            </div>
+            <hr>
+        </template>
         <div class="row">
             <div class="col-12">
                 <ul class="list-group">
@@ -64,7 +82,9 @@
         name: "enf_material_usado",
         props: {
             materiales: Array,
-            datosenfunde: Object
+            datosenfunde: Object,
+            presente: Boolean,
+            futuro: Boolean
         },
         data() {
             return {
@@ -72,12 +92,13 @@
                 data_material: {
                     codigo: 0,
                     cantidad: 0,
-                    edit: false
+                    edit: false,
                 },
                 error: {
                     status: false,
                     msj: ''
-                }
+                },
+                desbunchados: 0
             }
         },
         methods: {
@@ -113,7 +134,11 @@
             },
             saveForm(index) {
                 let material = this.materiales[index];
+
+                //Preguntar si el saldo es mayor a la cantidad ingresada
                 if (+material.saldo >= this.data_material.cantidad) {
+
+                    //Detalle del metodo dentro de la funcion
                     this.cantidadOcupada(this.data_material.cantidad);
                     material.cantidad = this.data_material.cantidad;
 
@@ -123,6 +148,7 @@
                     this.data_material.edit = false;
                     this.data_material.codigo = 0;
                     this.data_material.cantidad = 0;
+                    this.data_material.desbunchados = 0;
                     material.saldo = (+material.saldo_backup - +material.cant_ocupada);
                 } else {
                     this.data_material.cantidad = material.cantidad;
@@ -150,9 +176,12 @@
                 return total;
             },
             cantidadOcupada(cantidad) {
+                //Se hace una sumatoria de la cantidad ocupada de esa funda para los lotes correspondientes
                 var materiales = this.materiales;
                 for (var material of materiales) {
+                    //Se escoge solo el item del material activo para edicion
                     if (material.idmaterial == this.data_material.codigo) {
+                        //Si ya tenia un ingreso registrado, se lo resta para agregar la nueva cantidad de ser necesario
                         if (this.acumulaCantidad(material.idmaterial) > 0) {
                             if (this.acumulaCantidad(material.idmaterial) > 0) {
                                 material.cant_ocupada = +material.cant_ocupada - +this.acumulaCantidad(material.idmaterial);
@@ -163,7 +192,7 @@
                         material.cant_ocupada = +material.cant_ocupada + +cantidad;
                     }
                 }
-            }
+            },
         },
         computed: {
             total_usado() {
