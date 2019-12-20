@@ -333,7 +333,6 @@ class EgresoController extends Controller
                 ->where('idempleado', $empleado)
                 ->where('semana', $semana)
                 ->where('idhacienda', $hacienda == '343' ? 1 : 2)
-                ->where('status', 1)
                 ->with(['empleado' => function ($query) use ($semana) {
                     $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
                     $query->with(['lotero' => function ($query3) use ($semana) {
