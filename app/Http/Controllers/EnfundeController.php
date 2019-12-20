@@ -657,7 +657,7 @@ class EnfundeController extends Controller
 
                         if (count($reg_futuro) == 0):
                             if (count($despachos_futuro) == 0):
-                                $reg_presente = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'cant_presente')->where([
+                                $reg_presente = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'id_material', 'cant_presente')->where([
                                     'idenfunde' => $enfunde->id,
                                     ['cant_presente', '>', 0],
                                 ])->get();
@@ -668,7 +668,8 @@ class EnfundeController extends Controller
                                         $update_inventario = INV_LOT_FUND::select('id', 'idlotero', 'semana', 'idmaterial', 'saldo_inicial', 'entrada', 'salida', 'saldo')
                                             ->where([
                                                 ['idlotero', $idlotero],
-                                                ['semana', $semana]
+                                                ['semana', $semana],
+                                                ['idmaterial', $presente->id_material]
                                             ])
                                             ->first();
 
@@ -719,34 +720,45 @@ class EnfundeController extends Controller
                     'semana' => $semana
                 ])->first();
 
+
                 if ($enfunde) {
                     if ($enfunde->total_fut > 0) {
-                        $reg_futuro = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'cant_futuro')
+                        $reg_futuro = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'id_material', 'cant_futuro')
                             ->where([
-                            'idenfunde' => $enfunde->id,
-                            ['cant_futuro', '>', '0'],
-                        ])->get();
+                                ['idenfunde', '=', $enfunde->id],
+                                ['cant_futuro', '>', 0],
+                            ])->get();
 
                         if (count($reg_futuro) > 0) :
                             foreach ($reg_futuro as $futuro):
                                 $update_inventario = INV_LOT_FUND::select('id', 'idlotero', 'semana', 'idmaterial', 'saldo_inicial', 'entrada', 'salida', 'saldo')
                                     ->where([
                                         ['idlotero', $idlotero],
-                                        ['semana', $semana]
-                                    ])
-                                    ->first();
+                                        ['semana', $semana],
+                                        ['idmaterial', $futuro->id_material]
+                                    ])->first();
 
                                 $update_inventario->salida = $update_inventario->salida - $futuro->cant_futuro;
                                 $update_inventario->saldo = (+$update_inventario->saldo_inicial + +$update_inventario->entrada) - +$update_inventario->salida;
                                 $update_inventario->save();
-                                $futuro->delete();
                             endforeach;
 
-                            $enfunde->delete();
-                            DB::commit();
-                            return Redirect::back()
-                                ->with('msg', 'Registro eliminado de manera correcta')
-                                ->with('status', 'success');
+                            $eliminar = ENF_DET_ENFUNDE::where([
+                                ['idenfunde', '=', $enfunde->id],
+                                ['cant_futuro', '>', 0],
+                            ])->delete();
+
+                            if ($eliminar) {
+                                $enfunde->total_fut = 0;
+                                $enfunde->save();
+                                DB::commit();
+                                return Redirect::back()
+                                    ->with('msg', 'Registro eliminado de manera correcta')
+                                    ->with('status', 'success');
+                            } else {
+                                throw new \Exception("No se puede eliminar el registro.", 404);
+                            }
+
                         endif;
 
                     } else {
@@ -758,14 +770,14 @@ class EnfundeController extends Controller
             endif;
         } catch (\PDOException $ex) {
             DB::rollBack();
-            return Redirect::back()
+            /*return Redirect::back()
                 ->with('msg', $ex->getMessage())
-                ->with('status', 'danger');
+                ->with('status', 'danger');*/
         } catch (\Exception $ex) {
             DB::rollBack();
-            return Redirect::back()
+            /*return Redirect::back()
                 ->with('msg', $ex->getMessage())
-                ->with('status', 'warning');
+                ->with('status', 'warning');*/
         }
     }
 
@@ -816,7 +828,8 @@ class EnfundeController extends Controller
                             $inventario_lotero = INV_LOT_FUND::select('id', 'idlotero', 'semana', 'idmaterial', 'saldo_inicial', 'entrada', 'salida', 'saldo', 'status')
                                 ->where([
                                     'idlotero' => $lotero,
-                                    'semana' => $semana
+                                    'semana' => $semana,
+                                    'status' => 1
                                 ])->get();
 
                             if (count($inventario_lotero) > 0) {
@@ -825,7 +838,7 @@ class EnfundeController extends Controller
                                     if (intval($item->saldo) > 0):
                                         $inventario = new INV_LOT_FUND();
                                         $inventario->idlotero = $item->idlotero;
-                                        $inventario->semana = ($item->semana + 1) == 52 ? 1 : $item->semana + 1;
+                                        $inventario->semana = ($item->semana + 1) > 52 ? 1 : $item->semana + 1;
                                         $inventario->idmaterial = $item->idmaterial;
                                         $inventario->saldo_inicial = $item->saldo;
                                         $inventario->entrada = 0;
