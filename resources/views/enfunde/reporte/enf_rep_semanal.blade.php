@@ -20,7 +20,7 @@
                                 ])}}
                             </div>
                             <div class="form-group col-md-2">
-                                {{Form::select('semana',$combosemanas ,'',[
+                                {{Form::select('semana',$combosemanas ,old('semana'),[
                                 'class' => 'selectpicker show-tick form-control',
                                  'data-live-search' => 1,
                                  'data-size'=>"10",
