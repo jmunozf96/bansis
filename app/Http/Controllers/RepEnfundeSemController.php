@@ -65,6 +65,7 @@ class RepEnfundeSemController extends Controller
             $params_array = json_decode($json, true);
             $html = '';
 
+
             if (!empty($params_array) && count($params_array) > 0) {
 
                 //SILVIO SOLORZANO ID ENFUNDE 5 -> SE GUARDARON LOS LOTES DOS VECES
@@ -89,7 +90,7 @@ class RepEnfundeSemController extends Controller
                         ->with(['enfunde' => function ($query) use ($params_array) {
                             $query->select('id', 'idlotero', 'fecha', 'total_pre', 'total_fut', 'chapeo', 'cinta_pre', 'cinta_fut');
                             $query->with(['detalle' => function ($query) {
-                                $query->select('id', 'idenfunde', 'idseccion', 'cantidad', 'desbunchado', 'presente', 'futuro');
+                                $query->select('id', 'idenfunde', 'idseccion', 'cant_presente', 'cant_futuro', 'desbunchado', 'presente', 'futuro');
                                 $query->with(['seccion' => function ($query) {
                                     $query->select('id', 'idlote', 'has');
                                     $query->with(['lote' => function ($query) {
@@ -181,7 +182,7 @@ class RepEnfundeSemController extends Controller
 
                         PDF::Output('Enfunde_semana_' . $params_array['semana'] . '.pdf');
                         exit;
-                    }else{
+                    } else {
                         return abort(404);
                     }
                 } else {

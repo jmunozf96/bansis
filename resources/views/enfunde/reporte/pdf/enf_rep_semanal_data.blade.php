@@ -67,14 +67,10 @@
                             <th colspan="6" style="text-align: center"></th>
                             <td>{{$enfunde->seccion->lote->lote}}</td>
                             <td>{{round($enfunde->seccion->has,2)}}</td>
-                            <td style="text-align: center">{{$enfunde->presente ? $enfunde->cantidad : 0}}&nbsp;
+                            <td style="text-align: center">{{$enfunde->cant_presente}}&nbsp;
                             </td>
-                            @foreach($lotero->enfunde->detalle as $enfunde2)
-                                @if($enfunde2->futuro && $enfunde->idseccion == $enfunde2->idseccion)
-                                    <td style="text-align: center;">{{$enfunde2->cantidad}} &nbsp;</td>
-                                    <td style="text-align: center">{{$enfunde2->desbunchado}} &nbsp;</td>
-                                @endif
-                            @endforeach
+                            <td style="text-align: center;">{{$enfunde->cant_futuro}} &nbsp;</td>
+                            <td style="text-align: center">{{$enfunde->desbunchado}} &nbsp;</td>
                         </tr>
                     @endif
                 @endforeach
@@ -95,16 +91,18 @@
             @endif
             @if($lotero->saldos_semana)
                 @foreach($lotero->saldos_semana as $saldo)
-                    <tr style="text-align: center;">
-                        <td colspan="5" style="background-color: #baffe9; text-align: left"><b>&nbsp;&nbsp;Saldo
-                                Material:</b></td>
-                        <th colspan="5" style="text-align: right; background-color: #baffe9">
-                            <b>{{$saldo->material->nombre}}
-                                = </b></th>
-                        <td style="text-align: left;background-color: #baffe9"><b> ({{$saldo->saldo}}) &nbsp;</b>
-                        </td>
-                    </tr>
-                    <?php $saldo_fundas += intval($saldo->saldo)?>
+                    @if(intval($saldo->saldo) > 0)
+                        <tr style="text-align: center;">
+                            <td colspan="5" style="background-color: #baffe9; text-align: left"><b>&nbsp;&nbsp;Saldo
+                                    Material:</b></td>
+                            <th colspan="5" style="text-align: right; background-color: #baffe9">
+                                <b>{{$saldo->material->nombre}}
+                                    = </b></th>
+                            <td style="text-align: left;background-color: #baffe9"><b> ({{$saldo->saldo}}) &nbsp;</b>
+                            </td>
+                        </tr>
+                        <?php $saldo_fundas += intval($saldo->saldo)?>
+                    @endif
                 @endforeach
                 <?php
                 foreach ($lotero->saldos_semana as $val) {
