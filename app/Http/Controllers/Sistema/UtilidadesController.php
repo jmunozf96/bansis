@@ -37,7 +37,6 @@ class UtilidadesController extends Controller
         $productos = XASS_InvProductos::selectRaw("id_fila as codigo, RTRIM(nombre) as nombre, unidad, 'Stock: ' + convert(varchar,convert(integer,stock)) as stock_det, stock, bodegacompra")
             ->where('bodegacompra', '=', $bodega)
             ->where('grupo', '4001')
-            ->where('stock', '>', 0)
             ->whereRaw("nombre like '%funda%'")
             ->whereRaw("CHARINDEX('" . $criterio . "', nombre) > 0")
             ->with(['bodega' => function ($query) {
@@ -53,7 +52,7 @@ class UtilidadesController extends Controller
         $productos = XASS_InvProductos::selectRaw("id_fila as codigo, RTRIM(nombre) as nombre, unidad, 'Stock: ' + convert(varchar,convert(integer,stock)) as stock_det, stock, bodegacompra")
             ->where('bodegacompra', '=', $bodega)
             ->where('grupo', '4001')
-            ->where('stock', '>', 0)
+            ->whereIn('id_fila', ['2426', '2428','2446','2448','2813','2833'])
             ->whereRaw("nombre like '%funda%'")
             ->with(['bodega' => function ($query) {
                 $query->select('Id_Fila', 'Nombre', 'Direccion');
