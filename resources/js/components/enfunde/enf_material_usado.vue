@@ -27,17 +27,24 @@
                 </th>
                 <th scope="row" class="text-center">{{material.idmaterial}}</th>
                 <td>{{material.material.nombre}}</td>
-                <td class="text-center">{{material.saldo}}</td>
+                <td class="text-center">
+                    <div
+                        v-if="data_material.edit && +data_material.codigo === +material.idmaterial">
+                        {{data_material.saldo}}
+                    </div>
+                    <div v-else>
+                        {{material.saldo}}
+                    </div>
+                </td>
                 <td class="text-center" style="width: 20%">
-                    <template v-if="data_material.edit && +data_material.codigo === +material.idmaterial">
-                        <input type="number" class="form-control text-center"
-                               v-model="data_material.cantidad"
-                               :id="'material-' + material.idmaterial"
-                               @change="saveForm(index)"/>
-                    </template>
-                    <template v-else>
-                        {{material.cantidad}}
-                    </template>
+                    <input type="number" class="form-control text-center" ref="cantsalida"
+                           v-model="data_material.cantidad"
+                           id="cantidad"
+                           @keyup.enter="saveForm(index)"
+                           v-if="data_material.edit && +data_material.codigo === +material.idmaterial"
+                           @focus="$event.target.select()"
+                           v-focus="data_material.edit && +data_material.codigo === +material.idmaterial"/>
+                    <div v-else>{{material.cantidad}}</div>
                 </td>
             </tr>
             </tbody>
@@ -92,13 +99,14 @@
                 data_material: {
                     codigo: 0,
                     cantidad: 0,
+                    saldo: 0,
+                    desbunchados: 0,
                     edit: false,
                 },
                 error: {
                     status: false,
                     msj: ''
                 },
-                desbunchados: 0
             }
         },
         methods: {
@@ -126,7 +134,7 @@
                 this.data_material.edit = true;
                 this.data_material.codigo = material.idmaterial;
                 this.data_material.cantidad = +material.cantidad;
-                material.saldo = +material.saldo + +material.cantidad;
+                this.data_material.saldo = +material.saldo + +material.cantidad;
 
                 /*if (+this.acumulaCantidad(material) > 0) {
                     material.cant_ocupada = this.acumulaCantidad(material);
@@ -136,11 +144,11 @@
                 let material = this.materiales[index];
 
                 //Preguntar si el saldo es mayor a la cantidad ingresada
-                if (+material.saldo >= this.data_material.cantidad) {
+                if (+this.data_material.saldo >= this.data_material.cantidad) {
 
                     //Detalle del metodo dentro de la funcion
                     this.cantidadOcupada(this.data_material.cantidad);
-                    material.cantidad = this.data_material.cantidad;
+                    material.cantidad = parseInt(this.data_material.cantidad);
 
                     this.error.status = false;
                     this.error.msj = '';
@@ -149,11 +157,12 @@
                     this.data_material.codigo = 0;
                     this.data_material.cantidad = 0;
                     this.data_material.desbunchados = 0;
+                    this.data_material.saldo = 0;
                     material.saldo = (+material.saldo_backup - +material.cant_ocupada);
                 } else {
                     this.data_material.cantidad = material.cantidad;
                     this.error.status = true;
-                    this.error.msj = '<b>Error!</b> no se puede agregar una cantidad mayor al saldo.'
+                    this.error.msj = '<b>Error!</b> no se puede agregar una cantidad mayor al saldo.';
                 }
             },
             acumulaCantidad(material) {
@@ -193,6 +202,18 @@
                     }
                 }
             },
+        },
+        directives: {
+            focus: {
+                inserted: function (el, binding) {
+                    var value = binding.value;
+                    Vue.nextTick(() => {
+                        if (value) {
+                            el.focus();
+                        }
+                    });
+                },
+            }
         },
         computed: {
             total_usado() {

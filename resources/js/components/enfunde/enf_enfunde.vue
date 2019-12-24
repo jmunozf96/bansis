@@ -61,7 +61,13 @@
                                             :datosenfunde="lote_enfunde"></enf_material_usado>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" id="btn-save-items">Guardar cambios</button>
+                        <button type="button" class="d-inline-block btn btn-danger" data-dismiss="modal">
+                            <i class="fas fa-file-export"></i> Salir
+                        </button>
+                        <button type="button" class="d-inline-block btn btn-primary" id="btn-save-items">
+                            <i class="fas fa-sync"></i> 
+                            Aplicar cambios
+                        </button>
                     </div>
                 </div>
             </div>
@@ -436,7 +442,7 @@
                         if (this.$refs.presente) {
                             this.$refs.presente[0].focus();
                             $(this.$refs.presente[0]).attr('readonly', true);
-                            $(this.$refs.presente[0]).click(function () {
+                            $(this.$refs.presente[0]).on('click', function () {
                                 $('#id-material-usado').modal({backdrop: 'static', keyboard: false});
                             })
                         }
@@ -447,7 +453,7 @@
                             this.$refs.futuro[0].focus();
                             $(this.$refs.futuro[0]).attr('readonly', true);
                             $(this.$refs.desbunche[0]).attr('readonly', true);
-                            $(this.$refs.futuro[0]).click(function () {
+                            $(this.$refs.futuro[0]).on('click', function () {
                                 $('#id-material-usado').modal({backdrop: 'static', keyboard: false});
                             })
                         }
@@ -734,6 +740,7 @@
 
 
                 this.statusForm = true;
+                $('#id-material-usado').modal({backdrop: 'static', keyboard: false});
             },
             saveForm: function (index) {
                 /*let tabla = document.getElementById('enfunde-items');
