@@ -33,7 +33,7 @@
                         <input type="number" class="form-control text-center"
                                v-model="data_material.cantidad"
                                :id="'material-' + material.idmaterial"
-                               @change=""/>
+                               @change="saveForm(index)"/>
                     </template>
                     <template v-else>
                         {{material.cantidad}}
