@@ -76,7 +76,7 @@
         <div class="form-row mt-0">
             <div class="col-md-6">
                 <div class="col-12 table-responsive">
-                    <div class="alert alert-success" role="alert" v-if="statusEnfunde()">
+                    <div class="alert alert-success" role="alert" v-if="saldoMaterialesSemana > 0">
                         <b>Saldo: {{saldoMaterialesSemana}}</b>, puede reportar enfunde
                     </div>
                     <div class="alert alert-danger" role="alert" v-else>
