@@ -58,12 +58,7 @@ class EnfundeController extends Controller
             ->paginate(10);
 
         $enfunde_cerrado = ENF_ENFUNDE::select('idhacienda', 'semana', 'periodo', 'cinta_pre', 'cinta_fut', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'status')
-            ->with(['lotero' => function ($query2) {
-                $query2->with(['empleado' => function ($query2) {
-                    $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                    $query2->orderBy('NOMBRE_CORTO', 'asc');
-                }]);
-            }])
+            ->with('lotero')
             ->where([
                 'semana' => $this->utilidades->getSemana()[0]->semana,
                 'idhacienda' => $hacienda,
@@ -107,7 +102,7 @@ class EnfundeController extends Controller
 
     public function getLotero($idlotero, $semana)
     {
-        $lotero = ENF_LOTERO::select('id', 'idempleado')
+        $lotero = ENF_LOTERO::select('id', 'idempleado', 'nombres')
             ->where([
                 'id' => $idlotero,
                 'status' => 1
@@ -118,10 +113,6 @@ class EnfundeController extends Controller
                 });
                 $query->where('status', 1);
             }, 'seccion.lote'])
-            ->with(['empleado' => function ($query2) {
-                $query2->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                $query2->orderBy('NOMBRE_CORTO', 'asc');
-            }])
             ->with(['fundas' => function ($query3) use ($semana) {
                 $query3->select('id', 'semana', 'idempleado', 'total', 'status');
                 $query3->where('semana', $semana);
@@ -923,8 +914,7 @@ class EnfundeController extends Controller
             ->with('status', 'warning');
     }
 
-    public
-    function respuesta($status, $messagge)
+    public function respuesta($status, $messagge)
     {
         $data = [
             'status' => $status,

@@ -48,11 +48,14 @@
                         <div class="col p-0">
                             <table class="table table-bordered">
                                 <th class="text-center" style="vertical-align: inherit; font-size: 20px">
-                                    Accion</th>
+                                    Accion
+                                </th>
                                 <th class="text-center" style="vertical-align: inherit; font-size: 20px">
-                                    Enfunde</th>
+                                    Enfunde
+                                </th>
                                 <th class="text-center" colspan="2" style="vertical-align: inherit; font-size: 20px">
-                                    Lotero</th>
+                                    Lotero
+                                </th>
                                 <th>
                                     <a class="btn btn-dark btn-lg btn-block" href="{{route('despacho',
                                     ['modulo' => Auth::user()->modulo,
@@ -70,7 +73,8 @@
                                                 'lotero' => $egreso->idempleado]
                                                 )}}" class="btn btn-success"><i class="fas fa-eye"></i></a>
                                         </td>
-                                        <td class="text-center w-auto mt-auto mb-auto" style="vertical-align: inherit; font-size: 18px">
+                                        <td class="text-center w-auto mt-auto mb-auto"
+                                            style="vertical-align: inherit; font-size: 18px">
                                             @if(!$egreso->status)
                                                 <span class="badge badge-pill badge-success">C</span>
                                             @else
@@ -80,18 +84,20 @@
                                         <td class="text-center" style="vertical-align: inherit; width: 5%">
                                             <img class="" src="{{URL::asset('/img/user.png')}}" style="width: 50%">
                                         </td>
-                                        <td class="text-center w-auto mt-auto mb-auto" style="vertical-align: inherit">
-                                            {{$egreso->empleado->nombre}}
+                                        <td class="text-center w-auto mt-auto mb-auto" style="vertical-align: inherit;">
+                                            {{$egreso->lotero->apellido_1 . ' ' . $egreso->lotero->apellido_2 . ' ' .$egreso->lotero->nombre_1}}
                                         </td>
                                         <td class="p-2 mb-0">
                                             <table class="table table-bordered mb-0 table-sm">
-                                                <th colspan="3" class="table-active">Despacho total: <b>{{intval($egreso->total)}}</b>
+                                                <th colspan="3" class="table-active">Despacho total:
+                                                    <b>{{intval($egreso->total)}}</b>
                                                     fundas.
                                                 </th>
                                                 @foreach($egreso->egresos as $despacho)
                                                     <tr>
                                                         <td style="vertical-align: inherit; width: 80%">{{$despacho->get_material->nombre}}</td>
-                                                        <td class="text-center" style="vertical-align: inherit; width: 10%">{{intval($despacho->cantidad)}}</td>
+                                                        <td class="text-center"
+                                                            style="vertical-align: inherit; width: 10%">{{intval($despacho->cantidad)}}</td>
                                                         <td class="text-center w-auto"
                                                             style="vertical-align: inherit; color: red; width: 10%">
                                                             <b>{{$despacho->presente ? 'P' : 'F'}}</b></td>
@@ -103,7 +109,8 @@
                                 @endforeach
                             </table>
                             <p class="mt-0">
-                                <b>Status</b> <span class="badge badge-pill badge-warning">A</span> para enfunde abierto | <span class="badge badge-pill badge-success">C</span> para enfunde cerrado.
+                                <b>Status</b> <span class="badge badge-pill badge-warning">A</span> para enfunde abierto
+                                | <span class="badge badge-pill badge-success">C</span> para enfunde cerrado.
                             </p>
                         </div>
                         <hr>

@@ -736,7 +736,7 @@
                     axios.get(`/sistema/enfunde/despacho/${empleado}/${semana}/${hacienda}/1`)
                         .then(response => {
                             if (response.data) {
-                                self.enfunde = response.data.empleado.lotero.enfunde;
+                                self.enfunde = response.data.lotero.enfunde;
                                 for (var x in response.data.egresos) {
                                     let egreso = {
                                         id: response.data.egresos[x].idhash,

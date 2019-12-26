@@ -50,9 +50,7 @@ class EgresoController extends Controller
         $egresos = ENF_EGRESO::select('id', 'idempleado', 'total', 'status')
             ->where('semana', $this->utilidades->getSemana()[0]->semana)
             ->where('idhacienda', Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda)
-            ->with(['empleado' => function ($query) {
-                $query->selectRaw('COD_TRABAJ, CONCAT(trim(APELLIDO_1)," ",trim(NOMBRE_1)) as nombre');
-            }])
+            ->with(['lotero'])
             ->with(['egresos' => function ($query) {
                 $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'cantidad', 'presente', 'futuro', 'status');
                 $query->with(['get_material' => function ($query1) {
@@ -328,18 +326,15 @@ class EgresoController extends Controller
 
     public function getdespacho($empleado, $semana, $hacienda, $axios = 0)
     {
-        if (!empty($empleado) && !empty($semana) && !empty($hacienda)):
+        if (!empty($semana) && !empty($hacienda)):
             $despacho = ENF_EGRESO::select('id', 'fecha', 'idempleado', 'semana', 'idhacienda')
                 ->where('idempleado', $empleado)
                 ->where('semana', $semana)
                 ->where('idhacienda', $hacienda == '343' ? 1 : 2)
-                ->with(['empleado' => function ($query) use ($semana) {
-                    $query->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                    $query->with(['lotero' => function ($query3) use ($semana) {
-                        $query3->with(['enfunde' => function ($query) use ($semana) {
-                            $query->select('id', 'total_pre', 'total_fut', 'idlotero', 'status', 'count')
-                                ->where('semana', $semana);
-                        }]);
+                ->with(['lotero' => function ($query3) use ($semana) {
+                    $query3->with(['enfunde' => function ($query) use ($semana) {
+                        $query->select('id', 'total_pre', 'total_fut', 'idlotero', 'status', 'count')
+                            ->where('semana', $semana);
                     }]);
                 }])
                 ->with(['egresos' => function ($query) {

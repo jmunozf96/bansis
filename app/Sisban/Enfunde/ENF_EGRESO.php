@@ -21,4 +21,9 @@ class ENF_EGRESO extends Model
         return $this->hasOne('App\Empleado', 'COD_TRABAJ', 'idempleado');
     }
 
+    public function lotero()
+    {
+        return $this->hasOne('App\Sisban\Enfunde\ENF_LOTERO', 'idempleado', 'idempleado');
+    }
+
 }

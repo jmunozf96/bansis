@@ -176,12 +176,12 @@
                         <div class="form-row">
                             <div class="form-group col-md-1 col-6 mb-0 mt-1">
                                 <input type="text" class="form-control {{$semana[0]->des_color}}1"
-                                       id="exampleFormControlInput1"
+                                       id="col_presente"
                                        disabled>
                             </div>
                             <div class="form-group col-md-1 col-6 mb-0 mt-1">
                                 <input type="text" class="form-control {{$semana[1]->des_color}}1"
-                                       id="exampleFormControlInput1"
+                                       id="col_futuro"
                                        disabled>
                             </div>
                         </div>
