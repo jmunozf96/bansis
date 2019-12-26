@@ -62,22 +62,19 @@
             </tr>
             @if($lotero->enfunde)
                 @foreach($lotero->enfunde->detalle as $enfunde)
-                    @if($enfunde->presente)
-                        <tr style="text-align: center">
-                            <th colspan="6" style="text-align: center"></th>
-                            <td>{{$enfunde->seccion->lote->lote}}</td>
-                            <td>{{round($enfunde->seccion->has,2)}}</td>
-                            <td style="text-align: center">{{$enfunde->cant_presente}}&nbsp;
-                            </td>
-                            <td style="text-align: center;">{{$enfunde->cant_futuro}} &nbsp;</td>
-                            <td style="text-align: center">{{$enfunde->desbunchado}} &nbsp;</td>
-                        </tr>
-                    @endif
+                    <tr style="text-align: center">
+                        <th colspan="6" style="text-align: center"></th>
+                        <td>{{$enfunde->seccion->lote->lote}}</td>
+                        <td>{{round($enfunde->seccion->has,2)}}</td>
+                        <td style="text-align: center">{{$enfunde->cant_presente}}&nbsp;</td>
+                        <td style="text-align: center;">{{$enfunde->cant_futuro}} &nbsp;</td>
+                        <td style="text-align: center">{{$enfunde->desbunchado}} &nbsp;</td>
+                    </tr>
                 @endforeach
                 <tr style="text-align: center;">
                     <th colspan="6" style="text-align: center"></th>
                     <th colspan="2"><b>Total Enfunde</b></th>
-                    <td style="text-align: center;"><b>{{$lotero->enfunde->total_pre}} &nbsp;</b></td>
+                    <td style="text-align: center;"><b>{{$lotero->enfunde->total_pre}}&nbsp;</b></td>
                     <td style="text-align: center;"><b>{{$lotero->enfunde->total_fut}} &nbsp;</b></td>
                     <td style="text-align: center;"><b>{{$lotero->enfunde->chapeo}} &nbsp;</b></td>
                 </tr>
