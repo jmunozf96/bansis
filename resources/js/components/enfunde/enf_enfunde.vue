@@ -65,7 +65,7 @@
                             <i class="fas fa-file-export"></i> Salir
                         </button>
                         <button type="button" class="d-inline-block btn btn-primary" id="btn-save-items">
-                            <i class="fas fa-sync"></i> 
+                            <i class="fas fa-sync"></i>
                             Aplicar cambios
                         </button>
                     </div>

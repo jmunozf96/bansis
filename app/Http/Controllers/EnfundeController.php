@@ -720,7 +720,6 @@ class EnfundeController extends Controller
                     'semana' => $semana
                 ])->first();
 
-
                 if ($enfunde) {
                     if ($enfunde->total_fut > 0) {
                         $reg_futuro = ENF_DET_ENFUNDE::select('id', 'idenfunde', 'id_material', 'cant_futuro')
@@ -760,24 +759,23 @@ class EnfundeController extends Controller
                             }
 
                         endif;
-
                     } else {
-                        throw new \Exception("No existe registro futuro.", 404);
+                        throw new \Exception("Alerta!, No existe registro futuro.", 404);
                     }
                 } else {
-                    throw new \Exception("No se encuentra reistro de enfunde.", 404);
+                    throw new \Exception("Error!, No se encuentra reistro de enfunde.", 404);
                 }
             endif;
         } catch (\PDOException $ex) {
             DB::rollBack();
-            /*return Redirect::back()
+            return Redirect::back()
                 ->with('msg', $ex->getMessage())
-                ->with('status', 'danger');*/
+                ->with('status', 'danger');
         } catch (\Exception $ex) {
             DB::rollBack();
-            /*return Redirect::back()
+            return Redirect::back()
                 ->with('msg', $ex->getMessage())
-                ->with('status', 'warning');*/
+                ->with('status', 'danger');
         }
     }
 
