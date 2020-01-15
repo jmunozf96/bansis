@@ -17,13 +17,13 @@
                 </thead>
                 <tbody class="table-sm">
                 <template v-for="(liquidacion, index1) in liquidaciones">
-                    <tr class="table-active">
+                    <tr class="table-active" :key="index1">
                         <td colspan="1"><b>{{liquidacion[0]}}</b></td>
                         <td colspan="1"><b>{{liquidacion[1]}}</b></td>
                         <td colspan="7"><b>{{liquidacion[2]}}</b></td>
                     </tr>
                     <template v-for="(cajas, index) in liquidacion['Detalle']">
-                        <tr>
+                        <tr :key="index">
                             <td>{{cajas[0]}}</td>
                             <td>{{cajas[1]}}</td>
                             <td>{{cajas[2]}}</td>
@@ -49,7 +49,7 @@
                             </td>
                         </tr>
                     </template>
-                    <tr class="table-success table-sm">
+                    <tr class="table-success table-sm" :key="index1">
                         <td colspan="7"><h5 class="mb-0"><b>TOTAL</b></h5></td>
                         <td colspan="1" class="text-center"><h5 class="mb-0">
                             <b>$ {{parseFloat(totalMonto(liquidacion)).toFixed(2) | formatNumber}}</b></h5></td>

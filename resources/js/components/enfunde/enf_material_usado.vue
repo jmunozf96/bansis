@@ -13,7 +13,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(material, index) of materiales" class="">
+            <tr v-for="(material, index) of materiales" class="" :key="index">
                 <th class="text-center">
                     <template v-if="data_material.edit && +data_material.codigo === +material.idmaterial">
                         <button class="btn btn-success" @click="saveForm(index)">
@@ -54,8 +54,8 @@
             <div class="row">
                 <div class="col-12">
                     <label for="racimosDesbunchados">Racimos Desbunchados</label>
-                    <input type="number" id="racimosDesbunchados" class="form-control" v-model="desbunchados"
-                           @change="datosenfunde.desbunche = desbunchados"
+                    <input type="number" id="racimosDesbunchados" class="form-control" v-model="data_material.desbunchados"
+                           @change="datosenfunde.desbunche = data_material.desbunchados"
                            aria-describedby="racimosDesbunchados" value="0" min="0" max="50">
                     <small id="racimosDesbunchados-det" class="form-text text-muted">
                         <b v-if="+datosenfunde.desbunche > 0">Lotero tiene registrado {{datosenfunde.desbunche}} racimos

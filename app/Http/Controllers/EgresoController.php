@@ -110,7 +110,7 @@ class EgresoController extends Controller
         ];
 
         if (!empty($params_array) && !empty($params)) {
-            $validacion = \Validator::make($params_array, [
+            $validacion = \Illuminate\Support\Facades\Validator::make($params_array, [
                 'fecha' => 'required',
                 'semana' => 'required',
                 'hacienda' => 'required',
@@ -155,12 +155,14 @@ class EgresoController extends Controller
                     $nuevo = true;
 
                     if ($edit) {
-                        $detalle = ENF_DET_EGRESO::select('id', 'id_egreso', 'fecha', 'idmaterial', 'cantidad', 'presente', 'futuro')->where([
+                        $detalle = ENF_DET_EGRESO::select('id', 'id_egreso', 'fecha', 'idmaterial', 'cantidad', 'presente', 'futuro', 'reemplazo', 'idempleado')->where([
                             'id_egreso' => $despacho->id,
                             'fecha' => $item->fecha,
                             'idmaterial' => $item->idmaterial,
                             'presente' => $item->presente,
-                            'futuro' => $item->futuro
+                            'futuro' => $item->futuro,
+                            'reemplazo' => $item->reemplazo,
+                            'idempleado' => $item->idempleado
                         ])->first();
 
                         if ($detalle) {
