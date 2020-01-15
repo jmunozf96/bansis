@@ -94,8 +94,8 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col p-0">
-                        <table class="table table-hover table-striped" style="width:100%">
+                    <div class="col-12 p-0">
+                        <table class="table table-hover table-striped table-responsive" style="width:100%">
                             <thead>
                             <tr class="text-center">
                                 <th scope="col">...</th>
@@ -169,7 +169,7 @@
                                             {{Form::close()}}
                                         </div>
                                     </td>
-                                    <td style="width: 5%">
+                                    <td style="width: 6%">
                                         <input class="form-control text-center bg-white"
                                                value="{{+$enfunde->total_pre + +$enfunde->total_fut}}" disabled>
                                     </td>
@@ -180,7 +180,7 @@
                                                     'onsubmit' => 'return confirm("¿Deseas cerrar el enfunde?")',
                                                     'route' => ['enfunde.close',
                                                     $enfunde->idlotero,$enfunde->semana]])}}
-                                                {{Form::button('<i class="fas fa-lock"></i> Cerrar', array('type' => 'submit', 'class' => 'btn btn-primary'))}}
+                                                {{Form::button('<i class="fas fa-lock"></i>', array('type' => 'submit', 'class' => 'btn btn-primary'))}}
                                                 {{Form::close()}}
                                             </div>
                                         </div>

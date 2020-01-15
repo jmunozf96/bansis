@@ -511,7 +511,7 @@ export default {
       axios
         .get(`/sistema/axios/enfunde/lotero/${id}/${self.semana}`)
         .then(response => {
-          console.log(response.data);
+          //console.log(response.data);
           if (response.data) {
             let datos4 = response.data[0].enfunde;
             self.saldo_semana = response.data[1].materiales;

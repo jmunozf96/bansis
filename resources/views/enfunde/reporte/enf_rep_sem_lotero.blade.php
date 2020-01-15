@@ -76,7 +76,7 @@
                                                 <td style="width: 10%">
                                                     <span class="badge badge-pill badge-primary">{{$enfunde->periodo}}</span>
                                                 </td>
-                                                <td style="width: 10%">{{$enfunde->semana}}</td>
+                                                <td style="width: 10%">{{$enfunde->cinta_pre}}</td>
                                                 <td style="width: 7%">
                                                     <input class="form-control {{$utilidades::getColorCodigo($enfunde->cinta_pre)->color}}1"
                                                            disabled>

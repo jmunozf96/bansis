@@ -20,8 +20,10 @@ class RepEnfundeSemController extends Controller
     function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('AccesoURL',
-            ['only' => ['index']]);
+        $this->middleware(
+            'AccesoURL',
+            ['only' => ['index']]
+        );
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
@@ -36,7 +38,7 @@ class RepEnfundeSemController extends Controller
             ->where(['idhacienda' => $hacienda])
             ->distinct('semana')
             ->groupBy('semana', 'periodo', 'idhacienda', 'cinta_pre', 'cinta_fut')
-            ->orderBy('semana', 'desc')
+            ->orderBy('cinta_pre', 'desc')
             ->paginate(10);
 
         if (view()->exists('enfunde.reporte' . '.' . $objeto)) {
@@ -69,7 +71,7 @@ class RepEnfundeSemController extends Controller
             if (!empty($params_array) && count($params_array) > 0) {
 
                 //SILVIO SOLORZANO ID ENFUNDE 5 -> SE GUARDARON LOS LOTES DOS VECES
-                $validation = \Validator::make($params_array, [
+                $validation = \Illuminate\Support\Facades\Validator::make($params_array, [
                     'semana' => 'required',
                     'hacienda' => 'required',
                     'color_pre' => 'required',
@@ -155,7 +157,6 @@ class RepEnfundeSemController extends Controller
                             // Title
                             $tbl = view('enfunde.reporte.pdf.enf_rep_cabecera', compact('pdf_head_subtitle', 'semana_color'));
                             $pdf->writeHTML($tbl, true, false, false, false, '');
-
                         });
 
                         // Custom Footer
@@ -167,7 +168,6 @@ class RepEnfundeSemController extends Controller
                             $pdf->SetFont('helvetica', 'I', 8);
                             // Page number
                             $pdf->Cell(0, 10, 'Página ' . $pdf->getAliasNumPage() . '/' . $pdf->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
-
                         });
 
                         PDF::SetMargins(PDF_MARGIN_LEFT, 22.5, PDF_MARGIN_RIGHT);
