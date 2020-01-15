@@ -90,11 +90,10 @@
                 @foreach($lotero->saldos_semana as $saldo)
                     @if(intval($saldo->saldo) > 0)
                         <tr style="text-align: center;">
-                            <td colspan="5" style="background-color: #baffe9; text-align: left"><b>&nbsp;&nbsp;Saldo
-                                    Material:</b></td>
+                            <td colspan="5" style="background-color: #baffe9; text-align: left"><b>&nbsp;&nbsp;
+                                Saldo => {{$lotero->nombre_1 . ' ' . $lotero->apellido_1}} |  Material:</b></td>
                             <th colspan="5" style="text-align: right; background-color: #baffe9">
-                                <b>{{$saldo->material->nombre}}
-                                    = </b></th>
+                                <b>{{$saldo->material->nombre}} = </b></th>
                             <td style="text-align: left;background-color: #baffe9"><b> ({{$saldo->saldo}}) &nbsp;</b>
                             </td>
                         </tr>
