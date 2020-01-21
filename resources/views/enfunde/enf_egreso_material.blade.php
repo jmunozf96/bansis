@@ -165,10 +165,7 @@
                                     <i class="fas fa-save"></i> Guardar
                                 </button>
                                 <a class="btn btn-danger btn-lg"
-                                   href="{{route('url', [
-                                'modulo' => Auth::user()->modulo,
-                                'objeto' => Auth::user()->objeto,
-                                'idRecurso' => Auth::user()->recursoId])}}">
+                                   href="{{route('despacho',['objeto' =>  $objeto, 'modulo' => $modulo])}}">
                                     <i class="fas fa-sign-out-alt"></i> Salir
                                 </a>
                             </div>

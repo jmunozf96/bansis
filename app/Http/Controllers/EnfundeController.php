@@ -42,12 +42,16 @@ class EnfundeController extends Controller
         return empty(request()->search) ? $q : $q->where('name', 'like', '%' . request()->search . '%');
     }
 
-    public function index($objeto, $recursos)
+    public function index($objeto, $modulo)
     {
-        $this->recursos = $recursos;
-        $hacienda = Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda;
+        $hacienda_auth = Auth::user()->idHacienda;
+        $hacienda = $hacienda_auth == 0 || $hacienda_auth == 1 ? 1 : 2;
+        $recursos = $this->perfil->getRecursos(Auth::user()->ID);
+
         $enfunde_pendiente = ENF_ENFUNDE::select('idhacienda', 'fecha', 'semana', 'periodo', 'cinta_pre', 'cinta_fut', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'status')
-            ->with('lotero')
+            ->with(['lotero' => function ($query) {
+                $query->select('id', 'idhacienda', 'idempleado', 'nombre_1', 'nombre_2', 'apellido_1', 'apellido_2', 'nombres', 'labor');
+            }])
             ->whereHas('lotero')
             ->where([
                 'idhacienda' => $hacienda,
@@ -57,22 +61,12 @@ class EnfundeController extends Controller
             ->orderBy('updated_at', 'desc')
             ->paginate(10);
 
-        $enfunde_cerrado = ENF_ENFUNDE::select('idhacienda', 'semana', 'periodo', 'cinta_pre', 'cinta_fut', 'idlotero', 'total_pre', 'total_fut', 'chapeo', 'status')
-            ->with('lotero')
-            ->where([
-                'semana' => $this->utilidades->getSemana()[0]->semana,
-                'idhacienda' => $hacienda,
-                'status' => 0
-            ])
-            ->orderBy('updated_at', 'desc')
-            ->paginate(10);
-
         if (view()->exists('enfunde' . '.' . $objeto)) {
             return view('enfunde' . '.' . $objeto, [
-                'recursos' => $this->recursos,
+                'objeto' => $objeto, 'modulo' => $modulo,
+                'recursos' => $recursos,
                 'semana' => $this->utilidades->getSemana(),
                 'enfundes_pendientes' => $enfunde_pendiente,
-                'enfunde_cerrado' => $enfunde_cerrado,
                 'loteros_pendientes' => $this->getLoteroPendientes($hacienda, $this->utilidades->getSemana()[0]->semana)
             ])->withInput(Input::all());
         } else {
@@ -80,19 +74,15 @@ class EnfundeController extends Controller
         }
     }
 
-    public function form()
+    public function form($objeto, $modulo)
     {
         $current_params = Route::current()->parameters();
-
-        $this->recursos = $this->perfil->getRecursos(Auth::user()->ID);
-
-        Auth::user()->modulo = $current_params['modulo'];
-        Auth::user()->objeto = $current_params['objeto'];
-        Auth::user()->recursoId = $current_params['idRecurso'];
-
         $hacienda = Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda;
+        $recursos = $this->perfil->getRecursos(Auth::user()->ID);
+
         $data = [
-            'recursos' => $this->recursos,
+            'objeto' => $objeto, 'modulo' => $modulo,
+            'recursos' => $recursos,
             'semana' => $this->utilidades->getSemana(),
             'loteros' => $this->Loteros_nw($hacienda, $this->utilidades->getSemana()[0]->semana),
         ];

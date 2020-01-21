@@ -18,7 +18,7 @@ class PerfilController extends Controller
         $recursos = DB::table('SEG_PERFILES')
             ->join('SEG_RECURSOS as rec', 'rec.ID', '=', 'SEG_PERFILES.RecursoID')
             ->join('SEG_USUARIOS', 'SEG_USUARIOS.ID', '=', 'SEG_PERFILES.id')
-            ->select('rec.Nombre', 'rec.Tipo', 'rec.ID', 'rec.PadreID', 'rec.icono', 'rec.modulo', 'rec.objeto', 'rec.Controlador')
+            ->select('rec.Nombre', 'rec.Tipo', 'rec.ID', 'rec.PadreID', 'rec.icono', 'rec.modulo', 'rec.objeto', 'rec.Controlador', 'rec.url')
             ->where('SEG_PERFILES.id', '=', $IDusuario)
             ->where('rec.web', '=', 1)
             ->orderBy('rec.NOMBRE', 'asc')
@@ -26,6 +26,5 @@ class PerfilController extends Controller
 
         return $recursos;
     }
-
 
 }

@@ -3,13 +3,13 @@
 
 @section('content')
     <div class="container-fluid">
-        <!--nav aria-label="breadcrumb">
+        {{--<nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="#">Home</a></li>
                 <li class="breadcrumb-item"><a href="#">Library</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Data</li>
             </ol>
-        </nav-->
+        </nav>--}}
         <div class="row justify-content-center">
             <div class="container-fluid col-md-12">
                 <div class="card">
@@ -71,7 +71,7 @@
             <div class="container-fluid col-md-12 mt-2">
                 <div class="card">
                     <div class="card-body p-1">
-                        <enfunde-registro v-bind:loteros="{{$loteros}}"></enfunde-registro>
+                        <enfunde-registro :loteros="{{ $loteros }}"></enfunde-registro>
                     </div>
                     <div class="card-footer">
                         <div class="form-row float-right">
@@ -83,10 +83,7 @@
                                     <i class="fas fa-save"></i> Guardar
                                 </button>
                                 <a class="btn btn-danger btn-lg"
-                                   href="{{route('url', [
-                                'modulo' => Auth::user()->modulo,
-                                'objeto' => Auth::user()->objeto,
-                                'idRecurso' => Auth::user()->recursoId])}}">
+                                   href="{{route('enfunde',['objeto' =>  $objeto, 'modulo' => $modulo])}}">
                                     <i class="fas fa-sign-out-alt"></i> Salir
                                 </a>
                             </div>

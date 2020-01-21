@@ -23,7 +23,9 @@
     <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url('/') }}">
-                <span style="font-size: 20px; font-weight: bold; text-decoration: none">{{ config('app.name', 'Laravel') }} </span> | Sistema de Banano
+                <span
+                    style="font-size: 20px; font-weight: bold; text-decoration: none">{{ config('app.name', 'Laravel') }} </span>
+                | Sistema de Banano
             </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                     aria-controls="navbarSupportedContent" aria-expanded="false"
@@ -41,14 +43,14 @@
                 <ul class="navbar-nav ml-auto">
                     <!-- Authentication Links -->
                     @guest
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                    </li>
-                    @if (Route::has('register'))
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                            <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
                         </li>
-                    @endif
+                        @if (Route::has('register'))
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                            </li>
+                        @endif
                     @else
                         @php
                             $padre_id = array(1,2)
@@ -57,7 +59,6 @@
                             @php $padre = $data @endphp
                             @foreach($recursos as $recurso)
                                 @if(trim($recurso->PadreID) == trim($padre))
-                                    @php $padre1 = $recurso->ID @endphp
                                     <li class="nav-item dropdown">
                                         <a id="navbarDropdown1" class="nav-link dropdown-toggle" href="#" role="button"
                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
@@ -66,20 +67,16 @@
                                         <div class="dropdown-menu dropdown-menu-right"
                                              aria-labelledby="navbarDropdown1">
                                             @foreach($recursos as $recurso1)
-                                                @if(trim($recurso1->PadreID) == trim($padre1))
-                                                    @php $padre2 = $recurso1->ID @endphp
+                                                @if(trim($recurso1->PadreID) == trim( $recurso->ID))
                                                     <a class="dropdown-item disabled" href="#">
                                                         {{$recurso1->Nombre}}
                                                     </a>
                                                     <div class="dropdown-divider"></div>
                                                     @foreach($recursos as $recurso2)
-                                                        @if(trim($recurso2->PadreID) == trim($padre2))
+                                                        @if(trim($recurso2->PadreID) == trim($recurso1->ID))
                                                             <a class="dropdown-item"
-                                                               href="{{route('url', [
-                                                               'modulo' => strtolower($recurso2->modulo),
-                                                               'objeto' => strtolower($recurso2->objeto),
-                                                               'idRecurso' => $recurso2->ID])}}">
-                                                                <i class="{{$recurso2->icono}}"></i> {{explode('-',$recurso2->Nombre)[1]}}
+                                                               href="{{url('/sistema/'.strtolower($recurso2->modulo).'/'.strtolower($recurso2->objeto).'/'.$recurso2->ID)}}">
+                                                                {{explode('-',$recurso2->Nombre)[1]}}
                                                             </a>
                                                         @endif
                                                     @endforeach
@@ -123,7 +120,7 @@
                                 </form>
                             </div>
                         </li>
-                        @endguest
+                    @endguest
                 </ul>
             </div>
         </div>

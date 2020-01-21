@@ -37,31 +37,26 @@
                         </div>
                     </div>
                 </div>
-                <div class="row mb-0">
-                    <div class="col-3">
+                <div class="row">
+                    <div class="col-12 col-md-3 mb-2">
                         {{Form::open(['method' => 'POST',
                                                 'onsubmit' => 'return confirm("¿Deseas cerrar el enfunde?")',
-                                                'route' => ['enfunde.closeAll',Auth::user()->idHacienda]])}}
+                                                'route' => ['enfunde.closeAll',Auth::user()->idHacienda], 'class'=> 'form-inline'])}}
                         {{Form::button('<i class="fas fa-lock"></i> Cerrar Todo', array('type' => 'submit', 'class' => 'btn btn-primary btn-lg'))}}
                         {{Form::close()}}
                     </div>
-                    <div class="col-9 mb-0">
+                    <div class="col-12 col-md-9">
                         <div class="form-group">
                             {!! Form::open(['method'=>'GET','class'=>'navbar-form navbar-left','role'=>'search'])  !!}
                             <div class="input-group custom-search-form mb-0">
                                 <div class="input-group-prepend">
-                                    <a class="btn btn-dark btn-lg" href="{{route('enfunde',
-                                    ['modulo' => Auth::user()->modulo,
-                                    'objeto' =>  Auth::user()->objeto,
-                                    'idRecurso' => Auth::user()->recursoId,]
-                                    )}}"> <i class="fas fa-plus"></i> Nuevo
+                                    <a class="btn btn-dark btn-lg"
+                                       href="{{route('enfunde.form',['modulo' => $modulo, 'objeto' =>  $objeto])}}">
+                                        <i class="fas fa-plus"></i> Nuevo
                                     </a>
 
-                                    <a href="{{route('url',
-                                    ['modulo' => Auth::user()->modulo,
-                                    'objeto' =>  Auth::user()->objeto,
-                                    'idRecurso' => Auth::user()->recursoId,]
-                                    )}}" class="btn btn-danger btn-lg text-white"><i class="fas fa-sync"></i></a>
+                                    <a href="{{route('enfunde',['objeto' =>  $objeto, 'modulo' => $modulo])}}"
+                                       class="btn btn-danger btn-lg text-white"><i class="fas fa-sync"></i></a>
                                 </div>
                                 <input type="text" class="form-control form-control-lg mb-0" name="search"
                                        oninput="this.value = this.value.toUpperCase()"
@@ -79,8 +74,8 @@
                     <div class="col">
                         @if(\Session::has('msg'))
                             @push('scripts')
-                            <script type="text/javascript">
-                            </script>
+                                <script type="text/javascript">
+                                </script>
                             @endpush
                             <div class="alert alert-{{\Session::get('status')}} alert-dismissible fade show"
                                  role="alert">
@@ -94,29 +89,29 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-12 p-0">
-                        <table class="table table-hover table-striped table-responsive" style="width:100%">
+                    <div class="col-12 p-0 table-responsive">
+                        <table class="table table-hover table-striped" style="width:100%">
                             <thead>
                             <tr class="text-center">
-                                <th scope="col">...</th>
-                                <th scope="col">Ir</th>
-                                <th scope="col">Hacienda</th>
-                                <th scope="col">Semana</th>
+                                <th scope="col" class="">...</th>
+                                <th scope="col" class="">Ir</th>
+                                <th scope="col" class="">Hacienda</th>
+                                <th scope="col" class="">Semana</th>
                                 <th scope="col">Lotero</th>
-                                <th scope="col">Col_pre</th>
+                                <th scope="col" class="">Col_pre</th>
                                 <th scope="col">Tot_pre</th>
                                 <th scope="col">...</th>
-                                <th scope="col">Col_fut</th>
+                                <th scope="col" class="">Col_fut</th>
                                 <th scope="col">Tot_fut</th>
                                 <th scope="col">...</th>
-                                <th scope="col">Total</th>
-                                <th scope="col">Accion</th>
+                                <th scope="col" class="">Total</th>
+                                <th scope="col" class="">Accion</th>
                             </tr>
                             </thead>
                             <tbody>
                             @foreach($enfundes_pendientes as $enfunde)
                                 <tr style="font-size: 16px" class="text-center table-sm">
-                                    <th style="width: 5%"><span class="badge badge-warning">A</span></th>
+                                    <th style="width: 5%" class=""><span class="badge badge-warning">A</span></th>
                                     <th>
                                         <a class="btn btn-success" href="{{route('enfunde',
                                             ['modulo' => Auth::user()->modulo,
@@ -127,14 +122,14 @@
                                             )}}"><i class="fas fa-eye"></i>
                                         </a>
                                     </th>
-                                    <th scope="row"
+                                    <th scope="row" class=""
                                         style="width: 10%">{{$enfunde->idhacienda == 1 ? '343' : '344'}}</th>
-                                    <td style="width: 5%">{{$enfunde->semana}}</td>
+                                    <td style="width: 5%" class="">{{$enfunde->semana}}</td>
                                     <td>{{$enfunde->lotero->nombre_1 . ' ' . $enfunde->lotero->apellido_1 . ' ' . $enfunde->lotero->apellido_2}}</td>
-                                    <td style="width: 5%">
+                                    <td style="width: 5%" class="">
                                         <input
-                                                class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
-                                                disabled>
+                                            class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
+                                            disabled>
                                     </td>
                                     <td style="width: 5%">
                                         <input class="form-control text-center bg-white" type="number"
@@ -150,10 +145,10 @@
                                             {{Form::close()}}
                                         </div>
                                     </td>
-                                    <td style="width: 5%">
+                                    <td style="width: 5%" class="">
                                         <input
-                                                class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
-                                                disabled>
+                                            class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
+                                            disabled>
                                     </td>
                                     <td style="width: 5%">
                                         <input class="form-control text-center bg-white" type="number"
@@ -169,11 +164,11 @@
                                             {{Form::close()}}
                                         </div>
                                     </td>
-                                    <td style="width: 6%">
+                                    <td style="width: 6%" class="">
                                         <input class="form-control text-center bg-white"
                                                value="{{+$enfunde->total_pre + +$enfunde->total_fut}}" disabled>
                                     </td>
-                                    <td>
+                                    <td class="">
                                         <div class="btn-toolbar justify-content-center" role="toolbar">
                                             <div class="btn-group mr-1" role="group" aria-label="Third group">
                                                 {{Form::open(['method' => 'POST',
@@ -198,7 +193,8 @@
                         <div class="form-row">
                             <button type="button" class="btn btn-warning"
                                     data-toggle="modal" data-target="#exampleModal">
-                                <i class="fas fa-eye"></i> Loteros pendientes <span class="badge badge-light">{{count($loteros_pendientes)}}</span>
+                                <i class="fas fa-eye"></i> Loteros pendientes <span
+                                    class="badge badge-light">{{count($loteros_pendientes)}}</span>
                             </button>
                         </div>
                     </div>

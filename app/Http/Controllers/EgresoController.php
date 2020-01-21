@@ -29,16 +29,46 @@ class EgresoController extends Controller
     {
         $this->middleware('auth');
         $this->middleware('AccesoURL',
-            ['except' => ['save',
-                'getdespacho',
-                'deleteDetalle',
-                'editDetalle', 'renderSelectLotero',
-                'respuesta', 'Inv_lotero',
-                'saldopendiente']]);
+            ['only' => ['index', 'form', 'index2']]);
         date_default_timezone_set('America/Guayaquil');
         $this->perfil = new PerfilController();
         $this->utilidades = new UtilidadesController();
         $this->enfunde = new EnfundeController();
+    }
+
+    public function index2($objeto, $modulo)
+    {
+        $hacienda_auth = Auth::user()->idHacienda;
+        $hacienda = $hacienda_auth == 0 || $hacienda_auth == 1 ? 1 : 2;
+        $recursos = $this->perfil->getRecursos(Auth::user()->ID);
+
+        $egresos = ENF_EGRESO::select('id', 'idempleado', 'total', 'status')
+            ->where('semana', $this->utilidades->getSemana()[0]->semana)
+            ->where('idhacienda', $hacienda)
+            ->with(['lotero' => function ($query) {
+                $query->select('id', 'idhacienda', 'idempleado', 'nombre_1', 'nombre_2', 'apellido_1', 'apellido_2', 'nombres');
+            }])
+            ->with(['egresos' => function ($query) {
+                $query->select('id', 'id_egreso', 'fecha', 'idmaterial', 'cantidad', 'presente', 'futuro', 'status');
+                $query->with(['get_material' => function ($query1) {
+                    $query1->selectRaw('id_fila,rtrim(codigo) codigo, nombre, bodegacompra');
+                }]);
+            }])
+            ->orderBy('updated_at', 'desc')
+            ->paginate(5);
+
+
+        if (view()->exists('enfunde' . '.' . $objeto)) {
+            return view('enfunde' . '.' . $objeto, [
+                'objeto' => $objeto, 'modulo' => $modulo,
+                'recursos' => $recursos,
+                'semana' => $this->utilidades->getSemana(),
+                'egresos' => $egresos
+            ]);
+        } else {
+            return redirect('/');
+        }
+
     }
 
     public function index($objeto, $recursos)
@@ -71,18 +101,15 @@ class EgresoController extends Controller
         }
     }
 
-    public function form(Request $request)
+    public function form($objeto, $modulo)
     {
         $current_params = Route::current()->parameters();
-
-        $this->recursos = $this->perfil->getRecursos(Auth::user()->ID);
-        Auth::user()->modulo = $current_params['modulo'];
-        Auth::user()->objeto = $current_params['objeto'];
-        Auth::user()->recursoId = $current_params['idRecurso'];
-
         $hacienda = Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda;
+        $recursos = $this->perfil->getRecursos(Auth::user()->ID);
+
         $data = [
-            'recursos' => $this->recursos,
+            'objeto' => $objeto, 'modulo' => $modulo,
+            'recursos' => $recursos,
             'semana' => $this->utilidades->getSemana(),
             'bodegas' => $this->utilidades->Bodegas(),
             'materiales' => $this->utilidades->getcomboProductos(13),
@@ -254,7 +281,7 @@ class EgresoController extends Controller
         return response()->json($resp, $resp['code']);
     }
 
-    public function deleteDetalle($empleado, $semana, $hacienda, $codigo)
+    public function deleteDetalle($codigo)
     {
         $hashid = new Hashids('', 50, '0123456789abcdefghijklmnopqrstuvwxyz');
         $id = $hashid->decode($codigo)[0];

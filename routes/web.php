@@ -1,5 +1,7 @@
 <?php
 
+use \Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -34,36 +36,45 @@ Route::get('/', 'HomeController@index')->name('home');
 
 
 //URL Enfunde
-Route::get('/sistema/{modulo}/{objeto}/{idRecurso}', 'Perfil\AccessbyUrlController@url')->name('url');
+//Route::get('/sistema/{modulo}/{objeto}/{idRecurso}', 'Perfil\AccessbyUrlController@url')->name('url');
 
-Route::get('/sistema/{modulo}/{objeto}/{idRecurso}/registro_despacho', 'EgresoController@form')->name('despacho');
-Route::post('/sistema/enfunde/despacho/save', 'EgresoController@save');
-Route::put('/sistema/enfunde/despacho/edit', 'EgresoController@editDetalle');
-Route::delete('/sistema/enfunde/despacho/delete/{empleado}/{semana}/{hacienda}/{id}', 'EgresoController@deleteDetalle');
-Route::get('/sistema/enfunde/despacho/{empleado}/{semana}/{hacienda}/{axios}', 'EgresoController@getdespacho');
+//Rutas Despachos ------------------
 
-Route::get('/sistema/{modulo}/{objeto}/{idRecurso}/registro_enfunde', 'EnfundeController@form')->name('enfunde');
-Route::post('/sistema/enfunde/registro/save', 'EnfundeController@save');
+Route::get('/sistema/despacho/{objeto}/{modulo}', 'EgresoController@index2')->name('despacho');
+Route::get('/sistema/despacho/{objeto}/{modulo}/registro', 'EgresoController@form')->name('despacho.registro');
+Route::get('/sistema/despacho/data/{empleado}/{semana}/{hacienda}/{axios}', 'EgresoController@getdespacho');
+Route::post('/sistema/despacho/save', 'EgresoController@save')->name('despacho.save');
+Route::put('/sistema/despacho/edit', 'EgresoController@editDetalle')->name('despacho.edit');
+Route::delete('/sistema/despacho/delete/{id}', 'EgresoController@deleteDetalle');
+
+//Rutas Enfunde -----------------------------------------------------------------------------------------------------------------------------------------------
+
+Route::get('/sistema/enfunde/{objeto}/{modulo}', 'EnfundeController@index')->name('enfunde');
+Route::get('/sistema/enfunde/{objeto}/{modulo}/registro', 'EnfundeController@form')->name('enfunde.form');
 Route::get('/sistema/enfunde/registro/search', 'EnfundeController@search')->name('enfunde.search');
-Route::delete('/sistema/enfunde/presente/delete/{lotero}/{semana}', 'EnfundeController@delete_presente')->name('enfunde.delete_presente');
-Route::delete('/sistema/enfunde/futuro/delete/{lotero}/{semana}', 'EnfundeController@delete_futuro')->name('enfunde.delete_futuro');
-Route::post('/sistema/enfunde/semana/close/{lotero}/{semana}', 'EnfundeController@cerrar_enfunde')->name('enfunde.close');
-Route::post('/sistema/enfunde/semana/close/{idHacienda}', 'EnfundeController@cerrar_enfundeAll')->name('enfunde.closeAll');
-Route::get('/sistema/axios/enfunde/lotero/{idlotero}/{semana}', 'EnfundeController@getLotero')->name('lotero');
+Route::get('/sistema/enfunde/registro/{idlotero}/{semana}', 'EnfundeController@getLotero')->name('lotero');
+Route::post('/sistema/enfunde/registro/save', 'EnfundeController@save')->name('enfunde.save');
+Route::post('/sistema/enfunde/registro/cierre_semana/{lotero}/{semana}', 'EnfundeController@cerrar_enfunde')->name('enfunde.close');
+Route::post('/sistema/enfunde/registro/cierre_semana/all/{idHacienda}', 'EnfundeController@cerrar_enfundeAll')->name('enfunde.closeAll');
+Route::delete('/sistema/enfunde/registro/pre/delete/{lotero}/{semana}', 'EnfundeController@delete_presente')->name('enfunde.delete_presente');
+Route::delete('/sistema/enfunde/registro/fut/delete/{lotero}/{semana}', 'EnfundeController@delete_futuro')->name('enfunde.delete_futuro');
+
 Route::post('/sistema/enfunde/reporte/semanal', 'RepEnfundeController@getEnfunde')->name('enfunde.reporte.semanal');
-
-Route::post('/sistema/enfunde/reporte/semanal/pdf', 'RepEnfundeSemController@repEnfundeSemanal')->name('enfunde.rep_semanal_pdf');
 Route::post('/sistema/enfunde/reporte/semanal/data', 'RepEnfundeSemController@repIndexEnfundeSemanal')->name('enfunde.rep_semanal_data');
+Route::post('/sistema/enfunde/reporte/semanal/pdf', 'RepEnfundeSemController@repEnfundeSemanal')->name('enfunde.rep_semanal_pdf');
 
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Route::post('/sistema/produccion/liquidacion/semana/upload', 'LiquidacionController@uploadFile')->name('produccion.liquid.upload');
 Route::post('/sistema/produccion/liquidacion/cajas/semana', 'LiquidacionController@getCajasSemana')->name('produccion.liquid.bansis');
 
-Route::get('/api/enfunde/saldo_empleado/{idempleado}/{idmaterial}/{semana}', 'EgresoController@saldopendiente');
-Route::get('/api/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');
-Route::get('/api/loteros/{criterio}', 'EnfundeController@Loteros')->name('loteros');
-Route::get('/api/calendario/{fecha?}', 'Sistema\UtilidadesController@getSemana')->name('calendario');
-Route::get('/api/productos/{bodega}/{criterio}', 'Sistema\UtilidadesController@getProductos')->name('productos');
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------
+Route::get('/api/bansis/enfunde/saldo_empleado/{idempleado}/{idmaterial}/{semana}', 'EgresoController@saldopendiente');
+Route::get('/api/bansis/nominas/rrhh/empleados/{criterio}', 'EmpleadoController@Empleados')->name('empleados');
+
+Route::get('/api/bansis/loteros/{criterio}', 'EnfundeController@Loteros')->name('loteros');
+Route::get('/api/bansis/calendario/{fecha?}', 'Sistema\UtilidadesController@getSemana')->name('calendario');
+Route::get('/api/xass/productos/{bodega}/{criterio}', 'Sistema\UtilidadesController@getProductos')->name('productos');
 
 Route::get('/empacadora/cajas', 'PruebasController@cajas')->name('empacadora.cajas');
 Route::get('/empacadora/cajas/api-allweitghts/{hacienda}/{datefrom}/{dateuntil}/{access_token?}',

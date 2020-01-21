@@ -57,19 +57,17 @@
                                     Lotero
                                 </th>
                                 <th>
-                                    <a class="btn btn-dark btn-lg btn-block" href="{{route('despacho',
-                                    ['modulo' => Auth::user()->modulo,
-                                    'objeto' =>  Auth::user()->objeto,
-                                    'idRecurso' => Auth::user()->recursoId,]
+                                    <a class="btn btn-dark btn-lg btn-block" href="{{route('despacho.registro',
+                                    ['modulo' => $modulo,
+                                    'objeto' =>  $objeto]
                                     )}}"> <i class="fas fa-plus"></i> Nuevo despacho </a>
                                 </th>
                                 @foreach($egresos as $egreso)
                                     <tr>
                                         <td class="text-center w-auto mt-auto mb-auto" style="vertical-align: inherit;">
-                                            <a href="{{route('despacho',
-                                                ['modulo' => Auth::user()->modulo,
-                                                'objeto' =>  Auth::user()->objeto,
-                                                'idRecurso' => Auth::user()->recursoId,
+                                            <a href="{{route('despacho.registro',
+                                                ['modulo' => $modulo,
+                                                'objeto' =>  $objeto,
                                                 'lotero' => $egreso->idempleado]
                                                 )}}" class="btn btn-success"><i class="fas fa-eye"></i></a>
                                         </td>
