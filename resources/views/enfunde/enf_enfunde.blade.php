@@ -89,101 +89,102 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-12 p-0 table-responsive">
-                        <table class="table table-hover table-striped" style="width:100%">
-                            <thead>
-                            <tr class="text-center">
-                                <th scope="col" class="">...</th>
-                                <th scope="col" class="">Ir</th>
-                                <th scope="col" class="">Hacienda</th>
-                                <th scope="col" class="">Semana</th>
-                                <th scope="col">Lotero</th>
-                                <th scope="col" class="">Col_pre</th>
-                                <th scope="col">Tot_pre</th>
-                                <th scope="col">...</th>
-                                <th scope="col" class="">Col_fut</th>
-                                <th scope="col">Tot_fut</th>
-                                <th scope="col">...</th>
-                                <th scope="col" class="">Total</th>
-                                <th scope="col" class="">Accion</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($enfundes_pendientes as $enfunde)
-                                <tr style="font-size: 16px" class="text-center table-sm">
-                                    <th style="width: 5%" class=""><span class="badge badge-warning">A</span></th>
-                                    <th>
-                                        <a class="btn btn-success" href="{{route('enfunde',
-                                            ['modulo' => Auth::user()->modulo,
-                                            'objeto' =>  Auth::user()->objeto,
-                                            'idRecurso' => Auth::user()->recursoId,
+                    <div class="col-12 p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped" style="width:100%">
+                                <thead>
+                                <tr class="text-center">
+                                    <th scope="col" class="">...</th>
+                                    <th scope="col" class="">Ir</th>
+                                    <th scope="col" class="">Hacienda</th>
+                                    <th scope="col" class="">Semana</th>
+                                    <th scope="col">Lotero</th>
+                                    <th scope="col" class="">Col_pre</th>
+                                    <th scope="col">Tot_pre</th>
+                                    <th scope="col">...</th>
+                                    <th scope="col" class="">Col_fut</th>
+                                    <th scope="col">Tot_fut</th>
+                                    <th scope="col">...</th>
+                                    <th scope="col" class="">Total</th>
+                                    <th scope="col" class="">Accion</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($enfundes_pendientes as $enfunde)
+                                    <tr style="font-size: 16px" class="text-center table-sm">
+                                        <th style="width: 5%" class=""><span class="badge badge-warning">A</span></th>
+                                        <th>
+                                            <a class="btn btn-success" href="{{route('enfunde.form',
+                                            ['modulo' =>$modulo,
+                                            'objeto' =>  $objeto,
                                             'lotero' => $enfunde->idlotero,
                                             'semana' => $enfunde->semana]
                                             )}}"><i class="fas fa-eye"></i>
-                                        </a>
-                                    </th>
-                                    <th scope="row" class=""
-                                        style="width: 10%">{{$enfunde->idhacienda == 1 ? '343' : '344'}}</th>
-                                    <td style="width: 5%" class="">{{$enfunde->semana}}</td>
-                                    <td>{{$enfunde->lotero->nombre_1 . ' ' . $enfunde->lotero->apellido_1 . ' ' . $enfunde->lotero->apellido_2}}</td>
-                                    <td style="width: 5%" class="">
-                                        <input
-                                            class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
-                                            disabled>
-                                    </td>
-                                    <td style="width: 5%">
-                                        <input class="form-control text-center bg-white" type="number"
-                                               value="{{$enfunde->total_pre}}" disabled>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group mr-1" role="group" aria-label="First group">
-                                            {{Form::open(['method' => 'DELETE',
-                                            'onsubmit' => 'return confirm("¿Deseas eliminar el registro Presente?")',
-                                            'route' => ['enfunde.delete_presente',
-                                            $enfunde->idlotero,$enfunde->semana]])}}
-                                            {{Form::button('<i class="fas fa-times"></i>', array('type' => 'submit', 'class' => 'btn btn-danger'))}}
-                                            {{Form::close()}}
-                                        </div>
-                                    </td>
-                                    <td style="width: 5%" class="">
-                                        <input
-                                            class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
-                                            disabled>
-                                    </td>
-                                    <td style="width: 5%">
-                                        <input class="form-control text-center bg-white" type="number"
-                                               value="{{$enfunde->total_fut}}" disabled>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group mr-1" role="group" aria-label="Second group">
-                                            {{Form::open(['method' => 'DELETE',
-                                                'onsubmit' => 'return confirm("¿Deseas eliminar el registro Futuro?")',
-                                                'route' => ['enfunde.delete_futuro',
+                                            </a>
+                                        </th>
+                                        <th scope="row" class=""
+                                            style="width: 10%">{{$enfunde->idhacienda == 1 ? '343' : '344'}}</th>
+                                        <td style="width: 5%" class="">{{$enfunde->semana}}</td>
+                                        <td>{{$enfunde->lotero->nombre_1 . ' ' . $enfunde->lotero->apellido_1 . ' ' . $enfunde->lotero->apellido_2}}</td>
+                                        <td style="width: 5%" class="">
+                                            <input
+                                                class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[0]->des_color}}1"
+                                                disabled>
+                                        </td>
+                                        <td style="width: 5%">
+                                            <input class="form-control text-center bg-white" type="number"
+                                                   value="{{$enfunde->total_pre}}" disabled>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group mr-1" role="group" aria-label="First group">
+                                                {{Form::open(['method' => 'DELETE',
+                                                'onsubmit' => 'return confirm("¿Deseas eliminar el registro Presente?")',
+                                                'route' => ['enfunde.delete_presente',
                                                 $enfunde->idlotero,$enfunde->semana]])}}
-                                            {{Form::button('<i class="fas fa-times"></i>', array('type' => 'submit', 'class' => 'btn btn-danger'))}}
-                                            {{Form::close()}}
-                                        </div>
-                                    </td>
-                                    <td style="width: 6%" class="">
-                                        <input class="form-control text-center bg-white"
-                                               value="{{+$enfunde->total_pre + +$enfunde->total_fut}}" disabled>
-                                    </td>
-                                    <td class="">
-                                        <div class="btn-toolbar justify-content-center" role="toolbar">
-                                            <div class="btn-group mr-1" role="group" aria-label="Third group">
-                                                {{Form::open(['method' => 'POST',
-                                                    'onsubmit' => 'return confirm("¿Deseas cerrar el enfunde?")',
-                                                    'route' => ['enfunde.close',
-                                                    $enfunde->idlotero,$enfunde->semana]])}}
-                                                {{Form::button('<i class="fas fa-lock"></i>', array('type' => 'submit', 'class' => 'btn btn-primary'))}}
+                                                {{Form::button('<i class="fas fa-times"></i>', array('type' => 'submit', 'class' => 'btn btn-danger'))}}
                                                 {{Form::close()}}
                                             </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                                        </td>
+                                        <td style="width: 5%" class="">
+                                            <input
+                                                class="form-control {{\App\Http\Controllers\Sistema\UtilidadesController::getSemana($enfunde->fecha)[1]->des_color}}1"
+                                                disabled>
+                                        </td>
+                                        <td style="width: 5%">
+                                            <input class="form-control text-center bg-white" type="number"
+                                                   value="{{$enfunde->total_fut}}" disabled>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group mr-1" role="group" aria-label="Second group">
+                                                {{Form::open(['method' => 'DELETE',
+                                                    'onsubmit' => 'return confirm("¿Deseas eliminar el registro Futuro?")',
+                                                    'route' => ['enfunde.delete_futuro',
+                                                    $enfunde->idlotero,$enfunde->semana]])}}
+                                                {{Form::button('<i class="fas fa-times"></i>', array('type' => 'submit', 'class' => 'btn btn-danger'))}}
+                                                {{Form::close()}}
+                                            </div>
+                                        </td>
+                                        <td style="width: 6%" class="">
+                                            <input class="form-control text-center bg-white"
+                                                   value="{{+$enfunde->total_pre + +$enfunde->total_fut}}" disabled>
+                                        </td>
+                                        <td class="">
+                                            <div class="btn-toolbar justify-content-center" role="toolbar">
+                                                <div class="btn-group mr-1" role="group" aria-label="Third group">
+                                                    {{Form::open(['method' => 'POST',
+                                                        'onsubmit' => 'return confirm("¿Deseas cerrar el enfunde?")',
+                                                        'route' => ['enfunde.close',
+                                                        $enfunde->idlotero,$enfunde->semana]])}}
+                                                    {{Form::button('<i class="fas fa-lock"></i>', array('type' => 'submit', 'class' => 'btn btn-primary'))}}
+                                                    {{Form::close()}}
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                         <hr>
                         <div class="form-row mt-3 justify-content-center">
                             {{ $enfundes_pendientes->links() }}

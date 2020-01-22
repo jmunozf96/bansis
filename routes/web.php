@@ -59,9 +59,11 @@ Route::post('/sistema/enfunde/registro/cierre_semana/all/{idHacienda}', 'Enfunde
 Route::delete('/sistema/enfunde/registro/pre/delete/{lotero}/{semana}', 'EnfundeController@delete_presente')->name('enfunde.delete_presente');
 Route::delete('/sistema/enfunde/registro/fut/delete/{lotero}/{semana}', 'EnfundeController@delete_futuro')->name('enfunde.delete_futuro');
 
+Route::get('/sistema/enfunde/reporte/{objeto}/{modulo}', 'RepEnfundeController@index')->name('enfunde.reporte.semana');
+Route::get('/sistema/enfunde/reporte/lotero/{objeto}/{modulo}', 'RepEnfundeSemController@index')->name('enfunde.reporte.lotero');
 Route::post('/sistema/enfunde/reporte/semanal', 'RepEnfundeController@getEnfunde')->name('enfunde.reporte.semanal');
+Route::post('/sistema/enfunde/reporte/semanal/lotero', 'RepEnfundeSemController@repEnfundeSemanal')->name('enfunde.rep_semanal_pdf');
 Route::post('/sistema/enfunde/reporte/semanal/data', 'RepEnfundeSemController@repIndexEnfundeSemanal')->name('enfunde.rep_semanal_data');
-Route::post('/sistema/enfunde/reporte/semanal/pdf', 'RepEnfundeSemController@repEnfundeSemanal')->name('enfunde.rep_semanal_pdf');
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------
 

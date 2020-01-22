@@ -34,14 +34,16 @@ class RepEnfundeController extends Controller
         $this->utilidades = new UtilidadesController();
     }
 
-    public function index($objeto, $recursos)
+    public function index($objeto, $modulo)
     {
-        $this->recursos = $recursos;
-        $hacienda = Auth::user()->idHacienda == 0 ? 1 : Auth::user()->idHacienda;
+        $hacienda_auth = Auth::user()->idHacienda;
+        $hacienda = $hacienda_auth == 0 || $hacienda_auth == 1 ? 1 : 2;
+        $recursos = $this->perfil->getRecursos(Auth::user()->ID);
+
         //return response()->json($this->comboLoteros($hacienda), 200);
         if (view()->exists('enfunde.reporte' . '.' . $objeto)) {
             return view('enfunde.reporte' . '.' . $objeto, [
-                'recursos' => $this->recursos,
+                'recursos' => $recursos,
                 'semana' => $this->utilidades->getSemana(),
                 'combosemanas' => $this->utilidades->comboSemanas(),
                 'comboloteros' => $this->comboLoteros($hacienda)

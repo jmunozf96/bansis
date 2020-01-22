@@ -13,8 +13,8 @@
                     <div class="container">
                         <div class="row justify-content-center">
                             <div class="col-md-9 mt-5" style="">
-                                <div class="card" style="border-radius: 1rem;">
-                                    <h5 style="margin-left: 1.2rem; margin-top: 1rem; margin-bottom: -1%;"><b>{{ __('Login') }} a Bansis</b></h5>
+                                <div class="card" style="">
+                                    <h5 style="margin-left: 1rem; margin-top: 1rem; margin-bottom: -1%;"><b>{{ __('Login') }}</b></h5>
                                     <hr style="margin-bottom: -0.5em">
                                     <div class="card-body">
                                         <form method="POST" action="{{ route('login') }}">
