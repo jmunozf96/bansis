@@ -20,7 +20,8 @@
 </head>
 <body>
 <div id="app">
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm" style="background-color: #134c39 !important">
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm fixed-top"
+         style="background-color: #134c39 !important">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url('/') }}">
                 <span
@@ -125,7 +126,7 @@
             </div>
         </div>
     </nav>
-    <main class="py-4">
+    <main style="margin-top: 5rem">
         @yield('content')
         @include('layouts.modal')
     </main>
