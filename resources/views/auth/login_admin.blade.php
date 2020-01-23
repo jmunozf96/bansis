@@ -5,7 +5,7 @@
 @endpush
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container-fluid" style="margin-top: -1.35rem">
         <div class="row no-gutter">
             <div class="d-none d-lg-block d-md-block col-md-5 col-lg-7 bg-image" style="min-height: 93.8vh;" id="bg-image"></div>
             <div class="col-md-7 col-lg-5">
