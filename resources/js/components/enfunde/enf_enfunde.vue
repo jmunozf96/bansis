@@ -15,23 +15,24 @@
                     <optgroup label="Loteros con saldo de fundas" data-max-options="2">
                         <template v-for="(lotero1, index) in this.loteros">
                             <option
+                                data-tokens="{{lotero1.idempleado}}"
                                 v-if="lotero1.fundas"
                                 style="font-size: 18px"
                                 :key="index"
                                 :data-subtext="lotero1.fundas ? ' - Tiene fundas despachadas' : ''"
                                 :value="lotero1.id"
-                            >{{lotero1.nombres}}
+                            >{{lotero1.idempleado}} - {{lotero1.nombres}}
                             </option>
                         </template>
                     </optgroup>
-                    <optgroup label="Loteros pendientes despacho" data-max-options="2">
+                    <optgroup label="Loteros pendientes despacho" data-max-options="2" disabled>
                         <template v-for="(lotero2, index) in this.loteros">
                             <option
                                 style="font-size: 18px"
                                 v-if="!lotero2.fundas"
                                 :key="index"
                                 :value="lotero2.id"
-                            >{{lotero2.nombres}}
+                            >{{lotero2.idempleado}} - {{lotero2.nombres}}
                             </option>
                         </template>
                     </optgroup>

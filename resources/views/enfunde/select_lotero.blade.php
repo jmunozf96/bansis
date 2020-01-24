@@ -1,9 +1,10 @@
-<option value="" selected disabled>Seleccione un lotero...</option>
+<option value="" selected disabled>Seleccione un lotero (Puede buscar por codigo).</option>
 <optgroup label="Loteros con saldo de fundas" data-max-options="2">
     @foreach($loteros as $lotero)
         @if($lotero->fundas)
             <option data-subtext="Tiene fundas despachada" style="font-size: 18px"
-                    value="{{$lotero->idempleado}}" {{isset($_GET['lotero']) ? $lotero->idempleado == $_GET['lotero'] ? 'selected' : '' : ''}}>{{$lotero->nombres}}</option>
+                    data-tokens="{{$lotero->idempleado}}"
+                    value="{{$lotero->idempleado}}" {{isset($_GET['lotero']) ? $lotero->idempleado == $_GET['lotero'] ? 'selected' : '' : ''}}>{{$lotero->idempleado}} - {{$lotero->nombres}}</option>
         @endif
     @endforeach
 </optgroup>

@@ -49,7 +49,6 @@
                                     </option>
                                 </select>
                             </div>
-
                             <div class="form-group col-md-2 d-none">
                                 <label>Codigo Empleado</label>
                                 <div class="input-group flex-nowrap">
@@ -69,11 +68,15 @@
                                        id="nombre-empleado"
                                        oninput="this.value = this.value.toUpperCase()">--}}
                                 <label>Lotero</label>
-                                <select class="selectpicker show-tick form-control form-control-lg"
-                                        data-live-search="true" data-style="btn-outline-dark" data-size="15"
-                                        id="nombre-empleado">
-                                    @include('enfunde.select_lotero')
-                                </select>
+                                <div style="overflow:hidden;">
+                                    <select class="selectpicker show-tick form-control form-control-lg dropup"
+                                            data-container="body"
+                                            data-dropup-auto="false"
+                                            data-live-search="true" data-style="btn-outline-dark" data-size="15"
+                                            id="nombre-empleado">
+                                        @include('enfunde.select_lotero')
+                                    </select>
+                                </div>
                                 <div class="my-1 mb-0">
                                     <div class="custom-control custom-checkbox mr-sm-2 mb-0 b-custom-control-lg">
                                         <input type="checkbox" class="custom-control-input" id="id-reemplazo">
@@ -90,7 +93,7 @@
                                         id="bodega" disabled>
                                     @foreach($bodegas as $bodega)
                                         <option
-                                                value="{{$bodega->Id_Fila}}" {{$bodega->Id_Fila == 13 ? 'selected' : ''}}>{{$bodega->Nombre}}</option>
+                                            value="{{$bodega->Id_Fila}}" {{$bodega->Id_Fila == 13 ? 'selected' : ''}}>{{$bodega->Nombre}}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -113,19 +116,21 @@
                                         <option style="font-size: 18px"
                                                 value="{{$material->codigo}}"
                                                 data-subtext="Stock: {{number_format(round($material->stock))}}"
-                                                {{$material->codigo == 2446 ? 'selected' : ''}}>{{$material->nombre}}</option>
+                                            {{$material->codigo == 2446 ? 'selected' : ''}}>{{$material->nombre}}</option>
                                     @endforeach
                                 </select>
                                 <input type="text" class="form-control form-control-lg text-dark d-none"
                                        placeholder="Buscar producto"
                                        id="nombre-producto" style="font-size: 20px"
                                        oninput="this.value = this.value.toUpperCase()">
-                                <div class="custom-control custom-radio custom-control-inline mt-1 mb-0  b-custom-control-lg">
+                                <div
+                                    class="custom-control custom-radio custom-control-inline mt-1 mb-0  b-custom-control-lg">
                                     <input type="radio" id="presente" value="presente" name="status-semana"
                                            class="custom-control-input" checked>
                                     <label class="custom-control-label" for="presente">Presente</label>
                                 </div>
-                                <div class="custom-control custom-radio custom-control-inline mt-1 mb-0 b-custom-control-lg">
+                                <div
+                                    class="custom-control custom-radio custom-control-inline mt-1 mb-0 b-custom-control-lg">
                                     <input type="radio" id="futuro" value="futuro" name="status-semana"
                                            class="custom-control-input">
                                     <label class="custom-control-label" for="futuro">Futuro</label>
