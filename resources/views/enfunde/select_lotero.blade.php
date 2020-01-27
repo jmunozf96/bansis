@@ -11,7 +11,7 @@
 <optgroup label="Loteros pendientes despacho" data-max-options="2">
     @foreach($loteros as $lotero)
         @if(!$lotero->fundas)
-            <option style="font-size: 18px" value="{{$lotero->idempleado}}">{{$lotero->nombres}}</option>
+            <option style="font-size: 18px" value="{{$lotero->idempleado}}">{{$lotero->idempleado}} - {{$lotero->nombres}}</option>
         @endif
     @endforeach
 </optgroup>

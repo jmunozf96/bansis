@@ -87,6 +87,7 @@ class EnfundeController extends Controller
             'loteros' => $this->Loteros_nw($hacienda, $this->utilidades->getSemana()[0]->semana),
         ];
 
+
         return view('enfunde.enf_enfunde_registro', $data);
     }
 
@@ -297,10 +298,6 @@ class EnfundeController extends Controller
                 $query3->where('semana', $semana);
                 $query3->with(['egresos' => function ($query7) {
                     $query7->select('id', 'id_egreso', 'fecha', 'cantidad', 'reemplazo', 'idempleado');
-                    $query7->with(['nom_reemplazo' => function ($query10) {
-                        $query10->selectRaw('COD_TRABAJ, trim(NOMBRE_CORTO) as nombre');
-                        $query10->orderBy('NOMBRE_CORTO', 'asc');
-                    }]);
                 }]);
             }])
             ->orderBy('nombres')
