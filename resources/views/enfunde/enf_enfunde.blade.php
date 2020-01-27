@@ -29,7 +29,7 @@
                                 </option>
                                 <option data-divider="true"></option>
                                 <option data-tokens="344"
-                                        value="344" {{Auth::user()->idHacienda == 2 ? 'selected' : ''}}>
+                                        value="344" {{\Auth::user()->idHacienda == 2 ? 'selected' : ''}}>
                                     SOFCA-BANANO
                                 </option>
                             </select>
@@ -39,9 +39,8 @@
                 </div>
                 <div class="row">
                     <div class="col-12 col-md-3 mb-2">
-                        {{Form::open(['method' => 'POST',
-                                                'onsubmit' => 'return confirm("¿Deseas cerrar el enfunde?")',
-                                                'route' => ['enfunde.closeAll',Auth::user()->idHacienda], 'class'=> 'form-inline'])}}
+                        {{Form::open(['method' => 'POST', 'onsubmit' => 'return confirm("¿Deseas cerrar el enfunde?")',
+                                'route' => array('enfunde.closeAll', \Auth::user()->idHacienda), 'class'=> 'form-inline'])}}
                         {{Form::button('<i class="fas fa-lock"></i> Cerrar Todo', array('type' => 'submit', 'class' => 'btn btn-primary btn-lg'))}}
                         {{Form::close()}}
                     </div>

@@ -879,6 +879,7 @@ class EnfundeController extends Controller
         $no_se_cierran = array();
         $resp = array();
 
+
         $idhacienda = $idhacienda == 0 ? 1 : $idhacienda;
 
         $enfunde_open = ENF_ENFUNDE::select('id', 'semana', 'idlotero')
