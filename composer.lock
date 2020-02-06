@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7b066ff8405e6127b9b99ca765cdfc33",
+    "content-hash": "9c23d27bda7cb226f0904aa1912a4217",
     "packages": [
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -498,6 +498,51 @@
                 "youtube"
             ],
             "time": "2019-04-03T13:40:29+00:00"
+        },
+        {
+            "name": "hisamu/php-xbase",
+            "version": "1.0.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/luads/php-xbase.git",
+                "reference": "ce78739c466ff793f5c80cdcf45fa0284834d174"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/luads/php-xbase/zipball/ce78739c466ff793f5c80cdcf45fa0284834d174",
+                "reference": "ce78739c466ff793f5c80cdcf45fa0284834d174",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "XBase": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Luã de Souza",
+                    "email": "lsouza@codeinc.com.br"
+                },
+                {
+                    "name": "Erwin Kooi",
+                    "email": "info@cyane.nl"
+                }
+            ],
+            "description": "A simple parser for *.dbf, *.fpt files using PHP",
+            "homepage": "https://github.com/luads/php-xbase",
+            "keywords": [
+                "dbase",
+                "foxpro"
+            ],
+            "time": "2020-01-29T15:40:35+00:00"
         },
         {
             "name": "jakub-onderka/php-console-color",

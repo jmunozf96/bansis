@@ -773,9 +773,9 @@ class EnfundeController extends Controller
                     ->where([
                         'idlotero' => $lotero,
                         'semana' => $semana
-                    ])
-                    ->first();
-                if ($enfunde && $enfunde->status) {
+                    ])->first();
+
+                if ($enfunde && $enfunde->status == 1) {
                     if (+$enfunde->total_pre > 0 && +$enfunde->total_fut > 0) {
                         $total_enfunde = intval($enfunde->total_pre) + intval($enfunde->total_fut);
                         $enfunde->count = 2;
@@ -788,8 +788,7 @@ class EnfundeController extends Controller
                             ->where([
                                 'idempleado' => $lotero_empleado->idempleado,
                                 'semana' => $semana
-                            ])
-                            ->first();
+                            ])->first();
 
                         if ($despachos) {
                             $despachos->status = 0;
@@ -831,7 +830,6 @@ class EnfundeController extends Controller
                                 ])->update(array("status" => 0));
 
                                 if ($update_inventario) {
-                                    DB::commit();
                                     $status = true;
                                     $resp['code'] = 200;
                                     $resp['status'] = 'success';
@@ -849,6 +847,8 @@ class EnfundeController extends Controller
                 }
             }
 
+
+            DB::commit();
             if ($status && !$cerrar_todo) {
                 return Redirect::back()
                     ->with('msg', $resp['message'])
@@ -877,14 +877,13 @@ class EnfundeController extends Controller
         $resp = array();
 
 
-        $idhacienda = $idhacienda == 0 ? 1 : $idhacienda;
+        $idhacienda = $idhacienda == 0 || $idhacienda == 1 ? 1 : 2;
 
         $enfunde_open = ENF_ENFUNDE::select('id', 'semana', 'idlotero')
             ->where([
                 'idhacienda' => $idhacienda,
                 'status' => 1
-            ])
-            ->get();
+            ])->get();
 
         foreach ($enfunde_open as $enfunde) {
             $resp = $this->cerrar_enfunde($enfunde->idlotero, $enfunde->semana, true, true);

@@ -103,6 +103,18 @@ return [
             'prefix_indexes' => true,
         ],
 
+        'sisban' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => env('sisban_HOST', 'localhost'),
+            'database' => env('sisban_DATABASE', 'forge'),
+            'username' => env('sisban_USERNAME', 'forge'),
+            'password' => env('sisban_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
+
         'xass' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),

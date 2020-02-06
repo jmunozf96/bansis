@@ -85,3 +85,11 @@ Route::get('/empacadora/cajas/api-allweitghts/{hacienda}/{datefrom}/{dateuntil}/
     ->name('empacadora.balanza');
 
 
+Route::get('/sistema/migracion-sisban/dbf/cosecha/{hacienda}/{fecha}', 'MigracionController@cosecha');
+Route::get('/sistema/migracion-sisban/dbf/liquidacion/{hacienda}/{fecha}', 'MigracionController@liquidacion');
+Route::get('/sistema/migracion-sisban/dbf/muestreo/{hacienda}/{fecha}', 'MigracionController@muestreo');
+Route::get('/sistema/migracion-sisban/dbf/{hacienda}/{fecha}', 'MigracionController@index');
+
+Route::get('/sistema/migracion-sisban/dbf/perdidas/{hacienda}/{fecha}', 'MigracionController@perdidas');
+
+
